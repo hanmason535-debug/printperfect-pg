@@ -19,9 +19,16 @@ const Header = () => {
     { label: 'Home', href: '#home' },
     { label: 'Services', href: '#services' },
     { label: 'Portfolio', href: '#portfolio' },
-    { label: 'About', href: '#about' },
     { label: 'Contact', href: '#contact' },
   ];
+
+  const handleNavClick = (href: string) => {
+    const element = document.querySelector(href);
+    if (element) {
+      element.scrollIntoView({ behavior: 'smooth' });
+    }
+    setIsMenuOpen(false);
+  };
 
   return (
     <motion.header
@@ -58,13 +65,13 @@ const Header = () => {
           {/* Desktop Navigation */}
           <nav className="hidden lg:flex items-center space-x-8">
             {menuItems.map((item) => (
-              <a
+              <button
                 key={item.label}
-                href={item.href}
+                onClick={() => handleNavClick(item.href)}
                 className="text-foreground hover:text-cyan transition-colors duration-300 font-medium"
               >
                 {item.label}
-              </a>
+              </button>
             ))}
           </nav>
 
@@ -113,14 +120,13 @@ const Header = () => {
           >
             <div className="flex flex-col space-y-4 p-4">
               {menuItems.map((item) => (
-                <a
+                <button
                   key={item.label}
-                  href={item.href}
-                  className="text-foreground hover:text-cyan transition-colors duration-300 font-medium py-2"
-                  onClick={() => setIsMenuOpen(false)}
+                  onClick={() => handleNavClick(item.href)}
+                  className="text-foreground hover:text-cyan transition-colors duration-300 font-medium py-2 text-left w-full"
                 >
                   {item.label}
-                </a>
+                </button>
               ))}
               <div className="flex space-x-3 pt-2">
                 <Button

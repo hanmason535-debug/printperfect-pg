@@ -149,9 +149,25 @@ const ServicesGrid = () => {
                 <h3 className="text-xl font-heading font-semibold text-foreground mb-2 group-hover:text-cyan transition-colors duration-300">
                   {service.title}
                 </h3>
-                <p className="text-muted-foreground text-sm leading-relaxed">
+                <p className="text-muted-foreground text-sm leading-relaxed mb-4">
                   {service.description}
                 </p>
+                
+                {/* View Portfolio Samples Link */}
+                <button
+                  onClick={() => {
+                    const portfolioSection = document.querySelector('#portfolio');
+                    if (portfolioSection) {
+                      portfolioSection.scrollIntoView({ behavior: 'smooth' });
+                    }
+                  }}
+                  className="opacity-0 group-hover:opacity-100 text-cyan hover:text-cyan-glow font-medium text-sm transition-all duration-300 flex items-center"
+                >
+                  View Portfolio Samples
+                  <svg className="w-4 h-4 ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                  </svg>
+                </button>
               </div>
 
               {/* Hover Effect Overlay */}

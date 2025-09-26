@@ -13,6 +13,26 @@ export default {
       },
     },
     extend: {
+      fontFamily: {
+        'sans': ['Inter', 'system-ui', 'sans-serif'],
+        'heading': ['Montserrat', 'system-ui', 'sans-serif'],
+        'body': ['Poppins', 'system-ui', 'sans-serif'],
+      },
+      backgroundImage: {
+        'gradient-hero': 'var(--gradient-hero)',
+        'gradient-cyan': 'var(--gradient-cyan)',
+        'gradient-subtle': 'var(--gradient-subtle)',
+        'gradient-cmyk': 'var(--gradient-cmyk)',
+      },
+      boxShadow: {
+        'premium': 'var(--shadow-premium)',
+        'cyan-glow': 'var(--shadow-cyan-glow)',
+        'elevation': 'var(--shadow-elevation)',
+      },
+      transitionTimingFunction: {
+        'smooth': 'cubic-bezier(0.4, 0, 0.2, 1)',
+        'bounce': 'cubic-bezier(0.175, 0.885, 0.32, 1.275)',
+      },
       colors: {
         border: "hsl(var(--border))",
         input: "hsl(var(--input))",
@@ -22,10 +42,31 @@ export default {
         primary: {
           DEFAULT: "hsl(var(--primary))",
           foreground: "hsl(var(--primary-foreground))",
+          glow: "hsl(var(--primary-glow))",
         },
         secondary: {
           DEFAULT: "hsl(var(--secondary))",
           foreground: "hsl(var(--secondary-foreground))",
+        },
+        // CMYK Brand Colors
+        cyan: {
+          DEFAULT: "hsl(var(--cyan-accent))",
+          foreground: "hsl(var(--cyan-accent-foreground))",
+          glow: "hsl(var(--cyan-glow))",
+        },
+        magenta: {
+          DEFAULT: "hsl(var(--magenta-accent))",
+          foreground: "hsl(var(--magenta-accent-foreground))",
+          glow: "hsl(var(--magenta-glow))",
+        },
+        yellow: {
+          DEFAULT: "hsl(var(--yellow-accent))",
+          foreground: "hsl(var(--yellow-accent-foreground))",
+          glow: "hsl(var(--yellow-glow))",
+        },
+        charcoal: {
+          DEFAULT: "hsl(var(--charcoal))",
+          light: "hsl(var(--charcoal-light))",
         },
         destructive: {
           DEFAULT: "hsl(var(--destructive))",
@@ -65,25 +106,48 @@ export default {
       },
       keyframes: {
         "accordion-down": {
-          from: {
-            height: "0",
-          },
-          to: {
-            height: "var(--radix-accordion-content-height)",
-          },
+          from: { height: "0" },
+          to: { height: "var(--radix-accordion-content-height)" },
         },
         "accordion-up": {
-          from: {
-            height: "var(--radix-accordion-content-height)",
-          },
-          to: {
-            height: "0",
-          },
+          from: { height: "var(--radix-accordion-content-height)" },
+          to: { height: "0" },
+        },
+        "fade-in": {
+          "0%": { opacity: "0", transform: "translateY(20px)" },
+          "100%": { opacity: "1", transform: "translateY(0)" },
+        },
+        "scale-in": {
+          "0%": { transform: "scale(0.95)", opacity: "0" },
+          "100%": { transform: "scale(1)", opacity: "1" },
+        },
+        "bounce-in": {
+          "0%": { transform: "scale(0.8)", opacity: "0" },
+          "50%": { transform: "scale(1.05)" },
+          "100%": { transform: "scale(1)", opacity: "1" },
+        },
+        "glow-pulse": {
+          "0%, 100%": { boxShadow: "0 0 20px hsl(var(--cyan-accent) / 0.3)" },
+          "50%": { boxShadow: "0 0 40px hsl(var(--cyan-accent) / 0.6)" },
+        },
+        "float": {
+          "0%, 100%": { transform: "translateY(0px)" },
+          "50%": { transform: "translateY(-10px)" },
+        },
+        "loading-dots": {
+          "0%, 80%, 100%": { transform: "scale(0)" },
+          "40%": { transform: "scale(1)" },
         },
       },
       animation: {
         "accordion-down": "accordion-down 0.2s ease-out",
         "accordion-up": "accordion-up 0.2s ease-out",
+        "fade-in": "fade-in 0.6s ease-out",
+        "scale-in": "scale-in 0.4s ease-out",
+        "bounce-in": "bounce-in 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275)",
+        "glow-pulse": "glow-pulse 2s ease-in-out infinite",
+        "float": "float 3s ease-in-out infinite",
+        "loading-dots": "loading-dots 1.4s infinite ease-in-out both",
       },
     },
   },

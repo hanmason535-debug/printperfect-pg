@@ -9,17 +9,26 @@ const buttonVariants = cva(
   {
     variants: {
       variant: {
-        default: "bg-primary text-primary-foreground hover:bg-primary/90",
+        default: "bg-primary text-primary-foreground hover:bg-primary/90 shadow-elevation transition-all duration-300",
         destructive: "bg-destructive text-destructive-foreground hover:bg-destructive/90",
         outline: "border border-input bg-background hover:bg-accent hover:text-accent-foreground",
         secondary: "bg-secondary text-secondary-foreground hover:bg-secondary/80",
         ghost: "hover:bg-accent hover:text-accent-foreground",
         link: "text-primary underline-offset-4 hover:underline",
+        // CMYK Hero Variants
+        cyan: "bg-cyan text-cyan-foreground hover:bg-cyan/90 shadow-cyan-glow hover:shadow-cyan-glow hover:scale-105 transition-all duration-300 font-semibold",
+        whatsapp: "bg-green-500 text-white hover:bg-green-600 hover:scale-105 transition-all duration-300 font-semibold shadow-lg",
+        hero: "bg-gradient-cyan text-white hover:scale-105 hover:shadow-premium transition-all duration-300 font-semibold border-0",
+        premium: "bg-gradient-hero text-white hover:bg-primary-glow hover:scale-105 transition-all duration-300 font-semibold shadow-premium",
+        magenta: "bg-magenta text-magenta-foreground hover:bg-magenta/90 hover:scale-105 transition-all duration-300 font-semibold",
+        yellow: "bg-yellow text-yellow-foreground hover:bg-yellow/90 hover:scale-105 transition-all duration-300 font-semibold",
       },
       size: {
         default: "h-10 px-4 py-2",
         sm: "h-9 rounded-md px-3",
         lg: "h-11 rounded-md px-8",
+        xl: "h-14 rounded-lg px-12 text-lg",
+        hero: "h-16 rounded-xl px-16 text-lg font-heading",
         icon: "h-10 w-10",
       },
     },

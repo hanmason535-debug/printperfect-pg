@@ -2,41 +2,78 @@
 @tailwind components;
 @tailwind utilities;
 
-/* Definition of the design system. All colors, gradients, fonts, etc should be defined here. 
-All colors MUST be HSL.
+/* Paras Graphics Design System - Premium Printing Business
+All colors MUST be HSL. CMYK accent colors with professional navy/charcoal base.
 */
 
 @layer base {
   :root {
+    /* Base colors - Professional navy and charcoal theme */
     --background: 0 0% 100%;
-    --foreground: 222.2 84% 4.9%;
-
+    --foreground: 215 25% 15%;
+    
+    /* Navy primary for professional look */
+    --primary: 215 40% 25%;
+    --primary-foreground: 0 0% 100%;
+    --primary-glow: 215 45% 35%;
+    
+    /* CMYK Accent Colors - Cyan */
+    --cyan-accent: 191 85% 50%;
+    --cyan-accent-foreground: 0 0% 100%;
+    --cyan-glow: 191 75% 60%;
+    
+    /* CMYK Accent Colors - Magenta */
+    --magenta-accent: 320 85% 50%;
+    --magenta-accent-foreground: 0 0% 100%;
+    --magenta-glow: 320 75% 60%;
+    
+    /* CMYK Accent Colors - Yellow */
+    --yellow-accent: 51 100% 50%;
+    --yellow-accent-foreground: 215 25% 15%;
+    --yellow-glow: 51 90% 60%;
+    
+    /* Charcoal and neutral tones */
+    --secondary: 216 12% 92%;
+    --secondary-foreground: 215 25% 15%;
+    --charcoal: 215 20% 20%;
+    --charcoal-light: 215 15% 30%;
+    
+    /* Card and surface colors */
     --card: 0 0% 100%;
-    --card-foreground: 222.2 84% 4.9%;
-
+    --card-foreground: 215 25% 15%;
+    
     --popover: 0 0% 100%;
-    --popover-foreground: 222.2 84% 4.9%;
-
-    --primary: 222.2 47.4% 11.2%;
-    --primary-foreground: 210 40% 98%;
-
-    --secondary: 210 40% 96.1%;
-    --secondary-foreground: 222.2 47.4% 11.2%;
-
-    --muted: 210 40% 96.1%;
+    --popover-foreground: 215 25% 15%;
+    
+    --muted: 216 12% 96%;
     --muted-foreground: 215.4 16.3% 46.9%;
-
-    --accent: 210 40% 96.1%;
-    --accent-foreground: 222.2 47.4% 11.2%;
-
+    
+    --accent: 216 12% 94%;
+    --accent-foreground: 215 25% 15%;
+    
     --destructive: 0 84.2% 60.2%;
     --destructive-foreground: 210 40% 98%;
-
+    
     --border: 214.3 31.8% 91.4%;
     --input: 214.3 31.8% 91.4%;
-    --ring: 222.2 84% 4.9%;
-
-    --radius: 0.5rem;
+    --ring: 191 85% 50%;
+    
+    /* Premium gradients */
+    --gradient-hero: linear-gradient(135deg, hsl(var(--primary)) 0%, hsl(var(--primary-glow)) 100%);
+    --gradient-cyan: linear-gradient(135deg, hsl(var(--cyan-accent)) 0%, hsl(var(--cyan-glow)) 100%);
+    --gradient-subtle: linear-gradient(180deg, hsl(var(--background)) 0%, hsl(var(--muted)) 100%);
+    --gradient-cmyk: linear-gradient(45deg, hsl(var(--cyan-accent)) 0%, hsl(var(--magenta-accent)) 50%, hsl(var(--yellow-accent)) 100%);
+    
+    /* Premium shadows */
+    --shadow-premium: 0 25px 50px -12px hsl(var(--primary) / 0.25);
+    --shadow-cyan-glow: 0 0 40px hsl(var(--cyan-accent) / 0.3);
+    --shadow-elevation: 0 10px 30px -10px hsl(var(--primary) / 0.15);
+    
+    /* Animation timing */
+    --transition-smooth: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    --transition-bounce: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    
+    --radius: 0.75rem;
 
     --sidebar-background: 0 0% 98%;
 

@@ -34,8 +34,8 @@ const Header = () => {
     <motion.header
       className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${
         isScrolled 
-          ? 'bg-background/95 backdrop-blur-md shadow-elevation' 
-          : 'bg-transparent'
+          ? 'bg-black/80 backdrop-blur-md shadow-elevation' 
+          : 'bg-black/60 backdrop-blur-sm'
       }`}
       initial={{ y: -100 }}
       animate={{ y: 0 }}
@@ -53,10 +53,10 @@ const Header = () => {
               PG
             </div>
             <div className="hidden sm:block">
-              <h1 className="text-xl font-heading font-bold text-foreground">
+              <h1 className="text-xl font-heading font-bold text-white">
                 Paras Graphics
               </h1>
-              <p className="text-xs text-muted-foreground -mt-1">
+              <p className="text-xs text-gray-300 -mt-1">
                 Premium Printing
               </p>
             </div>
@@ -68,7 +68,7 @@ const Header = () => {
               <button
                 key={item.label}
                 onClick={() => handleNavClick(item.href)}
-                className="text-foreground hover:text-cyan transition-colors duration-300 font-medium"
+                className="text-white hover:text-cyan-accent transition-colors duration-300 font-medium"
               >
                 {item.label}
               </button>
@@ -81,7 +81,7 @@ const Header = () => {
               variant="whatsapp"
               size="sm"
               className="hidden sm:flex"
-              onClick={() => window.open('https://wa.me/919825123456', '_blank')}
+              onClick={() => window.open('https://wa.me/919377476343', '_blank')}
             >
               <MessageCircle className="w-4 h-4" />
               WhatsApp
@@ -91,10 +91,23 @@ const Header = () => {
               variant="cyan"
               size="sm"
               className="hidden sm:flex"
-              onClick={() => window.open('tel:+919825123456', '_blank')}
+              onClick={() => window.open('tel:+919377476343', '_blank')}
             >
               <Phone className="w-4 h-4" />
               Call
+            </Button>
+
+            {/* Google Maps Button */}
+            <Button
+              variant="ghost"
+              size="icon"
+              className="hidden md:flex w-8 h-8 text-white hover:text-cyan-accent"
+              onClick={() => window.open('https://maps.app.goo.gl/yt63M1mqnfSYL9he8', '_blank')}
+              title="Find us on Google Maps"
+            >
+              <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
+                <path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"/>
+              </svg>
             </Button>
 
             {/* Mobile Menu Toggle */}
@@ -112,7 +125,7 @@ const Header = () => {
         {/* Mobile Menu */}
         {isMenuOpen && (
           <motion.div
-            className="lg:hidden absolute top-full left-0 right-0 bg-background/95 backdrop-blur-md shadow-elevation border-t"
+            className="lg:hidden absolute top-full left-0 right-0 bg-black/90 backdrop-blur-md shadow-elevation border-t border-white/20"
             initial={{ opacity: 0, y: -20 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -20 }}
@@ -123,7 +136,7 @@ const Header = () => {
                 <button
                   key={item.label}
                   onClick={() => handleNavClick(item.href)}
-                  className="text-foreground hover:text-cyan transition-colors duration-300 font-medium py-2 text-left w-full"
+                  className="text-white hover:text-cyan-accent transition-colors duration-300 font-medium py-2 text-left w-full"
                 >
                   {item.label}
                 </button>
@@ -134,7 +147,7 @@ const Header = () => {
                   size="sm"
                   className="flex-1"
                   onClick={() => {
-                    window.open('https://wa.me/919825123456', '_blank');
+                    window.open('https://wa.me/919377476343', '_blank');
                     setIsMenuOpen(false);
                   }}
                 >
@@ -146,7 +159,7 @@ const Header = () => {
                   size="sm"
                   className="flex-1"
                   onClick={() => {
-                    window.open('tel:+919825123456', '_blank');
+                    window.open('tel:+919377476343', '_blank');
                     setIsMenuOpen(false);
                   }}
                 >

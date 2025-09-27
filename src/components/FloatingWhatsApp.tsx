@@ -30,33 +30,8 @@ const FloatingWhatsApp = () => {
   };
 
   return (
-    <div className="fixed bottom-6 right-6 z-50 space-y-3">
-      {/* Scroll to Top Button */}
-      <AnimatePresence>
-        {isVisible && (
-          <motion.button
-            onClick={scrollToTop}
-            className="w-12 h-12 bg-primary hover:bg-primary-glow text-white rounded-full shadow-lg hover:shadow-xl flex items-center justify-center transition-all duration-300"
-            initial={{ scale: 0, opacity: 0 }}
-            animate={{ scale: 1, opacity: 1 }}
-            exit={{ scale: 0, opacity: 0 }}
-            transition={{ 
-              type: "spring", 
-              stiffness: 260, 
-              damping: 20,
-              delay: 0.2
-            }}
-            whileHover={{ scale: 1.1 }}
-            whileTap={{ scale: 0.95 }}
-          >
-            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 10l7-7m0 0l7 7m-7-7v18" />
-            </svg>
-          </motion.button>
-        )}
-      </AnimatePresence>
-
-      {/* WhatsApp Button Container */}
+    <div className="fixed bottom-6 right-6 z-50">
+      {/* WhatsApp Button */}
       <AnimatePresence>
         {isVisible && (
           <motion.div
@@ -89,11 +64,15 @@ const FloatingWhatsApp = () => {
             {/* WhatsApp Button */}
             <motion.button
               onClick={handleClick}
-              className="w-14 h-14 bg-green-500 hover:bg-green-600 text-white rounded-full shadow-lg hover:shadow-xl flex items-center justify-center transition-all duration-300 group"
-              whileHover={{ scale: 1.1 }}
+              className="relative w-16 h-16 bg-green-500 hover:bg-green-600 hover:shadow-lg text-white rounded-full shadow-md flex flex-col items-center justify-center transition-all duration-300 group"
+              whileHover={{ scale: 1.05 }}
               whileTap={{ scale: 0.95 }}
               animate={{ 
-                y: [0, -8, 0],
+                boxShadow: [
+                  "0 4px 8px rgba(34, 197, 94, 0.3)",
+                  "0 6px 16px rgba(34, 197, 94, 0.4)",
+                  "0 4px 8px rgba(34, 197, 94, 0.3)"
+                ]
               }}
               transition={{ 
                 duration: 2,
@@ -101,37 +80,9 @@ const FloatingWhatsApp = () => {
                 ease: "easeInOut"
               }}
             >
-              <MessageCircle className="w-7 h-7 group-hover:scale-110 transition-transform duration-300" />
-              
-              {/* Ripple effect */}
-              <div className="absolute inset-0 rounded-full bg-green-500 animate-ping opacity-20"></div>
+              <MessageCircle className="w-5 h-5 mb-0.5" />
+              <span className="text-xs font-medium leading-none">WhatsApp</span>
             </motion.button>
-
-            {/* WhatsApp Label */}
-            <motion.div
-              className="text-center mt-2"
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              transition={{ delay: 1 }}
-            >
-              <span className="text-xs font-medium text-green-600 bg-white/90 px-2 py-1 rounded-full shadow-sm">
-                WhatsApp
-              </span>
-            </motion.div>
-
-            {/* Pulsing ring animation */}
-            <motion.div
-              className="absolute inset-0 rounded-full border-2 border-green-500 top-0"
-              animate={{
-                scale: [1, 1.5, 1],
-                opacity: [1, 0, 1]
-              }}
-              transition={{
-                duration: 2,
-                repeat: Infinity,
-                ease: "easeInOut"
-              }}
-            />
           </motion.div>
         )}
       </AnimatePresence>

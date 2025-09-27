@@ -7,6 +7,10 @@ import stickersLabelsImg from '@/assets/services/stickers-labels.jpg';
 import rollLabelsImg from '@/assets/services/roll-labels.jpg';
 
 const ServicesGrid = () => {
+  const handleServiceClick = (serviceName: string) => {
+    const message = encodeURIComponent(`Hi, I'm interested in ${serviceName} printing. Can you share details?`);
+    window.open(`https://wa.me/919377476343?text=${message}`, '_blank');
+  };
   const services = [
     {
       title: 'Flex Banners',
@@ -126,10 +130,13 @@ const ServicesGrid = () => {
               key={index}
               variants={itemVariants}
               whileHover={{ 
-                scale: 1.05,
-                transition: { duration: 0.3 }
+                y: -10, 
+                boxShadow: "0 20px 40px rgba(0, 191, 255, 0.3)",
+                transition: { duration: 0.3 } 
               }}
-              className="group relative overflow-hidden rounded-xl bg-card shadow-elevation hover:shadow-premium transition-all duration-300"
+              className="group relative overflow-hidden rounded-xl bg-card shadow-elevation hover:shadow-premium transition-all duration-300 cursor-pointer"
+              onClick={() => handleServiceClick(service.title)}
+              title={`Click to WhatsApp us about ${service.title}`}
             >
               {/* Service Image */}
               <div className="relative h-48 overflow-hidden">
@@ -190,7 +197,7 @@ const ServicesGrid = () => {
           <motion.button
             className="inline-flex items-center text-cyan hover:text-cyan-glow font-semibold transition-colors duration-300"
             whileHover={{ scale: 1.05 }}
-            onClick={() => window.open('https://wa.me/919825123456?text=I need a custom printing solution. Can you help?', '_blank')}
+            onClick={() => window.open('https://wa.me/919377476343?text=I need a custom printing solution. Can you help?', '_blank')}
           >
             Get Custom Quote
             <svg className="w-5 h-5 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">

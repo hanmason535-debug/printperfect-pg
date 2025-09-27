@@ -11,7 +11,9 @@ const Contact = () => {
     message: ''
   });
 
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
     setFormData(prev => ({
       ...prev,
@@ -21,6 +23,8 @@ const Contact = () => {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+    setIsSubmitting(true);
+    
     // Create WhatsApp message with form data
     const message = `Hello! I'm interested in your printing services.
     
@@ -34,6 +38,7 @@ Message: ${formData.message}`;
     
     // Reset form
     setFormData({ name: '', email: '', phone: '', message: '' });
+    setIsSubmitting(false);
   };
 
   return (
@@ -83,7 +88,7 @@ Message: ${formData.message}`;
                     id="name"
                     name="name"
                     value={formData.name}
-                    onChange={handleInputChange}
+                    onChange={handleChange}
                     required
                     className="w-full px-4 py-3 border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-cyan transition-colors"
                     placeholder="Your full name"
@@ -99,7 +104,7 @@ Message: ${formData.message}`;
                     id="email"
                     name="email"
                     value={formData.email}
-                    onChange={handleInputChange}
+                    onChange={handleChange}
                     required
                     className="w-full px-4 py-3 border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-cyan transition-colors"
                     placeholder="your.email@example.com"
@@ -115,7 +120,7 @@ Message: ${formData.message}`;
                     id="phone"
                     name="phone"
                     value={formData.phone}
-                    onChange={handleInputChange}
+                    onChange={handleChange}
                     className="w-full px-4 py-3 border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-cyan transition-colors"
                     placeholder="+91 XXXXX XXXXX"
                   />
@@ -129,7 +134,7 @@ Message: ${formData.message}`;
                     id="message"
                     name="message"
                     value={formData.message}
-                    onChange={handleInputChange}
+                    onChange={handleChange}
                     required
                     rows={4}
                     className="w-full px-4 py-3 border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-cyan transition-colors resize-none"
@@ -137,13 +142,17 @@ Message: ${formData.message}`;
                   />
                 </div>
                 
-                <Button
+                <motion.button
                   type="submit"
-                  variant="cyan"
-                  className="w-full py-3 font-semibold"
+                  disabled={isSubmitting}
+                  className={`w-full bg-gradient-cyan text-white py-4 rounded-lg font-semibold shadow-cyan-glow hover:shadow-lg transition-all duration-300 ${
+                    isSubmitting ? 'opacity-50 cursor-not-allowed' : 'hover:scale-[1.02]'
+                  }`}
+                  whileHover={!isSubmitting ? { scale: 1.02 } : {}}
+                  whileTap={!isSubmitting ? { scale: 0.98 } : {}}
                 >
-                  Send Message via WhatsApp
-                </Button>
+                  {isSubmitting ? 'Sending...' : 'Send Message via WhatsApp'}
+                </motion.button>
               </form>
             </motion.div>
 

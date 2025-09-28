@@ -28,3 +28,4 @@ firebase.ts
 *.njsproj
 *.sln
 *.sw
+docs

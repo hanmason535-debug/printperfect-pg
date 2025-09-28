@@ -7,10 +7,16 @@ yarn-error.log*
 pnpm-debug.log*
 lerna-debug.log*
 
+# Dependencies
 node_modules
 dist
 dist-ssr
+docs
+
+# Local env/config files
 *.local
+.env
+firebase.ts
 
 # Editor directories and files
 .vscode/*
@@ -21,4 +27,4 @@ dist-ssr
 *.ntvs*
 *.njsproj
 *.sln
-*.sw?
+*.sw

@@ -16,14 +16,6 @@ const Contact = () => {
 
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
-    const { name, value } = e.target;
-    setFormData(prev => ({
-      ...prev,
-      [name]: value
-    }));
-  };
-
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
@@ -102,9 +94,9 @@ Message: ${formData.message}`;
         >
           <div className="text-center mb-12">
             <h2 className="text-3xl md:text-4xl lg:text-5xl font-heading font-bold text-foreground mb-4">
-              Get in 
+              Contact 
               <span className="bg-gradient-cmyk bg-clip-text text-transparent ml-3">
-                Touch
+                Us
               </span>
             </h2>
             <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
@@ -300,6 +292,22 @@ Message: ${formData.message}`;
                       <p className="text-muted-foreground text-sm">Sunday: Closed</p>
                     </div>
                   </div>
+                </div>
+              </div>
+
+              {/* Google Maps Embed */}
+              <div>
+                <h4 className="font-semibold text-foreground mb-4">Find Us</h4>
+                <div className="rounded-lg overflow-hidden shadow-elevation">
+                  <iframe
+                    src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3671.7727092166956!2d72.58748931481598!3d23.035063484940263!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x395e85c4c4c4c4c5%3A0x1234567890abcdef!2s2%2C%20Chandrika%20Chamber%2C%20Mirzapur%20Rd%2C%20Mirzapur%2C%20Ahmedabad%2C%20Gujarat%20380001!5e0!3m2!1sen!2sin!4v1640000000000!5m2!1sen!2sin"
+                    width="100%"
+                    height="200"
+                    style={{ border: 0 }}
+                    allowFullScreen
+                    loading="lazy"
+                    referrerPolicy="no-referrer-when-downgrade"
+                  />
                 </div>
               </div>
 

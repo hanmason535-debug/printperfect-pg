@@ -203,6 +203,11 @@ const Portfolio = () => {
                   src={item.image}
                   alt={item.title}
                   className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
+                  loading="lazy" // Performance: lazy load images
+                  onError={(e) => {
+                    // Fallback for broken images
+                    e.currentTarget.src = 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMzAwIiBoZWlnaHQ9IjIwMCIgdmlld0JveD0iMCAwIDMwMCAyMDAiIGZpbGw9Im5vbmUiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+CjxyZWN0IHdpZHRoPSIzMDAiIGhlaWdodD0iMjAwIiBmaWxsPSIjRjNGNEY2Ii8+Cjx0ZXh0IHg9IjE1MCIgeT0iMTA1IiB0ZXh0LWFuY2hvcj0ibWlkZGxlIiBmaWxsPSIjOUI5QkEwIiBmb250LWZhbWlseT0iSW50ZXIiIGZvbnQtc2l6ZT0iMTQiPkltYWdlIE5vdCBGb3VuZDwvdGV4dD4KPHN2Zz4=';
+                  }}
                 />
                 
                 {/* Text Overlay - Always visible at bottom */}
@@ -292,10 +297,19 @@ const Portfolio = () => {
                 transition={{ type: "spring", stiffness: 300, damping: 30 }}
                 onClick={(e) => e.stopPropagation()}
               >
+                {/* Loading placeholder */}
+                <div className="absolute inset-0 bg-gray-200 animate-pulse rounded-lg" />
+                
                 <img
                   src={filteredItems[currentImageIndex]?.image}
                   alt={filteredItems[currentImageIndex]?.title}
-                  className="w-full h-full object-contain rounded-lg shadow-2xl"
+                  className="relative z-10 w-full h-full object-contain rounded-lg shadow-2xl"
+                  loading="lazy"
+                  onLoad={(e) => {
+                    // Hide placeholder when image loads
+                    const placeholder = e.currentTarget.previousElementSibling as HTMLElement;
+                    if (placeholder) placeholder.style.display = 'none';
+                  }}
                 />
                 
                 {/* Image Info */}

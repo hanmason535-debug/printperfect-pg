@@ -24,17 +24,52 @@ const FileUploadModal = ({ isOpen, onClose }: FileUploadModalProps) => {
   const [otp, setOtp] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+  const [otpAttempts, setOtpAttempts] = useState(0);
+  const [otpRequestCount, setOtpRequestCount] = useState(0);
+  const [lastOtpRequest, setLastOtpRequest] = useState<number>(0);
+
+  // Security: Allowed file types only
+  const allowedTypes = {
+    'application/pdf': ['.pdf'],
+    'image/jpeg': ['.jpg', '.jpeg'],
+    'image/png': ['.png'],
+    'image/tiff': ['.tiff', '.tif'],
+    'application/postscript': ['.eps'],
+    'application/illustrator': ['.ai'],
+    'image/svg+xml': ['.svg'],
+    'application/vnd.adobe.photoshop': ['.psd'],
+    'application/x-indesign': ['.indd'],
+    'application/x-coreldraw': ['.cdr']
+  };
+
+  // Security: Blocked file types (malicious extensions)
+  const blockedExtensions = ['.exe', '.bat', '.js', '.php', '.html', '.xml', '.zip', '.rar', '.scr', '.cmd', '.com', '.pif'];
+
+  const validateFile = (file: File) => {
+    const extension = '.' + file.name.split('.').pop()?.toLowerCase();
+    if (blockedExtensions.includes(extension)) {
+      setError(`File type ${extension} is not allowed for security reasons`);
+      return false;
+    }
+    return true;
+  };
 
   const { getRootProps, getInputProps, isDragActive } = useDropzone({
-    accept: {
-      'application/pdf': ['.pdf'],
-      'image/jpeg': ['.jpg', '.jpeg'],
-      'image/png': ['.png']
-    },
+    accept: allowedTypes,
     maxFiles: 5,
     maxSize: 15 * 1024 * 1024, // 15MB
-    onDrop: (acceptedFiles) => {
-      const newFiles = acceptedFiles.map(file => ({
+    onDrop: (acceptedFiles, rejectedFiles) => {
+      // Handle rejected files
+      if (rejectedFiles.length > 0) {
+        const reason = rejectedFiles[0].errors[0]?.message || 'File not allowed';
+        setError(reason);
+        return;
+      }
+
+      // Validate each file for security
+      const validFiles = acceptedFiles.filter(validateFile);
+      
+      const newFiles = validFiles.map(file => ({
         file,
         preview: URL.createObjectURL(file)
       }));
@@ -51,9 +86,19 @@ const FileUploadModal = ({ isOpen, onClose }: FileUploadModalProps) => {
       setError('Please enter a valid 10-digit phone number');
       return;
     }
+
+    // Security: OTP rate limiting (max 5 requests per hour)
+    const now = Date.now();
+    const hourMs = 60 * 60 * 1000;
+    if (now - lastOtpRequest < hourMs && otpRequestCount >= 5) {
+      setError('Too many OTP requests. Please try again in an hour.');
+      return;
+    }
     
     setLoading(true);
     setError('');
+    setOtpRequestCount(prev => prev + 1);
+    setLastOtpRequest(now);
     
     // Simulate OTP sending
     setTimeout(() => {
@@ -67,6 +112,12 @@ const FileUploadModal = ({ isOpen, onClose }: FileUploadModalProps) => {
       setError('Please enter the 6-digit OTP');
       return;
     }
+
+    // Security: Block after too many attempts
+    if (otpAttempts >= 6) {
+      setError('Too many incorrect attempts. Account temporarily blocked.');
+      return;
+    }
     
     setLoading(true);
     setError('');
@@ -74,11 +125,16 @@ const FileUploadModal = ({ isOpen, onClose }: FileUploadModalProps) => {
     // Simulate OTP verification and file upload
     setTimeout(() => {
       setLoading(false);
-      setStep('success');
+      setOtpAttempts(prev => prev + 1);
       
-      // In a real app, this would upload files to server and send email
-      console.log('Files to upload:', files);
-      console.log('Phone number:', phoneNumber);
+      // In demo, accept any 6-digit OTP
+      if (otp === '123456' || otp.length === 6) {
+        setStep('success');
+        console.log('Files to upload:', files);
+        console.log('Phone number:', phoneNumber);
+      } else {
+        setError(`Invalid OTP. ${6 - otpAttempts} attempts remaining.`);
+      }
     }, 2000);
   };
 
@@ -89,6 +145,9 @@ const FileUploadModal = ({ isOpen, onClose }: FileUploadModalProps) => {
     setOtp('');
     setError('');
     setLoading(false);
+    setOtpAttempts(0);
+    setOtpRequestCount(0);
+    setLastOtpRequest(0);
     onClose();
   };
 
@@ -133,7 +192,7 @@ const FileUploadModal = ({ isOpen, onClose }: FileUploadModalProps) => {
                   {isDragActive ? 'Drop files here' : 'Drag & drop files here'}
                 </p>
                 <p className="text-muted-foreground text-sm">
-                  or click to browse • PDF, JPG, PNG • Max 15MB each
+                  or click to browse • PDF, JPG, PNG, TIFF, EPS, AI, SVG, PSD, INDD, CDR • Max 15MB each
                 </p>
               </div>
 
@@ -324,7 +383,7 @@ const FileUploadModal = ({ isOpen, onClose }: FileUploadModalProps) => {
                 </Button>
                 <Button
                   variant="outline"
-                  onClick={() => window.open('https://wa.me/919825123456', '_blank')}
+                  onClick={() => window.open('https://wa.me/919377476343', '_blank')}
                   className="w-full"
                 >
                   Chat with Us

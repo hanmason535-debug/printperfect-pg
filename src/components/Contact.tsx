@@ -2,13 +2,16 @@ import { useState } from 'react';
 import { motion } from 'framer-motion';
 import { MapPin, Mail, Phone, Clock, Facebook, Instagram, Linkedin } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { useToast } from '@/hooks/use-toast';
 
 const Contact = () => {
+  const { toast } = useToast();
   const [formData, setFormData] = useState({
     name: '',
     email: '',
     phone: '',
-    message: ''
+    message: '',
+    honeypot: '' // Security: Honeypot field to catch bots
   });
 
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -21,24 +24,69 @@ const Contact = () => {
     }));
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    
+    // Security: Check honeypot field (should be empty)
+    if (formData.honeypot) {
+      console.log('Bot detected - honeypot filled');
+      return;
+    }
+
+    // Validation
+    if (!formData.name.trim() || !formData.email.trim() || !formData.message.trim()) {
+      toast({
+        title: "Error",
+        description: "Please fill in all required fields.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    // Email validation
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(formData.email)) {
+      toast({
+        title: "Error", 
+        description: "Please enter a valid email address.",
+        variant: "destructive",
+      });
+      return;
+    }
+
     setIsSubmitting(true);
-    
-    // Create WhatsApp message with form data
-    const message = `Hello! I'm interested in your printing services.
-    
+
+    try {
+      // Simulate form submission
+      await new Promise(resolve => setTimeout(resolve, 1500));
+      
+      // Create WhatsApp message with form data
+      const message = `Hello! I'm interested in your printing services.
+      
 Name: ${formData.name}
 Email: ${formData.email}
 Phone: ${formData.phone}
 Message: ${formData.message}`;
-    
-    const whatsappUrl = `https://wa.me/919377476343?text=${encodeURIComponent(message)}`;
-    window.open(whatsappUrl, '_blank');
-    
-    // Reset form
-    setFormData({ name: '', email: '', phone: '', message: '' });
-    setIsSubmitting(false);
+      
+      const whatsappUrl = `https://wa.me/919377476343?text=${encodeURIComponent(message)}`;
+      window.open(whatsappUrl, '_blank');
+      
+      toast({
+        title: "Message Sent!",
+        description: "Your message has been forwarded to WhatsApp. We'll get back to you soon!",
+      });
+      
+      // Reset form
+      setFormData({ name: '', email: '', phone: '', message: '', honeypot: '' });
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Something went wrong. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (
@@ -79,6 +127,17 @@ Message: ${formData.message}`;
               </h3>
               
               <form onSubmit={handleSubmit} className="space-y-6">
+                {/* Security: Honeypot field - hidden from users */}
+                <input
+                  type="text"
+                  name="website"
+                  value={formData.honeypot}
+                  onChange={(e) => setFormData(prev => ({ ...prev, honeypot: e.target.value }))}
+                  style={{ position: 'absolute', left: '-9999px', opacity: 0, pointerEvents: 'none' }}
+                  tabIndex={-1}
+                  autoComplete="off"
+                />
+                
                 <div>
                   <label htmlFor="name" className="block text-sm font-medium text-foreground mb-2">
                     Name *
@@ -88,8 +147,9 @@ Message: ${formData.message}`;
                     id="name"
                     name="name"
                     value={formData.name}
-                    onChange={handleChange}
+                    onChange={(e) => setFormData(prev => ({ ...prev, name: e.target.value.slice(0, 100) }))}
                     required
+                    maxLength={100}
                     className="w-full px-4 py-3 border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-cyan transition-colors"
                     placeholder="Your full name"
                   />
@@ -104,8 +164,9 @@ Message: ${formData.message}`;
                     id="email"
                     name="email"
                     value={formData.email}
-                    onChange={handleChange}
+                    onChange={(e) => setFormData(prev => ({ ...prev, email: e.target.value.slice(0, 255) }))}
                     required
+                    maxLength={255}
                     className="w-full px-4 py-3 border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-cyan transition-colors"
                     placeholder="your.email@example.com"
                   />
@@ -120,7 +181,8 @@ Message: ${formData.message}`;
                     id="phone"
                     name="phone"
                     value={formData.phone}
-                    onChange={handleChange}
+                    onChange={(e) => setFormData(prev => ({ ...prev, phone: e.target.value.slice(0, 15) }))}
+                    maxLength={15}
                     className="w-full px-4 py-3 border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-cyan transition-colors"
                     placeholder="+91 XXXXX XXXXX"
                   />
@@ -134,9 +196,10 @@ Message: ${formData.message}`;
                     id="message"
                     name="message"
                     value={formData.message}
-                    onChange={handleChange}
+                    onChange={(e) => setFormData(prev => ({ ...prev, message: e.target.value.slice(0, 1000) }))}
                     required
                     rows={4}
+                    maxLength={1000}
                     className="w-full px-4 py-3 border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-cyan transition-colors resize-none"
                     placeholder="Tell us about your printing needs..."
                   />

@@ -3,7 +3,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/u
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Upload, Phone, CheckCircle, AlertCircle } from 'lucide-react';
+import { Upload, Phone, CheckCircle, AlertCircle, Loader2 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useDropzone } from 'react-dropzone';
 import emailjs from '@emailjs/browser';
@@ -14,19 +14,11 @@ const EMAILJS_TEMPLATE_ID = import.meta.env.VITE_EMAILJS_TEMPLATE_ID;
 const EMAILJS_PUBLIC_KEY = import.meta.env.VITE_EMAILJS_PUBLIC_KEY;
 const PHONE_EMAIL_CLIENT_ID = import.meta.env.VITE_PHONE_EMAIL_CLIENT_ID;
 
-// --- Add type declaration for the phone.email library ---
+// --- Type declaration for the phone.email library ---
 declare global {
   interface Window {
-    pn_ph_auth: (options: {
-      client_id: string;
-      country_code: string;
-      phone_number: string;
-    }) => void;
-    pn_ph_auth_verify: (options: {
-      client_id: string;
-      request_id: string;
-      otp: string;
-    }) => void;
+    pn_ph_auth: (options: { client_id: string; country_code: string; phone_number: string; }) => void;
+    pn_ph_auth_verify: (options: { client_id: string; request_id: string; otp: string; }) => void;
   }
 }
 
@@ -48,12 +40,34 @@ const FileUploadModal = ({ isOpen, onClose }: FileUploadModalProps) => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [requestId, setRequestId] = useState('');
+  const [isSdkReady, setIsSdkReady] = useState(false);
 
-  const allowedTypes = {
-    'application/pdf': ['.pdf'],
-    'image/jpeg': ['.jpg', '.jpeg'],
-    'image/png': ['.png'],
-  };
+  useEffect(() => {
+    if (isOpen && step === 'phone') {
+      if (typeof window.pn_ph_auth === 'function') {
+        setIsSdkReady(true);
+        return;
+      }
+      const interval = setInterval(() => {
+        if (typeof window.pn_ph_auth === 'function') {
+          setIsSdkReady(true);
+          clearInterval(interval);
+        }
+      }, 500);
+      const timeout = setTimeout(() => {
+        clearInterval(interval);
+        if (typeof window.pn_ph_auth !== 'function') {
+          setError("Authentication service failed to load. Please check your ad blocker or refresh the page.");
+        }
+      }, 5000);
+      return () => {
+        clearInterval(interval);
+        clearTimeout(timeout);
+      };
+    }
+  }, [isOpen, step]);
+
+  const allowedTypes = { 'application/pdf': ['.pdf'], 'image/jpeg': ['.jpg', '.jpeg'], 'image/png': ['.png'] };
 
   const { getRootProps, getInputProps, isDragActive } = useDropzone({
     accept: allowedTypes,
@@ -70,64 +84,32 @@ const FileUploadModal = ({ isOpen, onClose }: FileUploadModalProps) => {
     },
   });
 
-  const removeFile = (index: number) => {
-    setFiles(prev => prev.filter((_, i) => i !== index));
-  };
+  const removeFile = (index: number) => setFiles(prev => prev.filter((_, i) => i !== index));
 
   const handlePhoneSubmit = async () => {
-    // --- **THE FIX IS HERE** ---
-    // Check if the phone.email script has loaded before trying to use it.
-    if (typeof window.pn_ph_auth !== 'function') {
-      setError("Authentication service is not ready. Please refresh and try again.");
-      console.error("phone.email SDK not loaded.");
-      return;
-    }
-
     if (phoneNumber.length !== 10) {
       setError('Please enter a valid 10-digit phone number');
       return;
     }
-    if (!PHONE_EMAIL_CLIENT_ID) {
-        console.error("phone.email Client ID is missing. Please check your .env file.");
-        setError("Authentication service is not configured.");
-        return;
-    }
-    
     setLoading(true);
     setError('');
-
-    window.pn_ph_auth({
-      client_id: PHONE_EMAIL_CLIENT_ID,
-      country_code: "91",
-      phone_number: phoneNumber
-    });
+    window.pn_ph_auth({ client_id: PHONE_EMAIL_CLIENT_ID, country_code: "91", phone_number: phoneNumber });
   };
   
   const handleOtpSubmit = async () => {
-    if (typeof window.pn_ph_auth_verify !== 'function') {
-        setError("Authentication service is not ready. Please refresh and try again.");
-        console.error("phone.email SDK not loaded.");
-        return;
-    }
     if (otp.length !== 6) {
-        setError('Please enter the 6-digit OTP.');
-        return;
+      setError('Please enter the 6-digit OTP.');
+      return;
     }
     setLoading(true);
     setError('');
-    
-    window.pn_ph_auth_verify({
-        client_id: PHONE_EMAIL_CLIENT_ID,
-        request_id: requestId,
-        otp: otp
-    });
+    window.pn_ph_auth_verify({ client_id: PHONE_EMAIL_CLIENT_ID, request_id: requestId, otp: otp });
   };
 
   useEffect(() => {
     const handlePhoneEmailEvent = async (event: any) => {
-      const data = event.detail;
       setLoading(false);
-
+      const data = event.detail;
       if (data.status === 'success') {
         if (data.event === 'otp_sent') {
           setRequestId(data.request_id);
@@ -135,23 +117,17 @@ const FileUploadModal = ({ isOpen, onClose }: FileUploadModalProps) => {
         } else if (data.event === 'user_verified') {
           try {
             const fileList = files.map(f => `${f.file.name} (${(f.file.size / 1024 / 1024).toFixed(1)} MB)`).join('\n');
-            const templateParams = {
-              phoneNumber: `+${data.country_code}${data.phone_number}`,
-              fileList: fileList,
-            };
+            const templateParams = { phoneNumber: `+${data.country_code}${data.phone_number}`, fileList };
             await emailjs.send(EMAILJS_SERVICE_ID, EMAILJS_TEMPLATE_ID, templateParams, EMAILJS_PUBLIC_KEY);
             setStep('success');
           } catch (emailError) {
-            console.error("EmailJS error:", emailError);
             setError('Verification succeeded, but could not send notification.');
             setStep('failure');
           }
         }
       } else {
         setError(data.message || 'An unknown authentication error occurred.');
-        if (data.event === 'user_verified') {
-            setStep('failure');
-        }
+        if (data.event === 'user_verified') setStep('failure');
       }
     };
     
@@ -167,6 +143,7 @@ const FileUploadModal = ({ isOpen, onClose }: FileUploadModalProps) => {
     setError('');
     setLoading(false);
     setRequestId('');
+    setIsSdkReady(false);
     onClose();
   };
 
@@ -175,38 +152,36 @@ const FileUploadModal = ({ isOpen, onClose }: FileUploadModalProps) => {
   return (
     <Dialog open={isOpen} onOpenChange={resetModal}>
       <DialogContent className="sm:max-w-md">
-        <DialogHeader>
-          <DialogTitle className="text-2xl font-heading font-bold text-center">Upload Your Files</DialogTitle>
-        </DialogHeader>
+        <DialogHeader><DialogTitle className="text-2xl font-heading font-bold text-center">Upload Your Files</DialogTitle></DialogHeader>
         <AnimatePresence mode="wait">
-        {step === 'upload' && (
+          {step === 'upload' && (
              <motion.div key="upload" className="space-y-6">
-             <div {...getRootProps()} className={`border-2 border-dashed rounded-xl p-8 text-center cursor-pointer ${isDragActive ? 'border-cyan bg-cyan/5' : 'border-border hover:border-cyan hover:bg-cyan/5'}`}>
-               <input {...getInputProps()} />
-               <Upload className="w-12 h-12 mx-auto mb-4 text-muted-foreground" />
-               <p className="text-lg font-medium">{isDragActive ? 'Drop files here' : 'Drag & drop files'}</p>
-               <p className="text-sm text-muted-foreground">or click to browse • Max 15MB each</p>
-             </div>
-             {files.length > 0 && (
-               <div className="space-y-2">
-                 <Label>Selected Files:</Label>
-                 {files.map((f, i) => (
-                   <div key={i} className="flex items-center justify-between p-3 bg-muted rounded-lg">
-                     <div className="flex items-center space-x-3">
-                       <span>{getFileIcon(f.file)}</span>
-                       <div>
-                         <p className="text-sm font-medium truncate max-w-[200px]">{f.file.name}</p>
-                         <p className="text-xs text-muted-foreground">{(f.file.size / 1024 / 1024).toFixed(1)} MB</p>
-                       </div>
-                     </div>
-                     <Button variant="ghost" size="sm" onClick={() => removeFile(i)}>×</Button>
-                   </div>
-                 ))}
+               <div {...getRootProps()} className={`border-2 border-dashed rounded-xl p-8 text-center cursor-pointer ${isDragActive ? 'border-cyan bg-cyan/5' : 'border-border hover:border-cyan hover:bg-cyan/5'}`}>
+                 <input {...getInputProps()} />
+                 <Upload className="w-12 h-12 mx-auto mb-4 text-muted-foreground" />
+                 <p className="text-lg font-medium">{isDragActive ? 'Drop files here' : 'Drag & drop files'}</p>
+                 <p className="text-sm text-muted-foreground">or click to browse • Max 15MB each</p>
                </div>
-             )}
-             {error && <p className="text-destructive text-sm">{error}</p>}
-             <Button variant="cyan" className="w-full" onClick={() => setStep('phone')} disabled={files.length === 0}>Continue</Button>
-           </motion.div>
+               {files.length > 0 && (
+                 <div className="space-y-2">
+                   <Label>Selected Files:</Label>
+                   {files.map((f, i) => (
+                     <div key={i} className="flex items-center justify-between p-3 bg-muted rounded-lg">
+                       <div className="flex items-center space-x-3">
+                         <span>{getFileIcon(f.file)}</span>
+                         <div>
+                           <p className="text-sm font-medium truncate max-w-[200px]">{f.file.name}</p>
+                           <p className="text-xs text-muted-foreground">{(f.file.size / 1024 / 1024).toFixed(1)} MB</p>
+                         </div>
+                       </div>
+                       <Button variant="ghost" size="sm" onClick={() => removeFile(i)}>×</Button>
+                     </div>
+                   ))}
+                 </div>
+               )}
+               {error && <p className="text-destructive text-sm">{error}</p>}
+               <Button variant="cyan" className="w-full" onClick={() => setStep('phone')} disabled={files.length === 0}>Continue</Button>
+             </motion.div>
           )}
           {step === 'phone' && (
             <motion.div key="phone" className="space-y-6">
@@ -219,7 +194,9 @@ const FileUploadModal = ({ isOpen, onClose }: FileUploadModalProps) => {
                 {error && <p className="text-destructive text-sm">{error}</p>}
                 <div className="flex space-x-3">
                   <Button variant="outline" onClick={() => setStep('upload')} className="flex-1">Back</Button>
-                  <Button variant="cyan" onClick={handlePhoneSubmit} disabled={loading || phoneNumber.length !== 10} className="flex-1">{loading ? 'Sending...' : 'Send OTP'}</Button>
+                  <Button variant="cyan" onClick={handlePhoneSubmit} disabled={loading || phoneNumber.length !== 10 || !isSdkReady} className="flex-1">
+                    {loading ? 'Sending...' : !isSdkReady ? <><Loader2 className="mr-2 h-4 w-4 animate-spin" /> Loading...</> : 'Send OTP'}
+                  </Button>
                 </div>
               </div>
             </motion.div>

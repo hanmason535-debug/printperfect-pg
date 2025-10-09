@@ -16,7 +16,6 @@ docs
 # Local env/config files
 *.local
 .env
-firebase.ts
 
 # Editor directories and files
 .vscode/*

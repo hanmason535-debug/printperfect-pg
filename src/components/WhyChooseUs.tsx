@@ -1,3 +1,4 @@
+import { memo } from 'react';
 import { motion } from 'framer-motion';
 import { Clock, Award, DollarSign, MapPin } from 'lucide-react';
 
@@ -90,4 +91,5 @@ const WhyChooseUs = () => {
   );
 };
 
-export default WhyChooseUs;
+// Memoized for performance optimization
+export default memo(WhyChooseUs);

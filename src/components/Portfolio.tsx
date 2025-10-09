@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { X, ChevronLeft, ChevronRight } from 'lucide-react';
 import businessCardsImg from '@/assets/services/business-cards.jpg';
@@ -125,12 +125,13 @@ const Portfolio = () => {
     if (e.key === 'ArrowLeft') prevImage();
   };
 
-  useState(() => {
+  // Fixed: proper useEffect with comprehensive dependency array
+  useEffect(() => {
     if (lightboxOpen) {
       document.addEventListener('keydown', handleKeyDown);
       return () => document.removeEventListener('keydown', handleKeyDown);
     }
-  });
+  }, [lightboxOpen, filteredItems.length]);
 
   return (
     <section id="portfolio" className="py-20 bg-background">
@@ -155,9 +156,11 @@ const Portfolio = () => {
           </p>
         </motion.div>
 
-        {/* Filter Tabs */}
+        {/* Filter Tabs with ARIA roles for accessibility */}
         <motion.div 
           className="flex flex-wrap justify-center gap-4 mb-12"
+          role="tablist"
+          aria-label="Portfolio filter"
           initial={{ opacity: 0, y: 20 }}
           whileInView={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6 }}
@@ -166,6 +169,9 @@ const Portfolio = () => {
           {filterCategories.map((category) => (
             <motion.button
               key={category}
+              role="tab"
+              aria-selected={activeFilter === category}
+              aria-controls="portfolio-grid"
               onClick={() => setActiveFilter(category)}
               className={`px-6 py-3 rounded-full font-medium transition-all duration-300 ${
                 activeFilter === category
@@ -182,6 +188,8 @@ const Portfolio = () => {
 
         {/* Portfolio Grid */}
         <motion.div 
+          id="portfolio-grid"
+          role="tabpanel"
           className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8"
           variants={containerVariants}
           initial="hidden"

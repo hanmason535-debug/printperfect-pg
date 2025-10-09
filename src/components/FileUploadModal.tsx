@@ -55,7 +55,7 @@ const FileUploadModal = ({ isOpen, onClose }: FileUploadModalProps) => {
   };
 
   const { getRootProps, getInputProps, isDragActive } = useDropzone({
-    accept: allowedTypes,
+    accept: allowedTypes as any,
     maxFiles: 5,
     maxSize: 15 * 1024 * 1024, // 15MB
     onDrop: (acceptedFiles, rejectedFiles) => {

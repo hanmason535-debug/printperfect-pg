@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
-import { MessageCircle, Phone, Menu, X } from 'lucide-react';
+import { MessageCircle, Phone, Menu, X, MapPin } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { CONTACT } from '@/config/constants';
 

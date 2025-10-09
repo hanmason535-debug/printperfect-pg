@@ -103,11 +103,20 @@ const Header = () => {
               variant="ghost"
               size="icon"
               className="hidden md:flex w-10 h-10 text-white hover:text-cyan-accent"
-              // Assuming 'CONTACT.mapsUrl' is the correct constant path:
-              onClick={() => window.open(GOOGLE_MAPS_URL, '_blank')}
+              onClick={() => window.open('https://maps.app.goo.gl/yt63M1mqnfSYL9he8', '_blank')}
               title="Find us on Google Maps"
             >
-              <MapPin className="w-6 h-6" /> {/* This resolves the color issue */}
+              <MapPin className="w-6 h-6" />
+            </Button>
+
+            {/* Mobile Menu Toggle */}
+            <Button
+              variant="ghost"
+              size="icon"
+              className="lg:hidden text-white hover:text-cyan-accent"
+              onClick={() => setIsMenuOpen(!isMenuOpen)}
+            >
+              {isMenuOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
             </Button>
 
             {/* Mobile Menu Toggle */}

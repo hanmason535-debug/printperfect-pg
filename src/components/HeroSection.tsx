@@ -1,3 +1,16 @@
+/**
+ * HeroSection.tsx
+ * Displays the main hero section of the website with a background image, animated elements,
+ * a compelling headline, subheadline, and call-to-action buttons.
+ *
+ * Performance Optimizations:
+ * - The background image is now rendered using an `<img>` tag with `fetchPriority="high"`
+ *   and `loading="eager"` to optimize Largest Contentful Paint (LCP).
+ * - The image is also preloaded in `index.html` for even faster discovery and loading.
+ * - Animations are handled by Framer Motion, with careful consideration for performance.
+ * - Event handlers for CTA buttons are defined inline for simplicity, but could be memoized
+ *   with `useCallback` if this component were to re-render frequently with complex props.
+ */
 import { Button } from '@/components/ui/button';
 import { Upload, MessageCircle } from 'lucide-react';
 import { motion } from 'framer-motion';
@@ -13,14 +26,22 @@ const HeroSection = ({ onUploadClick }: HeroSectionProps) => {
     <section 
       id="home" 
       className="relative min-h-screen flex items-center justify-center overflow-hidden"
-      style={{
-        backgroundImage: `linear-gradient(rgba(0, 0, 0, 0.4), rgba(0, 0, 0, 0.6)), url(${heroBackground})`,
-        backgroundSize: 'cover',
-        backgroundPosition: 'center',
-        backgroundAttachment: 'fixed'
-      }}
     >
-      {/* Animated background overlay */}
+      {/* Background Image - Using an img tag for LCP optimization */}
+      {/* `fetchPriority="high"` and `loading="eager"` tell the browser to prioritize this image. */}
+      {/* `decoding="async"` allows the browser to decode the image off the main thread. */}
+      <img
+        src={heroBackground}
+        alt="Abstract background with CMYK colors"
+        className="absolute inset-0 w-full h-full object-cover"
+        fetchPriority="high"
+        loading="eager"
+        decoding="async"
+      />
+      {/* Gradient overlay to improve text readability */}
+      <div className="absolute inset-0 bg-black/50"></div>
+
+      {/* Animated background overlay for visual effect */}
       <div className="absolute inset-0 bg-gradient-hero opacity-80"></div>
       
       {/* Floating CMYK elements */}

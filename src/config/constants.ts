@@ -33,7 +33,7 @@ export const COMPANY = {
   description: 'Your trusted print partner in Ahmedabad for premium quality and fast turnarounds.',
 } as const;
 
-const firebaseConfig = {
+export const FIREBASE_CONFIG = {
   apiKey: "AIzaSyCGfzzGkraaPkcExRB0c39AE_9eHhEvWbo",
   authDomain: "paras-graphics-2c370.firebaseapp.com",
   projectId: "paras-graphics-2c370",

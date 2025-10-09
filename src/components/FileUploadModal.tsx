@@ -47,7 +47,7 @@ const FileUploadModal = ({ isOpen, onClose }: FileUploadModalProps) => {
   const [otp, setOtp] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
-  const [requestId, setRequestId] = useState(''); // To store the request_id from phone.email
+  const [requestId, setRequestId] = useState('');
 
   const allowedTypes = {
     'application/pdf': ['.pdf'],
@@ -74,8 +74,15 @@ const FileUploadModal = ({ isOpen, onClose }: FileUploadModalProps) => {
     setFiles(prev => prev.filter((_, i) => i !== index));
   };
 
-  // --- New phone submit handler for phone.email ---
   const handlePhoneSubmit = async () => {
+    // --- **THE FIX IS HERE** ---
+    // Check if the phone.email script has loaded before trying to use it.
+    if (typeof window.pn_ph_auth !== 'function') {
+      setError("Authentication service is not ready. Please refresh and try again.");
+      console.error("phone.email SDK not loaded.");
+      return;
+    }
+
     if (phoneNumber.length !== 10) {
       setError('Please enter a valid 10-digit phone number');
       return;
@@ -94,12 +101,14 @@ const FileUploadModal = ({ isOpen, onClose }: FileUploadModalProps) => {
       country_code: "91",
       phone_number: phoneNumber
     });
-
-    // The phone.email SDK will emit events that we listen to.
   };
   
-  // --- New OTP submit handler for phone.email ---
   const handleOtpSubmit = async () => {
+    if (typeof window.pn_ph_auth_verify !== 'function') {
+        setError("Authentication service is not ready. Please refresh and try again.");
+        console.error("phone.email SDK not loaded.");
+        return;
+    }
     if (otp.length !== 6) {
         setError('Please enter the 6-digit OTP.');
         return;
@@ -114,7 +123,6 @@ const FileUploadModal = ({ isOpen, onClose }: FileUploadModalProps) => {
     });
   };
 
-  // --- Effect to listen for events from the phone.email SDK ---
   useEffect(() => {
     const handlePhoneEmailEvent = async (event: any) => {
       const data = event.detail;
@@ -125,7 +133,6 @@ const FileUploadModal = ({ isOpen, onClose }: FileUploadModalProps) => {
           setRequestId(data.request_id);
           setStep('otp');
         } else if (data.event === 'user_verified') {
-          // User is verified, now send the email notification
           try {
             const fileList = files.map(f => `${f.file.name} (${(f.file.size / 1024 / 1024).toFixed(1)} MB)`).join('\n');
             const templateParams = {
@@ -141,7 +148,6 @@ const FileUploadModal = ({ isOpen, onClose }: FileUploadModalProps) => {
           }
         }
       } else {
-        // Handle errors from phone.email
         setError(data.message || 'An unknown authentication error occurred.');
         if (data.event === 'user_verified') {
             setStep('failure');
@@ -151,7 +157,7 @@ const FileUploadModal = ({ isOpen, onClose }: FileUploadModalProps) => {
     
     window.addEventListener('pn_ph_auth_event', handlePhoneEmailEvent);
     return () => window.removeEventListener('pn_ph_auth_event', handlePhoneEmailEvent);
-  }, [files]); // Add 'files' to dependency array to ensure it's available in the event handler
+  }, [files]);
 
   const resetModal = () => {
     setStep('upload');

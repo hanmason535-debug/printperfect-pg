@@ -1,8 +1,9 @@
 import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
-import { MessageCircle, Phone, Menu, X, MapPin } from 'lucide-react';
+import { MessageCircle, Phone, Menu, X } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { CONTACT } from '@/config/constants';
+import googleMapsIcon from '@/assets/google-maps.png';
 
 const Header = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -102,11 +103,15 @@ const Header = () => {
             <Button
               variant="ghost"
               size="icon"
-              className="hidden md:flex w-10 h-10 text-white hover:text-cyan-accent"
+              className="hidden md:flex h-12 w-12 p-1.5 hover:bg-white/10 transition-colors"
               onClick={() => window.open('https://maps.app.goo.gl/yt63M1mqnfSYL9he8', '_blank')}
               title="Find us on Google Maps"
             >
-              <MapPin className="w-6 h-6" />
+              <img
+                src={googleMapsIcon}
+                alt="Find us on Google Maps"
+                className="h-full w-full transition-transform hover:scale-110"
+              />
             </Button>
 
             {/* Mobile Menu Toggle */}

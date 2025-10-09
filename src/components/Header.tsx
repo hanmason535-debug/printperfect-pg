@@ -1,36 +1,72 @@
-import { useState, useEffect } from 'react';
+/**
+ * Header.tsx
+ * Main navigation component of the application.
+ * Implements a responsive header with desktop and mobile navigation,
+ * contact buttons, and scroll-based styling.
+ * 
+ * Performance Optimizations:
+ * - Component is memoized to prevent unnecessary re-renders
+ * - Event handlers are memoized using useCallback
+ * - Static data is defined outside the component
+ * - Animations are optimized using motion.div with viewport detection
+ */
+
+import { useState, useEffect, useCallback, useMemo, memo } from 'react';
 import { Button } from '@/components/ui/button';
 import { MessageCircle, Phone, Menu, X } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { CONTACT } from '@/config/constants';
 import googleMapsIcon from '@/assets/google-maps.png';
 
+// Static menu items defined outside component to prevent recreation on each render
+const MENU_ITEMS = [
+  { label: 'Home', href: '#home' },
+  { label: 'Services', href: '#services' },
+  { label: 'Portfolio', href: '#portfolio' },
+  { label: 'Contact', href: '#contact' },
+] as const;
+
 const Header = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isScrolled, setIsScrolled] = useState(false);
 
-  useEffect(() => {
-    const handleScroll = () => {
-      setIsScrolled(window.scrollY > 50);
-    };
-    window.addEventListener('scroll', handleScroll);
-    return () => window.removeEventListener('scroll', handleScroll);
+  // Memoized handlers
+  const handleWhatsAppClick = useCallback(() => {
+    window.open(`https://wa.me/${CONTACT.phoneRaw}`, '_blank');
+    setIsMenuOpen(false);
   }, []);
 
-  const menuItems = [
-    { label: 'Home', href: '#home' },
-    { label: 'Services', href: '#services' },
-    { label: 'Portfolio', href: '#portfolio' },
-    { label: 'Contact', href: '#contact' },
-  ];
+  const handlePhoneClick = useCallback(() => {
+    window.open(`tel:${CONTACT.phone}`, '_blank');
+    setIsMenuOpen(false);
+  }, []);
 
-  const handleNavClick = (href: string) => {
+  const handleMapsClick = useCallback(() => {
+    window.open('https://maps.app.goo.gl/yt63M1mqnfSYL9he8', '_blank');
+  }, []);
+
+  const handleMenuToggle = useCallback(() => {
+    setIsMenuOpen(prev => !prev);
+  }, []);
+
+  // Memoize scroll handler to prevent recreation on each render
+  const handleScroll = useCallback(() => {
+    setIsScrolled(window.scrollY > 50);
+  }, []);
+
+  useEffect(() => {
+    window.addEventListener('scroll', handleScroll);
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, [handleScroll]);
+
+  // Memoize navigation click handler
+  const handleNavClick = useCallback((href: string) => {
     const element = document.querySelector(href);
     if (element) {
       element.scrollIntoView({ behavior: 'smooth' });
     }
     setIsMenuOpen(false);
-  };
+  }, []);
 
   return (
     <motion.header
@@ -66,7 +102,7 @@ const Header = () => {
 
           {/* Desktop Navigation */}
           <nav className="hidden lg:flex items-center space-x-8">
-            {menuItems.map((item) => (
+            {MENU_ITEMS.map((item) => (
               <button
                 key={item.label}
                 onClick={() => handleNavClick(item.href)}
@@ -83,7 +119,7 @@ const Header = () => {
               variant="whatsapp"
               size="sm"
               className="hidden sm:flex"
-              onClick={() => window.open(`https://wa.me/${CONTACT.phoneRaw}`, '_blank')}
+              onClick={handleWhatsAppClick}
             >
               <MessageCircle className="w-4 h-4" />
               WhatsApp
@@ -93,7 +129,7 @@ const Header = () => {
               variant="cyan"
               size="sm"
               className="hidden sm:flex"
-              onClick={() => window.open(`tel:${CONTACT.phone}`, '_blank')}
+              onClick={handlePhoneClick}
             >
               <Phone className="w-4 h-4" />
               Call
@@ -104,7 +140,7 @@ const Header = () => {
               variant="ghost"
               size="icon"
               className="hidden md:flex h-10 w-10 p-1.5 hover:bg-white/10 transition-colors"
-              onClick={() => window.open('https://maps.app.goo.gl/yt63M1mqnfSYL9he8', '_blank')}
+              onClick={handleMapsClick}
               title="Find us on Google Maps"
             >
               <img
@@ -119,17 +155,7 @@ const Header = () => {
               variant="ghost"
               size="icon"
               className="lg:hidden text-white hover:text-cyan-accent"
-              onClick={() => setIsMenuOpen(!isMenuOpen)}
-            >
-              {isMenuOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
-            </Button>
-
-            {/* Mobile Menu Toggle */}
-            <Button
-              variant="ghost"
-              size="icon"
-              className="lg:hidden text-white hover:text-cyan-accent"
-              onClick={() => setIsMenuOpen(!isMenuOpen)}
+              onClick={handleMenuToggle}
             >
               {isMenuOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
             </Button>
@@ -146,7 +172,7 @@ const Header = () => {
             transition={{ duration: 0.2 }}
           >
             <div className="flex flex-col space-y-4 p-4">
-              {menuItems.map((item) => (
+              {MENU_ITEMS.map((item) => (
                 <button
                   key={item.label}
                   onClick={() => handleNavClick(item.href)}
@@ -160,10 +186,7 @@ const Header = () => {
                   variant="whatsapp"
                   size="sm"
                   className="flex-1"
-                  onClick={() => {
-                    window.open(`https://wa.me/${CONTACT.phoneRaw}`, '_blank');
-                    setIsMenuOpen(false);
-                  }}
+                  onClick={handleWhatsAppClick}
                 >
                   <MessageCircle className="w-4 h-4" />
                   WhatsApp
@@ -172,10 +195,7 @@ const Header = () => {
                   variant="cyan"
                   size="sm"
                   className="flex-1"
-                  onClick={() => {
-                    window.open(`tel:${CONTACT.phone}`, '_blank');
-                    setIsMenuOpen(false);
-                  }}
+                  onClick={handlePhoneClick}
                 >
                   <Phone className="w-4 h-4" />
                   Call
@@ -189,4 +209,5 @@ const Header = () => {
   );
 };
 
-export default Header;
+// Export memoized component
+export default memo(Header);

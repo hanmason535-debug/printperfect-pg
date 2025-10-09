@@ -1,4 +1,16 @@
-import { useState, useEffect } from 'react';
+/**
+ * Portfolio.tsx
+ * Displays a grid of portfolio items with filtering and a lightbox for detailed viewing.
+ *
+ * Performance Optimizations:
+ * - Component is lazy-loaded in Index.tsx to reduce initial bundle size.
+ * - Images use `loading="lazy"` and `srcset` for responsive and efficient loading.
+ * - Static data (portfolioItems, filterCategories, animation variants) is defined outside
+ *   the component to prevent recreation on every render.
+ * - Event handlers are memoized using useCallback to prevent unnecessary re-renders of child components.
+ * - Lightbox uses `AnimatePresence` for smooth mounting/unmounting animations.
+ */
+import { useState, useEffect, useCallback, useMemo, memo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { X, ChevronLeft, ChevronRight } from 'lucide-react';
 import businessCardsImg from '@/assets/services/business-cards.jpg';
@@ -7,84 +19,90 @@ import apparelImg from '@/assets/services/apparel.jpg';
 import stickersLabelsImg from '@/assets/services/stickers-labels.jpg';
 import foamBoardsImg from '@/assets/services/foam-boards.jpg';
 
-const Portfolio = () => {
-  const [activeFilter, setActiveFilter] = useState('All');
-  const [lightboxOpen, setLightboxOpen] = useState(false);
-  const [currentImageIndex, setCurrentImageIndex] = useState(0);
+// --- Static Data Definitions ---
+// By defining these outside the component, we prevent them from being recreated on every render.
 
-  const portfolioItems = [
+// Static data for portfolio items. Includes image paths and responsive srcset attributes.
+const portfolioItems = [
     {
       id: 1,
       title: 'Matte Finish Business Cards',
       description: 'Premium 300 GSM stock with matte finish',
       category: 'Business Cards',
-      image: businessCardsImg
+      image: businessCardsImg,
+      srcSet: `${businessCardsImg.replace('.jpg', '-small.jpg')} 480w, ${businessCardsImg.replace('.jpg', '-medium.jpg')} 800w, ${businessCardsImg} 1200w`
     },
     {
       id: 2,
       title: 'Flex Banner — XYZ Company',
       description: 'Large format outdoor advertising banner',
       category: 'Banners',
-      image: flexBannersImg
+      image: flexBannersImg,
+      srcSet: `${flexBannersImg.replace('.jpg', '-small.jpg')} 480w, ${flexBannersImg.replace('.jpg', '-medium.jpg')} 800w, ${flexBannersImg} 1200w`
     },
     {
       id: 3,
       title: 'Custom Printed T-Shirt',
       description: 'High-quality DTG printing on premium cotton',
       category: 'Apparel',
-      image: apparelImg
+      image: apparelImg,
+      srcSet: `${apparelImg.replace('.jpg', '-small.jpg')} 480w, ${apparelImg.replace('.jpg', '-medium.jpg')} 800w, ${apparelImg} 1200w`
     },
     {
       id: 4,
       title: 'Vinyl Stickers & Labels',
       description: 'Waterproof vinyl with UV-resistant printing',
       category: 'Stickers',
-      image: stickersLabelsImg
+      image: stickersLabelsImg,
+      srcSet: `${stickersLabelsImg.replace('.jpg', '-small.jpg')} 480w, ${stickersLabelsImg.replace('.jpg', '-medium.jpg')} 800w, ${stickersLabelsImg} 1200w`
     },
     {
       id: 5,
       title: 'Event Foam Board Display',
       description: 'Lightweight foam core with full-color graphics',
       category: 'Banners',
-      image: foamBoardsImg
+      image: foamBoardsImg,
+      srcSet: `${foamBoardsImg.replace('.jpg', '-small.jpg')} 480w, ${foamBoardsImg.replace('.jpg', '-medium.jpg')} 800w, ${foamBoardsImg} 1200w`
     },
     {
       id: 6,
       title: 'Corporate Stationery Set',
       description: 'Letterheads, envelopes, and business cards',
       category: 'Business Cards',
-      image: businessCardsImg
+      image: businessCardsImg,
+      srcSet: `${businessCardsImg.replace('.jpg', '-small.jpg')} 480w, ${businessCardsImg.replace('.jpg', '-medium.jpg')} 800w, ${businessCardsImg} 1200w`
     },
     {
       id: 7,
       title: 'Custom Hoodie Print',
       description: 'Screen printing on premium fleece',
       category: 'Apparel',
-      image: apparelImg
+      image: apparelImg,
+      srcSet: `${apparelImg.replace('.jpg', '-small.jpg')} 480w, ${apparelImg.replace('.jpg', '-medium.jpg')} 800w, ${apparelImg} 1200w`
     },
     {
       id: 8,
       title: 'Product Label Design',
       description: 'High-gloss labels with brand colors',
       category: 'Stickers',
-      image: stickersLabelsImg
+      image: stickersLabelsImg,
+      srcSet: `${stickersLabelsImg.replace('.jpg', '-small.jpg')} 480w, ${stickersLabelsImg.replace('.jpg', '-medium.jpg')} 800w, ${stickersLabelsImg} 1200w`
     },
     {
       id: 9,
       title: 'Trade Show Banner',
       description: 'Retractable banner stand with graphics',
       category: 'Banners',
-      image: flexBannersImg
+      image: flexBannersImg,
+      srcSet: `${flexBannersImg.replace('.jpg', '-small.jpg')} 480w, ${flexBannersImg.replace('.jpg', '-medium.jpg')} 800w, ${flexBannersImg} 1200w`
     }
-  ];
+];
 
-  const filterCategories = ['All', 'Business Cards', 'Banners', 'Apparel', 'Stickers'];
+// Categories for filtering the portfolio.
+const filterCategories = ['All', 'Business Cards', 'Banners', 'Apparel', 'Stickers'];
 
-  const filteredItems = activeFilter === 'All' 
-    ? portfolioItems 
-    : portfolioItems.filter(item => item.category === activeFilter);
-
-  const containerVariants = {
+// Animation variants for Framer Motion.
+const containerVariants = {
     hidden: { opacity: 0 },
     visible: {
       opacity: 1,
@@ -92,47 +110,74 @@ const Portfolio = () => {
         staggerChildren: 0.1
       }
     }
-  };
+};
 
-  const itemVariants = {
+const itemVariants = {
     hidden: { opacity: 0, y: 30 },
     visible: { opacity: 1, y: 0 }
-  };
+};
 
-  const openLightbox = (index: number) => {
-    const filteredIndex = filteredItems.findIndex(item => item.id === filteredItems[index].id);
-    setCurrentImageIndex(filteredIndex);
+
+// --- Component Definition ---
+
+const Portfolio = () => {
+  // --- State Management ---
+  const [activeFilter, setActiveFilter] = useState('All');
+  const [lightboxOpen, setLightboxOpen] = useState(false);
+  const [currentImageIndex, setCurrentImageIndex] = useState(0);
+
+  // --- Derived State ---
+  // useMemo ensures that filtering only re-runs when the activeFilter changes.
+  const filteredItems = useMemo(() => {
+    if (activeFilter === 'All') {
+      return portfolioItems;
+    }
+    return portfolioItems.filter(item => item.category === activeFilter);
+  }, [activeFilter]);
+
+  // --- Event Handlers ---
+  // useCallback memoizes these functions so they aren't recreated on every render.
+
+  // Opens the lightbox, sets the correct image, and disables body scroll.
+  const openLightbox = useCallback((index: number) => {
+    setCurrentImageIndex(index);
     setLightboxOpen(true);
     document.body.style.overflow = 'hidden';
-  };
+  }, []);
 
-  const closeLightbox = () => {
+  // Closes the lightbox and re-enables body scroll.
+  const closeLightbox = useCallback(() => {
     setLightboxOpen(false);
     document.body.style.overflow = 'unset';
-  };
+  }, []);
 
-  const nextImage = () => {
+  // Navigates to the next image in the lightbox.
+  const nextImage = useCallback(() => {
     setCurrentImageIndex((prev) => (prev + 1) % filteredItems.length);
-  };
+  }, [filteredItems.length]);
 
-  const prevImage = () => {
+  // Navigates to the previous image in the lightbox.
+  const prevImage = useCallback(() => {
     setCurrentImageIndex((prev) => (prev - 1 + filteredItems.length) % filteredItems.length);
-  };
+  }, [filteredItems.length]);
 
-  const handleKeyDown = (e: KeyboardEvent) => {
+  // Handles keyboard navigation for the lightbox.
+  const handleKeyDown = useCallback((e: KeyboardEvent) => {
     if (e.key === 'Escape') closeLightbox();
     if (e.key === 'ArrowRight') nextImage();
     if (e.key === 'ArrowLeft') prevImage();
-  };
+  }, [closeLightbox, nextImage, prevImage]);
 
-  // Fixed: proper useEffect with comprehensive dependency array
+  // --- Side Effects ---
+  // Attaches and cleans up the keyboard event listener for the lightbox.
   useEffect(() => {
     if (lightboxOpen) {
       document.addEventListener('keydown', handleKeyDown);
       return () => document.removeEventListener('keydown', handleKeyDown);
     }
-  }, [lightboxOpen, filteredItems.length]);
+  }, [lightboxOpen, handleKeyDown]);
 
+  // --- Render Logic ---
   return (
     <section id="portfolio" className="py-20 bg-background">
       <div className="container mx-auto px-4 lg:px-8">
@@ -197,18 +242,20 @@ const Portfolio = () => {
           viewport={{ once: true }}
           key={activeFilter} // Re-animate when filter changes
         >
-          {filteredItems.map((item) => (
+          {filteredItems.map((item, index) => (
             <motion.div
               key={item.id}
               variants={itemVariants}
               whileHover={{ y: -10, transition: { duration: 0.3 } }}
               className="group relative overflow-hidden rounded-xl bg-card shadow-elevation hover:shadow-premium transition-all duration-300 cursor-pointer"
-              onClick={() => openLightbox(filteredItems.indexOf(item))}
+              onClick={() => openLightbox(index)}
             >
               {/* Portfolio Image */}
               <div className="relative h-64 overflow-hidden">
                 <img
                   src={item.image}
+                  srcSet={item.srcSet}
+                  sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
                   alt={item.title}
                   className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
                   loading="lazy" // Performance: lazy load images
@@ -310,6 +357,8 @@ const Portfolio = () => {
                 
                 <img
                   src={filteredItems[currentImageIndex]?.image}
+                  srcSet={filteredItems[currentImageIndex]?.srcSet}
+                  sizes="(max-width: 768px) 90vw, 80vw"
                   alt={filteredItems[currentImageIndex]?.title}
                   className="relative z-10 w-full h-full object-contain rounded-lg shadow-2xl"
                   loading="lazy"
@@ -338,4 +387,5 @@ const Portfolio = () => {
   );
 };
 
-export default Portfolio;
+// Memoize the component to prevent re-renders if props haven't changed.
+export default memo(Portfolio);

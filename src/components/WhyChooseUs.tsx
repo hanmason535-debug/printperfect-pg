@@ -1,9 +1,34 @@
+/**
+ * WhyChooseUs.tsx
+ * A section component that highlights the key features and benefits of the printing service.
+ * 
+ * Performance Optimizations:
+ * - The component is wrapped in React.memo to prevent re-renders when parent components update.
+ * - Static data (features, animation variants) is defined outside the component scope, so it is not
+ *   recreated on every render. This is a simple but effective way to improve performance.
+ */
 import { memo } from 'react';
 import { motion } from 'framer-motion';
 import { Clock, Award, DollarSign, MapPin } from 'lucide-react';
 
-const WhyChooseUs = () => {
-  const features = [
+// Animation variants defined outside component to prevent recreation
+const containerVariants = {
+  hidden: { opacity: 0 },
+  visible: {
+    opacity: 1,
+    transition: {
+      staggerChildren: 0.2
+    }
+  }
+};
+
+const itemVariants = {
+  hidden: { opacity: 0, x: -30 },
+  visible: { opacity: 1, x: 0 }
+};
+
+// Features data defined outside component to prevent recreation
+const features = [
     {
       icon: Clock,
       title: 'Fast Turnaround',
@@ -30,21 +55,7 @@ const WhyChooseUs = () => {
     }
   ];
 
-  const containerVariants = {
-    hidden: { opacity: 0 },
-    visible: {
-      opacity: 1,
-      transition: {
-        staggerChildren: 0.2
-      }
-    }
-  };
-
-  const itemVariants = {
-    hidden: { opacity: 0, x: -30 },
-    visible: { opacity: 1, x: 0 }
-  };
-
+const WhyChooseUs = () => {
   return (
     <section className="py-12 bg-background border-y border-border">
       <div className="container mx-auto px-4 lg:px-8">

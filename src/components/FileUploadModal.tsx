@@ -10,22 +10,15 @@ import { RecaptchaVerifier, signInWithPhoneNumber, ConfirmationResult } from 'fi
 import { auth } from '@/firebase';
 import emailjs from '@emailjs/browser';
 
-<<<<<<< HEAD
 // --- Read keys securely from environment variables ---
 const EMAILJS_SERVICE_ID = import.meta.env.VITE_EMAILJS_SERVICE_ID;
 const EMAILJS_TEMPLATE_ID = import.meta.env.VITE_EMAILJS_TEMPLATE_ID;
 const EMAILJS_PUBLIC_KEY = import.meta.env.VITE_EMAILJS_PUBLIC_KEY;
 
-// --- **IMPROVEMENT**: Add a check to ensure keys are loaded ---
+// --- Add a check to ensure keys are loaded ---
 if (!EMAILJS_SERVICE_ID || !EMAILJS_TEMPLATE_ID || !EMAILJS_PUBLIC_KEY) {
   console.error("EmailJS environment variables are not configured. Please check your .env file.");
 }
-=======
-// --- 1. Read keys securely from environment variables ---
-const EMAILJS_SERVICE_ID = import.meta.env.VITE_EMAILJS_SERVICE_ID;
-const EMAILJS_TEMPLATE_ID = import.meta.env.VITE_EMAILJS_TEMPLATE_ID;
-const EMAILJS_PUBLIC_KEY = import.meta.env.VITE_EMAILJS_PUBLIC_KEY;
->>>>>>> e8e70f2 (feat(upload): Implement Firebase OTP Authentication and Email Notifications)
 
 interface FileUploadModalProps {
   isOpen: boolean;
@@ -46,26 +39,9 @@ const FileUploadModal = ({ isOpen, onClose }: FileUploadModalProps) => {
   const [error, setError] = useState('');
   const [confirmationResult, setConfirmationResult] = useState<ConfirmationResult | null>(null);
 
-<<<<<<< HEAD
   const recaptchaVerifierRef = useRef<RecaptchaVerifier | null>(null);
   const recaptchaContainerRef = useRef<HTMLDivElement>(null);
 
-  useEffect(() => {
-    // This effect now robustly handles reCAPTCHA setup and cleanup
-    if (isOpen && step === 'phone' && recaptchaContainerRef.current) {
-        if (!recaptchaVerifierRef.current) {
-            recaptchaVerifierRef.current = new RecaptchaVerifier(auth, recaptchaContainerRef.current, {
-                size: 'invisible',
-                callback: () => {},
-            });
-        }
-    }
-=======
-  // --- 2. Use useRef to hold the recaptchaVerifier instance ---
-  const recaptchaVerifierRef = useRef<RecaptchaVerifier | null>(null);
-  const recaptchaContainerRef = useRef<HTMLDivElement>(null);
-
-  // --- 3. Refined useEffect for better lifecycle management ---
   useEffect(() => {
     if (isOpen && step === 'phone' && recaptchaContainerRef.current && !recaptchaVerifierRef.current) {
       recaptchaVerifierRef.current = new RecaptchaVerifier(auth, recaptchaContainerRef.current, {
@@ -73,14 +49,12 @@ const FileUploadModal = ({ isOpen, onClose }: FileUploadModalProps) => {
         callback: () => {},
       });
     }
-    // Cleanup function to destroy the verifier when the component unmounts or dependencies change
     return () => {
       if (recaptchaVerifierRef.current) {
         recaptchaVerifierRef.current.clear();
         recaptchaVerifierRef.current = null;
       }
     };
->>>>>>> e8e70f2 (feat(upload): Implement Firebase OTP Authentication and Email Notifications)
   }, [isOpen, step]);
 
   const allowedTypes = {
@@ -116,10 +90,6 @@ const FileUploadModal = ({ isOpen, onClose }: FileUploadModalProps) => {
     setLoading(true);
     setError('');
 
-<<<<<<< HEAD
-=======
-    // --- 4. Update OTP submission to use the ref ---
->>>>>>> e8e70f2 (feat(upload): Implement Firebase OTP Authentication and Email Notifications)
     const appVerifier = recaptchaVerifierRef.current;
     if (!appVerifier) {
       setError('reCAPTCHA verifier not initialized. Please try again.');
@@ -145,13 +115,10 @@ const FileUploadModal = ({ isOpen, onClose }: FileUploadModalProps) => {
       setError("Verification session expired. Please try again.");
       return;
     }
-<<<<<<< HEAD
     if (!EMAILJS_SERVICE_ID || !EMAILJS_TEMPLATE_ID || !EMAILJS_PUBLIC_KEY) {
         setError("Email service is not configured correctly.");
         return;
     }
-=======
->>>>>>> e8e70f2 (feat(upload): Implement Firebase OTP Authentication and Email Notifications)
     setLoading(true);
     setError('');
 
@@ -177,10 +144,6 @@ const FileUploadModal = ({ isOpen, onClose }: FileUploadModalProps) => {
     }
   };
   
-<<<<<<< HEAD
-=======
-  // --- 5. Improved cleanup in resetModal ---
->>>>>>> e8e70f2 (feat(upload): Implement Firebase OTP Authentication and Email Notifications)
   const resetModal = () => {
     setStep('upload');
     setFiles([]);
@@ -204,12 +167,7 @@ const FileUploadModal = ({ isOpen, onClose }: FileUploadModalProps) => {
         <DialogHeader>
           <DialogTitle className="text-2xl font-heading font-bold text-center">Upload Your Files</DialogTitle>
         </DialogHeader>
-<<<<<<< HEAD
-        {/* This div is essential for the invisible reCAPTCHA to mount */}
         <div ref={recaptchaContainerRef}></div>
-=======
-        <div id="recaptcha-container" ref={recaptchaContainerRef}></div>
->>>>>>> e8e70f2 (feat(upload): Implement Firebase OTP Authentication and Email Notifications)
         <AnimatePresence mode="wait">
           {step === 'upload' && (
              <motion.div key="upload" className="space-y-6">

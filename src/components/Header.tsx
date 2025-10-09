@@ -103,7 +103,7 @@ const Header = () => {
             <Button
               variant="ghost"
               size="icon"
-              className="hidden md:flex h-12 w-12 p-1.5 hover:bg-white/10 transition-colors"
+              className="hidden md:flex h-11 w-11 p-1.5 hover:bg-white/10 transition-colors"
               onClick={() => window.open('https://maps.app.goo.gl/yt63M1mqnfSYL9he8', '_blank')}
               title="Find us on Google Maps"
             >

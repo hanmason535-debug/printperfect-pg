@@ -103,15 +103,11 @@ const Header = () => {
               variant="ghost"
               size="icon"
               className="hidden md:flex w-10 h-10 text-white hover:text-cyan-accent"
-              onClick={() => window.open(CONTACT.mapsUrl, '_blank')}
+              // Assuming 'CONTACT.mapsUrl' is the correct constant path:
+              onClick={() => window.open(GOOGLE_MAPS_URL, '_blank')}
               title="Find us on Google Maps"
             >
-              {/* Google Maps colorful pin icon */}
-              <svg className="w-6 h-6" viewBox="0 0 24 24" fill="none">
-                <path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7z" fill="#EA4335"/>
-                <circle cx="12" cy="9" r="2.5" fill="#FFFFFF"/>
-                <path d="M12 6.5c1.38 0 2.5 1.12 2.5 2.5s-1.12 2.5-2.5 2.5S9.5 10.38 9.5 9s1.12-2.5 2.5-2.5z" fill="#EA4335"/>
-              </svg>
+              <MapPin className="w-6 h-6" /> {/* This resolves the color issue */}
             </Button>
 
             {/* Mobile Menu Toggle */}

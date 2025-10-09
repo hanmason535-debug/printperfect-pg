@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -6,18 +6,28 @@ import { Label } from '@/components/ui/label';
 import { Upload, Phone, CheckCircle, AlertCircle } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useDropzone } from 'react-dropzone';
-import { RecaptchaVerifier, signInWithPhoneNumber, ConfirmationResult } from 'firebase/auth';
-import { auth } from '@/firebase';
 import emailjs from '@emailjs/browser';
 
-// --- Read keys securely from environment variables ---
+// --- Securely read all API keys ---
 const EMAILJS_SERVICE_ID = import.meta.env.VITE_EMAILJS_SERVICE_ID;
 const EMAILJS_TEMPLATE_ID = import.meta.env.VITE_EMAILJS_TEMPLATE_ID;
 const EMAILJS_PUBLIC_KEY = import.meta.env.VITE_EMAILJS_PUBLIC_KEY;
+const PHONE_EMAIL_CLIENT_ID = import.meta.env.VITE_PHONE_EMAIL_CLIENT_ID;
 
-// --- Add a check to ensure keys are loaded ---
-if (!EMAILJS_SERVICE_ID || !EMAILJS_TEMPLATE_ID || !EMAILJS_PUBLIC_KEY) {
-  console.error("EmailJS environment variables are not configured. Please check your .env file.");
+// --- Add type declaration for the phone.email library ---
+declare global {
+  interface Window {
+    pn_ph_auth: (options: {
+      client_id: string;
+      country_code: string;
+      phone_number: string;
+    }) => void;
+    pn_ph_auth_verify: (options: {
+      client_id: string;
+      request_id: string;
+      otp: string;
+    }) => void;
+  }
 }
 
 interface FileUploadModalProps {
@@ -37,25 +47,7 @@ const FileUploadModal = ({ isOpen, onClose }: FileUploadModalProps) => {
   const [otp, setOtp] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
-  const [confirmationResult, setConfirmationResult] = useState<ConfirmationResult | null>(null);
-
-  const recaptchaVerifierRef = useRef<RecaptchaVerifier | null>(null);
-  const recaptchaContainerRef = useRef<HTMLDivElement>(null);
-
-  useEffect(() => {
-    if (isOpen && step === 'phone' && recaptchaContainerRef.current && !recaptchaVerifierRef.current) {
-      recaptchaVerifierRef.current = new RecaptchaVerifier(auth, recaptchaContainerRef.current, {
-        size: 'invisible',
-        callback: () => {},
-      });
-    }
-    return () => {
-      if (recaptchaVerifierRef.current) {
-        recaptchaVerifierRef.current.clear();
-        recaptchaVerifierRef.current = null;
-      }
-    };
-  }, [isOpen, step]);
+  const [requestId, setRequestId] = useState(''); // To store the request_id from phone.email
 
   const allowedTypes = {
     'application/pdf': ['.pdf'],
@@ -82,68 +74,85 @@ const FileUploadModal = ({ isOpen, onClose }: FileUploadModalProps) => {
     setFiles(prev => prev.filter((_, i) => i !== index));
   };
 
+  // --- New phone submit handler for phone.email ---
   const handlePhoneSubmit = async () => {
     if (phoneNumber.length !== 10) {
       setError('Please enter a valid 10-digit phone number');
       return;
     }
+    if (!PHONE_EMAIL_CLIENT_ID) {
+        console.error("phone.email Client ID is missing. Please check your .env file.");
+        setError("Authentication service is not configured.");
+        return;
+    }
+    
     setLoading(true);
     setError('');
 
-    const appVerifier = recaptchaVerifierRef.current;
-    if (!appVerifier) {
-      setError('reCAPTCHA verifier not initialized. Please try again.');
-      setLoading(false);
-      return;
-    }
+    window.pn_ph_auth({
+      client_id: PHONE_EMAIL_CLIENT_ID,
+      country_code: "91",
+      phone_number: phoneNumber
+    });
 
-    try {
-      const fullPhoneNumber = `+91${phoneNumber}`;
-      const result = await signInWithPhoneNumber(auth, fullPhoneNumber, appVerifier);
-      setConfirmationResult(result);
-      setStep('otp');
-    } catch (error) {
-      console.error("Error sending OTP:", error);
-      setError('Failed to send OTP. Please check the number and try again.');
-    } finally {
-      setLoading(false);
-    }
+    // The phone.email SDK will emit events that we listen to.
   };
-
+  
+  // --- New OTP submit handler for phone.email ---
   const handleOtpSubmit = async () => {
-    if (!confirmationResult) {
-      setError("Verification session expired. Please try again.");
-      return;
-    }
-    if (!EMAILJS_SERVICE_ID || !EMAILJS_TEMPLATE_ID || !EMAILJS_PUBLIC_KEY) {
-        setError("Email service is not configured correctly.");
+    if (otp.length !== 6) {
+        setError('Please enter the 6-digit OTP.');
         return;
     }
     setLoading(true);
     setError('');
-
-    try {
-      await confirmationResult.confirm(otp);
-      
-      const fileList = files.map(f => `${f.file.name} (${(f.file.size / 1024 / 1024).toFixed(1)} MB)`).join('\n');
-
-      const templateParams = {
-        phoneNumber: `+91${phoneNumber}`,
-        fileList: fileList,
-      };
-
-      await emailjs.send(EMAILJS_SERVICE_ID, EMAILJS_TEMPLATE_ID, templateParams, EMAILJS_PUBLIC_KEY);
-
-      setStep('success');
-    } catch (error) {
-      console.error("Verification or EmailJS error:", error);
-      setError('Verification failed or could not send notification. Please try again.');
-      setStep('failure');
-    } finally {
-      setLoading(false);
-    }
+    
+    window.pn_ph_auth_verify({
+        client_id: PHONE_EMAIL_CLIENT_ID,
+        request_id: requestId,
+        otp: otp
+    });
   };
-  
+
+  // --- Effect to listen for events from the phone.email SDK ---
+  useEffect(() => {
+    const handlePhoneEmailEvent = async (event: any) => {
+      const data = event.detail;
+      setLoading(false);
+
+      if (data.status === 'success') {
+        if (data.event === 'otp_sent') {
+          setRequestId(data.request_id);
+          setStep('otp');
+        } else if (data.event === 'user_verified') {
+          // User is verified, now send the email notification
+          try {
+            const fileList = files.map(f => `${f.file.name} (${(f.file.size / 1024 / 1024).toFixed(1)} MB)`).join('\n');
+            const templateParams = {
+              phoneNumber: `+${data.country_code}${data.phone_number}`,
+              fileList: fileList,
+            };
+            await emailjs.send(EMAILJS_SERVICE_ID, EMAILJS_TEMPLATE_ID, templateParams, EMAILJS_PUBLIC_KEY);
+            setStep('success');
+          } catch (emailError) {
+            console.error("EmailJS error:", emailError);
+            setError('Verification succeeded, but could not send notification.');
+            setStep('failure');
+          }
+        }
+      } else {
+        // Handle errors from phone.email
+        setError(data.message || 'An unknown authentication error occurred.');
+        if (data.event === 'user_verified') {
+            setStep('failure');
+        }
+      }
+    };
+    
+    window.addEventListener('pn_ph_auth_event', handlePhoneEmailEvent);
+    return () => window.removeEventListener('pn_ph_auth_event', handlePhoneEmailEvent);
+  }, [files]); // Add 'files' to dependency array to ensure it's available in the event handler
+
   const resetModal = () => {
     setStep('upload');
     setFiles([]);
@@ -151,11 +160,7 @@ const FileUploadModal = ({ isOpen, onClose }: FileUploadModalProps) => {
     setOtp('');
     setError('');
     setLoading(false);
-    setConfirmationResult(null);
-    if (recaptchaVerifierRef.current) {
-      recaptchaVerifierRef.current.clear();
-      recaptchaVerifierRef.current = null;
-    }
+    setRequestId('');
     onClose();
   };
 
@@ -167,9 +172,8 @@ const FileUploadModal = ({ isOpen, onClose }: FileUploadModalProps) => {
         <DialogHeader>
           <DialogTitle className="text-2xl font-heading font-bold text-center">Upload Your Files</DialogTitle>
         </DialogHeader>
-        <div ref={recaptchaContainerRef}></div>
         <AnimatePresence mode="wait">
-          {step === 'upload' && (
+        {step === 'upload' && (
              <motion.div key="upload" className="space-y-6">
              <div {...getRootProps()} className={`border-2 border-dashed rounded-xl p-8 text-center cursor-pointer ${isDragActive ? 'border-cyan bg-cyan/5' : 'border-border hover:border-cyan hover:bg-cyan/5'}`}>
                <input {...getInputProps()} />

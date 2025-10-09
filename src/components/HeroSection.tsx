@@ -2,6 +2,7 @@ import { Button } from '@/components/ui/button';
 import { Upload, MessageCircle } from 'lucide-react';
 import { motion } from 'framer-motion';
 import heroBackground from '@/assets/hero-bg.jpg';
+import { CONTACT } from '@/config/constants';
 
 interface HeroSectionProps {
   onUploadClick: () => void;
@@ -112,7 +113,7 @@ const HeroSection = ({ onUploadClick }: HeroSectionProps) => {
             <Button
               variant="whatsapp"
               size="hero"
-              onClick={() => window.open('https://wa.me/919825123456?text=Hi! I need help with printing services.', '_blank')}
+              onClick={() => window.open(`https://wa.me/${CONTACT.phoneRaw}?text=Hi! I need help with printing services.`, '_blank')}
               className="w-full sm:w-auto"
             >
               <MessageCircle className="w-6 h-6" />

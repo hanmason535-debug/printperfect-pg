@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { MessageCircle, Phone, Menu, X } from 'lucide-react';
 import { motion } from 'framer-motion';
+import { CONTACT } from '@/config/constants';
 
 const Header = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -81,7 +82,7 @@ const Header = () => {
               variant="whatsapp"
               size="sm"
               className="hidden sm:flex"
-              onClick={() => window.open('https://wa.me/919377476343', '_blank')}
+              onClick={() => window.open(`https://wa.me/${CONTACT.phoneRaw}`, '_blank')}
             >
               <MessageCircle className="w-4 h-4" />
               WhatsApp
@@ -91,7 +92,7 @@ const Header = () => {
               variant="cyan"
               size="sm"
               className="hidden sm:flex"
-              onClick={() => window.open('tel:+919377476343', '_blank')}
+              onClick={() => window.open(`tel:${CONTACT.phone}`, '_blank')}
             >
               <Phone className="w-4 h-4" />
               Call
@@ -102,7 +103,7 @@ const Header = () => {
               variant="ghost"
               size="icon"
               className="hidden md:flex w-10 h-10 text-white hover:text-cyan-accent"
-              onClick={() => window.open('https://maps.app.goo.gl/yt63M1mqnfSYL9he8', '_blank')}
+              onClick={() => window.open(CONTACT.mapsUrl, '_blank')}
               title="Find us on Google Maps"
             >
               {/* Google Maps colorful pin icon */}
@@ -150,7 +151,7 @@ const Header = () => {
                   size="sm"
                   className="flex-1"
                   onClick={() => {
-                    window.open('https://wa.me/919377476343', '_blank');
+                    window.open(`https://wa.me/${CONTACT.phoneRaw}`, '_blank');
                     setIsMenuOpen(false);
                   }}
                 >
@@ -162,7 +163,7 @@ const Header = () => {
                   size="sm"
                   className="flex-1"
                   onClick={() => {
-                    window.open('tel:+919377476343', '_blank');
+                    window.open(`tel:${CONTACT.phone}`, '_blank');
                     setIsMenuOpen(false);
                   }}
                 >

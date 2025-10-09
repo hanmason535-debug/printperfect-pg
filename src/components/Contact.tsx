@@ -3,6 +3,7 @@ import { motion } from 'framer-motion';
 import { MapPin, Mail, Phone, Clock, Facebook, Instagram, Linkedin } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useToast } from '@/hooks/use-toast';
+import { CONTACT, SOCIAL_MEDIA, COMPANY } from '@/config/constants';
 
 const Contact = () => {
   const { toast } = useToast();
@@ -60,7 +61,7 @@ Email: ${formData.email}
 Phone: ${formData.phone}
 Message: ${formData.message}`;
       
-      const whatsappUrl = `https://wa.me/919377476343?text=${encodeURIComponent(message)}`;
+      const whatsappUrl = `https://wa.me/${CONTACT.phoneRaw}?text=${encodeURIComponent(message)}`;
       window.open(whatsappUrl, '_blank');
       
       toast({
@@ -226,7 +227,7 @@ Message: ${formData.message}`;
                 
                 <div className="space-y-6">
                   <motion.a
-                    href="https://maps.app.goo.gl/yt63M1mqnfSYL9he8"
+                    href={CONTACT.mapsUrl}
                     target="_blank"
                     rel="noopener noreferrer"
                     className="flex items-start space-x-4 group cursor-pointer"
@@ -241,15 +242,15 @@ Message: ${formData.message}`;
                         Visit Our Store
                       </h4>
                       <p className="text-muted-foreground text-sm leading-relaxed">
-                        2, Chandrika Chamber, Mirzapur Rd,<br />
-                        Opposite Jansatta Karyalay, Mirzapur,<br />
-                        Ahmedabad, Gujarat 380001
+                        {CONTACT.address.line1}<br />
+                        {CONTACT.address.line2}<br />
+                        {CONTACT.address.line3}
                       </p>
                     </div>
                   </motion.a>
                   
                   <motion.a
-                    href="mailto:parasgph@gmail.com"
+                    href={`mailto:${CONTACT.email}`}
                     className="flex items-start space-x-4 group cursor-pointer"
                     whileHover={{ x: 10 }}
                     transition={{ duration: 0.2 }}
@@ -261,12 +262,12 @@ Message: ${formData.message}`;
                       <h4 className="font-semibold text-foreground group-hover:text-magenta transition-colors">
                         Email Us
                       </h4>
-                      <p className="text-muted-foreground">parasgph@gmail.com</p>
+                      <p className="text-muted-foreground">{CONTACT.email}</p>
                     </div>
                   </motion.a>
                   
                   <motion.a
-                    href="tel:+919377476343"
+                    href={`tel:${CONTACT.phone}`}
                     className="flex items-start space-x-4 group cursor-pointer"
                     whileHover={{ x: 10 }}
                     transition={{ duration: 0.2 }}
@@ -278,7 +279,7 @@ Message: ${formData.message}`;
                       <h4 className="font-semibold text-foreground group-hover:text-yellow transition-colors">
                         Call Us
                       </h4>
-                      <p className="text-muted-foreground">+91 9377 476 343</p>
+                      <p className="text-muted-foreground">{CONTACT.phoneDisplay}</p>
                     </div>
                   </motion.a>
                   
@@ -288,8 +289,8 @@ Message: ${formData.message}`;
                     </div>
                     <div>
                       <h4 className="font-semibold text-foreground">Business Hours</h4>
-                      <p className="text-muted-foreground">Mon – Sat: 9 AM – 7 PM</p>
-                      <p className="text-muted-foreground text-sm">Sunday: Closed</p>
+                      <p className="text-muted-foreground">{CONTACT.businessHours.weekdays}</p>
+                      <p className="text-muted-foreground text-sm">{CONTACT.businessHours.sunday}</p>
                     </div>
                   </div>
                 </div>
@@ -319,7 +320,7 @@ Message: ${formData.message}`;
                 </p>
                 <div className="flex space-x-4">
                   <motion.a
-                    href="#"
+                    href={SOCIAL_MEDIA.facebook}
                     className="bg-card p-3 rounded-lg text-muted-foreground hover:text-cyan hover:bg-cyan/10 transition-colors duration-300"
                     whileHover={{ scale: 1.1 }}
                     whileTap={{ scale: 0.95 }}
@@ -327,7 +328,7 @@ Message: ${formData.message}`;
                     <Facebook className="w-5 h-5" />
                   </motion.a>
                   <motion.a
-                    href="#"
+                    href={SOCIAL_MEDIA.instagram}
                     className="bg-card p-3 rounded-lg text-muted-foreground hover:text-magenta hover:bg-magenta/10 transition-colors duration-300"
                     whileHover={{ scale: 1.1 }}
                     whileTap={{ scale: 0.95 }}
@@ -335,7 +336,7 @@ Message: ${formData.message}`;
                     <Instagram className="w-5 h-5" />
                   </motion.a>
                   <motion.a
-                    href="#"
+                    href={SOCIAL_MEDIA.linkedin}
                     className="bg-card p-3 rounded-lg text-muted-foreground hover:text-primary hover:bg-primary/10 transition-colors duration-300"
                     whileHover={{ scale: 1.1 }}
                     whileTap={{ scale: 0.95 }}
@@ -363,21 +364,21 @@ Message: ${formData.message}`;
                 <div className="w-10 h-10 bg-gradient-cyan rounded-lg flex items-center justify-center text-white font-heading font-bold text-lg">
                   PG
                 </div>
-                <div>
-                  <h3 className="text-xl font-heading font-bold text-foreground">
-                    Paras Graphics
-                  </h3>
-                  <p className="text-xs text-muted-foreground -mt-1">
-                    Premium Printing
-                  </p>
-                </div>
+              <div>
+                <h3 className="text-xl font-heading font-bold text-foreground">
+                  {COMPANY.name}
+                </h3>
+                <p className="text-xs text-muted-foreground -mt-1">
+                  {COMPANY.tagline}
+                </p>
               </div>
-              <p className="text-muted-foreground text-sm leading-relaxed mb-4">
-                Your trusted print partner in Ahmedabad for premium quality and fast turnarounds.
-              </p>
-              <p className="text-xs text-muted-foreground">
-                Serving Ahmedabad since 1997
-              </p>
+            </div>
+            <p className="text-muted-foreground text-sm leading-relaxed mb-4">
+              {COMPANY.description}
+            </p>
+            <p className="text-xs text-muted-foreground">
+              Serving Ahmedabad since {COMPANY.foundedYear}
+            </p>
             </div>
 
             {/* Quick Links */}
@@ -415,9 +416,9 @@ Message: ${formData.message}`;
             <div>
               <h4 className="font-semibold text-foreground mb-4">Contact</h4>
               <div className="space-y-2 text-sm text-muted-foreground">
-                <p>+91 9377 476 343</p>
-                <p>parasgph@gmail.com</p>
-                <p>Mon – Sat: 9 AM – 7 PM</p>
+                <p>{CONTACT.phoneDisplay}</p>
+                <p>{CONTACT.email}</p>
+                <p>{CONTACT.businessHours.weekdays}</p>
               </div>
             </div>
           </div>

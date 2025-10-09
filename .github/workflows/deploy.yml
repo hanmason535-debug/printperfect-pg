@@ -26,7 +26,7 @@ jobs:
         run: npm install
 
       - name: Run linter
-        run: npm run lint
+        run: npx npm run lint
 
       - name: Run tests
         run: npm run test || echo "No tests configured yet"

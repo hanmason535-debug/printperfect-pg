@@ -32,13 +32,3 @@ export const COMPANY = {
   foundedYear: 1997,
   description: 'Your trusted print partner in Ahmedabad for premium quality and fast turnarounds.',
 } as const;
-
-export const FIREBASE_CONFIG = {
-  apiKey: "AIzaSyCGfzzGkraaPkcExRB0c39AE_9eHhEvWbo",
-  authDomain: "paras-graphics-2c370.firebaseapp.com",
-  projectId: "paras-graphics-2c370",
-  storageBucket: "paras-graphics-2c370.firebasestorage.app",
-  messagingSenderId: "643494155575",
-  appId: "1:643494155575:web:87fd36340d46034b3cf6b2",
-  measurementId: "G-J18D9969QB"
-};

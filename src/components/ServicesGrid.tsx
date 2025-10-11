@@ -4,14 +4,16 @@
  */
 import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { client } from '@/sanity/client';
+import { client, urlFor } from '@/sanity/client';
 import * as Icons from 'lucide-react';
+import type { SanityImageSource } from '@sanity/image-url/lib/types/types';
 
 // --- Type Definition for Sanity Data ---
 interface Service {
   _id: string;
   title: string;
   description: string;
+  image?: SanityImageSource;
   iconName: string; // Assuming you store the name of a lucide-react icon
 }
 
@@ -36,10 +38,11 @@ const ServicesGrid = () => {
     const fetchServices = async () => {
       setLoading(true);
       try {
-        const query = `*[_type == "service"]{
+        const query = `*[_type == "service"] | order(priority asc, _createdAt desc) {
           _id,
           title,
           description,
+          image,
           iconName
         }`;
         const data = await client.fetch<Service[]>(query);
@@ -74,25 +77,41 @@ const ServicesGrid = () => {
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
           {loading ? (
             <p className="text-center col-span-full text-muted-foreground">Loading services...</p>
+          ) : services.length === 0 ? (
+            <p className="text-center col-span-full text-muted-foreground">No services to display.</p>
           ) : (
-            services.map((service) => (
-              <motion.div
-                key={service._id}
-                className="bg-card p-8 rounded-xl shadow-elevation hover:shadow-premium transition-all duration-300"
-                initial={{ opacity: 0, y: 20 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true }}
-              >
-                <div className="bg-cyan/10 text-cyan p-4 rounded-lg inline-block mb-4">
-                  <DynamicIcon 
-                    name={service.iconName} 
-                    className="w-8 h-8" 
-                  />
-                </div>
-                <h3 className="text-xl font-bold font-heading text-foreground mt-4 mb-2">{service.title}</h3>
-                <p className="text-muted-foreground">{service.description}</p>
-              </motion.div>
-            ))
+            services.map((service) => {
+              const imageUrl = service.image
+                ? urlFor(service.image).width(400).format('webp').url()
+                : null;
+
+              return (
+                <motion.div
+                  key={service._id}
+                  className="bg-card rounded-xl shadow-elevation hover:shadow-premium transition-all duration-300 overflow-hidden"
+                  initial={{ opacity: 0, y: 20 }}
+                  whileInView={{ opacity: 1, y: 0 }}
+                  viewport={{ once: true }}
+                >
+                  {imageUrl ? (
+                    <img
+                      src={imageUrl}
+                      alt={service.title}
+                      className="w-full h-48 object-cover"
+                      loading="lazy"
+                    />
+                  ) : (
+                    <div className="w-full h-48 flex items-center justify-center bg-muted text-muted-foreground text-sm font-medium">
+                      Image coming soon
+                    </div>
+                  )}
+                  <div className="p-6">
+                    <h3 className="text-xl font-bold font-heading text-foreground mb-2">{service.title}</h3>
+                    <p className="text-muted-foreground">{service.description}</p>
+                  </div>
+                </motion.div>
+              );
+            })
           )}
         </div>
       </div>

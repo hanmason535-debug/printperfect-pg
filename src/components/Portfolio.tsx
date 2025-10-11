@@ -6,24 +6,27 @@
 import { useState, useEffect, useCallback, useMemo, memo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { X, ChevronLeft, ChevronRight } from 'lucide-react';
-import { client } from '@/sanity/client';
+import { client, urlFor } from '@/sanity/client';
+import type { SanityImageSource } from '@sanity/image-url/lib/types/types';
 
 // --- Type Definition for Sanity Data ---
 interface PortfolioItem {
   _id: string;
   title: string;
   description: string;
-  category: string;
-  imageUrl: string;
-  // The srcSet can be constructed if you have image metadata or use Sanity's image pipeline
-  srcSet?: string; 
+  category: { _id: string; title: string } | null;
+  image?: SanityImageSource;
+  link?: string;
+  priority?: number;
+}
+
+interface Category {
+  _id: string;
+  title: string;
 }
 
 // --- Static Data Definitions ---
 // By defining these outside the component, we prevent them from being recreated on every render.
-
-// Categories for filtering the portfolio.
-const filterCategories = ['All', 'Business Cards', 'Banners', 'Apparel', 'Stickers'];
 
 // Animation variants for Framer Motion.
 const containerVariants = {
@@ -47,24 +50,43 @@ const itemVariants = {
 const Portfolio = () => {
   // --- State Management ---
   const [portfolioItems, setPortfolioItems] = useState<PortfolioItem[]>([]);
+  const [categories, setCategories] = useState<Category[]>([]);
   const [loading, setLoading] = useState(true);
   const [activeFilter, setActiveFilter] = useState('All');
   const [lightboxOpen, setLightboxOpen] = useState(false);
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
 
   // --- Data Fetching ---
+  // Fetch categories on mount
   useEffect(() => {
-    const fetchPortfolioItems = async () => {
+    const fetchCategories = async () => {
+      try {
+        const catQuery = `*[_type == "category"] | order(title asc)`;
+        const data = await client.fetch<Category[]>(catQuery);
+        setCategories([{ _id: 'All', title: 'All' }, ...data]);
+      } catch (error) {
+        console.error("Failed to fetch categories:", error);
+      }
+    };
+    fetchCategories();
+  }, []);
+
+  // Fetch portfolio items when the filter changes
+  useEffect(() => {
+    const fetchItems = async () => {
       setLoading(true);
       try {
-        const query = `*[_type == "portfolioItem"]{
-          _id,
-          title,
-          description,
-          category,
-          "imageUrl": image.asset->url
-        }`;
-        const data = await client.fetch<PortfolioItem[]>(query);
+        let query: string;
+        const params: { categoryRef?: string } = {};
+
+        if (activeFilter === 'All') {
+          query = `*[_type == "portfolioItem"] | order(priority asc, _createdAt desc) {..., "category": category->{_id, title}}`;
+        } else {
+          query = `*[_type == "portfolioItem" && category._ref == $categoryRef] | order(priority asc, _createdAt desc) {..., "category": category->{_id, title}}`;
+          params.categoryRef = activeFilter;
+        }
+
+        const data = await client.fetch<PortfolioItem[]>(query, params);
         setPortfolioItems(data);
       } catch (error) {
         console.error("Failed to fetch portfolio items:", error);
@@ -72,8 +94,8 @@ const Portfolio = () => {
         setLoading(false);
       }
     };
-    fetchPortfolioItems();
-  }, []);
+    fetchItems();
+  }, [activeFilter]);
 
   // --- Derived State ---
   // useMemo ensures that filtering only re-runs when the activeFilter changes.
@@ -81,8 +103,28 @@ const Portfolio = () => {
     if (activeFilter === 'All') {
       return portfolioItems;
     }
-    return portfolioItems.filter(item => item.category === activeFilter);
-  }, [activeFilter]);
+    return portfolioItems.filter(item => item.category?._id === activeFilter);
+  }, [activeFilter, portfolioItems]);
+
+  const hasNoItems = filteredItems.length === 0;
+  const needsIndexReset = !hasNoItems && currentImageIndex >= filteredItems.length;
+
+  useEffect(() => {
+    if (hasNoItems) {
+      setLightboxOpen(false);
+      setCurrentImageIndex(0);
+      return;
+    }
+
+    if (needsIndexReset) {
+      setCurrentImageIndex(0);
+    }
+  }, [hasNoItems, needsIndexReset, currentImageIndex]);
+
+  const currentLightboxItem = filteredItems[currentImageIndex] ?? null;
+  const lightboxImageUrl = currentLightboxItem?.image
+    ? urlFor(currentLightboxItem.image).width(1200).url()
+    : null;
 
   // --- Event Handlers ---
   // useCallback memoizes these functions so they aren't recreated on every render.
@@ -160,22 +202,22 @@ const Portfolio = () => {
           transition={{ duration: 0.6 }}
           viewport={{ once: true }}
         >
-          {filterCategories.map((category) => (
+          {categories.map((category) => (
             <motion.button
-              key={category}
+              key={category._id}
               role="tab"
-              aria-selected={activeFilter === category}
+              aria-selected={activeFilter === category._id}
               aria-controls="portfolio-grid"
-              onClick={() => setActiveFilter(category)}
+              onClick={() => setActiveFilter(category._id)}
               className={`px-6 py-3 rounded-full font-medium transition-all duration-300 ${
-                activeFilter === category
+                activeFilter === category._id
                   ? 'bg-gradient-cyan text-white shadow-cyan-glow'
                   : 'bg-card text-muted-foreground hover:text-cyan hover:bg-accent'
               }`}
               whileHover={{ scale: 1.05 }}
               whileTap={{ scale: 0.95 }}
             >
-              {category}
+              {category.title}
             </motion.button>
           ))}
         </motion.div>
@@ -196,49 +238,59 @@ const Portfolio = () => {
           ) : filteredItems.length === 0 ? (
             <p className="text-center col-span-full text-muted-foreground">No items to display for this category.</p>
           ) : (
-            filteredItems.map((item, index) => (
-            <motion.div
-              key={item._id}
-              variants={itemVariants}
-              whileHover={{ y: -10, transition: { duration: 0.3 } }}
-              className="group relative overflow-hidden rounded-xl bg-card shadow-elevation hover:shadow-premium transition-all duration-300 cursor-pointer"
-              onClick={() => openLightbox(index)}
-            >
-              {/* Portfolio Image */}
-              <div className="relative h-64 overflow-hidden">
-                <img
-                  src={item.imageUrl}
-                  // srcSet={item.srcSet} // You can build this with Sanity's image pipeline
-                  sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
-                  alt={item.title}
-                  className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
-                  loading="lazy" // Performance: lazy load images
-                  onError={(e) => {
-                    // Fallback for broken images
-                    e.currentTarget.src = 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMzAwIiBoZWlnaHQ9IjIwMCIgdmlld0JveD0iMCAwIDMwMCAyMDAiIGZpbGw9Im5vbmUiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+CjxyZWN0IHdpZHRoPSIzMDAiIGhlaWdodD0iMjAwIiBmaWxsPSIjRjNGNEY2Ii8+Cjx0ZXh0IHg9IjE1MCIgeT0iMTA1IiB0ZXh0LWFuY2hvcj0ibWlkZGxlIiBmaWxsPSIjOUI5QkEwIiBmb250LWZhbWlseT0iSW50ZXIiIGZvbnQtc2l6ZT0iMTQiPkltYWdlIE5vdCBGb3VuZDwvdGV4dD4KPHN2Zz4=';
-                  }}
-                />
-                
-                {/* Text Overlay - Always visible at bottom */}
-                <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/80 to-transparent p-4">
-                  <h3 className="text-white font-heading font-semibold text-lg mb-1">
-                    {item.title}
-                  </h3>
-                  <p className="text-white/90 text-sm">
-                    {item.description}
-                  </p>
-                </div>
+            filteredItems.map((item, index) => {
+              const imageUrl = item.image
+                ? urlFor(item.image).width(800).format('webp').url()
+                : null;
 
-                {/* Category Badge */}
-                <div className="absolute top-4 right-4 bg-cyan-accent text-white px-3 py-1 rounded-full text-xs font-medium">
-                  {item.category}
-                </div>
-              </div>
+              return (
+                <motion.div
+                  key={item._id}
+                  variants={itemVariants}
+                  whileHover={{ y: -10, transition: { duration: 0.3 } }}
+                  className="group relative overflow-hidden rounded-xl bg-card shadow-elevation hover:shadow-premium transition-all duration-300 cursor-pointer"
+                  onClick={() => openLightbox(index)}
+                >
+                  {/* Portfolio Image */}
+                  <div className="relative h-64 overflow-hidden">
+                    {imageUrl ? (
+                      <img
+                        src={imageUrl}
+                        sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+                        alt={item.title}
+                        className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
+                        loading="lazy" // Performance: lazy load images
+                        onError={(e) => {
+                          // Fallback for broken images
+                          e.currentTarget.src =
+                            'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMzAwIiBoZWlnaHQ9IjIwMCIgdmlld0JveD0iMCAwIDMwMCAyMDAiIGZpbGw9Im5vbmUiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+CjxyZWN0IHdpZHRoPSIzMDAiIGhlaWdodD0iMjAwIiBmaWxsPSIjRjNGNEY2Ii8+Cjx0ZXh0IHg9IjE1MCIgeT0iMTA1IiB0ZXh0LWFuY2hvcj0ibWlkZGxlIiBmaWxsPSIjOUI5QkEwIiBmb250LWZhbWlseT0iSW50ZXIiIGZvbnQtc2l6ZT0iMTQiPkltYWdlIE5vdCBGb3VuZDwvdGV4dD4KPHN2Zz4=';
+                        }}
+                      />
+                    ) : (
+                      <div className="w-full h-full flex items-center justify-center bg-muted text-muted-foreground text-sm font-medium">
+                        Image coming soon
+                      </div>
+                    )}
 
-              {/* CMYK Border Effect */}
-              <div className="absolute inset-0 border-2 border-transparent group-hover:border-cyan-accent group-hover:shadow-cyan-glow transition-all duration-300 rounded-xl"></div>
-            </motion.div>
-            ))
+                    {/* Text Overlay - Always visible at bottom */}
+                    <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/80 to-transparent p-4">
+                      <h3 className="text-white font-heading font-semibold text-lg mb-1">
+                        {item.title}
+                      </h3>
+                      <p className="text-white/90 text-sm">{item.description}</p>
+                    </div>
+
+                    {/* Category Badge */}
+                    <div className="absolute top-4 right-4 bg-cyan-accent text-white px-3 py-1 rounded-full text-xs font-medium">
+                      {item.category?.title ?? 'Uncategorized'}
+                    </div>
+                  </div>
+
+                  {/* CMYK Border Effect */}
+                  <div className="absolute inset-0 border-2 border-transparent group-hover:border-cyan-accent group-hover:shadow-cyan-glow transition-all duration-300 rounded-xl"></div>
+                </motion.div>
+              );
+            })
           )}
         </motion.div>
 
@@ -310,27 +362,32 @@ const Portfolio = () => {
                 {/* Loading placeholder */}
                 <div className="absolute inset-0 bg-gray-200 animate-pulse rounded-lg" />
                 
-                <img
-                  src={filteredItems[currentImageIndex]?.imageUrl}
-                  // srcSet={filteredItems[currentImageIndex]?.srcSet}
-                  sizes="(max-width: 768px) 90vw, 80vw"
-                  alt={filteredItems[currentImageIndex]?.title}
-                  className="relative z-10 w-full h-full object-contain rounded-lg shadow-2xl"
-                  loading="lazy"
-                  onLoad={(e) => {
-                    // Hide placeholder when image loads
-                    const placeholder = e.currentTarget.previousElementSibling as HTMLElement;
-                    if (placeholder) placeholder.style.display = 'none';
-                  }}
-                />
+                {lightboxImageUrl ? (
+                  <img
+                    src={lightboxImageUrl}
+                    sizes="(max-width: 768px) 90vw, 80vw"
+                    alt={currentLightboxItem?.title ?? 'Portfolio item'}
+                    className="relative z-10 w-full h-full object-contain rounded-lg shadow-2xl"
+                    loading="lazy"
+                    onLoad={(e) => {
+                      // Hide placeholder when image loads
+                      const placeholder = e.currentTarget.previousElementSibling as HTMLElement;
+                      if (placeholder) placeholder.style.display = 'none';
+                    }}
+                  />
+                ) : (
+                  <div className="relative z-10 w-full h-full flex items-center justify-center bg-muted text-muted-foreground text-sm font-medium rounded-lg">
+                    Image coming soon
+                  </div>
+                )}
                 
                 {/* Image Info */}
                 <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/80 to-transparent p-6 rounded-b-lg">
                   <h3 className="text-white font-heading font-semibold text-xl mb-2">
-                    {filteredItems[currentImageIndex]?.title}
+                    {currentLightboxItem?.title}
                   </h3>
                   <p className="text-white/90">
-                    {filteredItems[currentImageIndex]?.description}
+                    {currentLightboxItem?.description}
                   </p>
                 </div>
               </motion.div>

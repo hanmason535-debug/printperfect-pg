@@ -151,6 +151,19 @@ const Header = () => {
             </Button>
 
           </div>
+
+          {/* Mobile Menu Toggle */}
+          <div className="lg:hidden">
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={handleMenuToggle}
+              aria-label={isMenuOpen ? 'Close menu' : 'Open menu'}
+              className="text-white"
+            >
+              {isMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
+            </Button>
+          </div>
         </div>
 
         {/* Mobile Menu */}

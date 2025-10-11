@@ -1,9 +1,9 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Upload, Phone, CheckCircle, AlertCircle, Loader2 } from 'lucide-react';
+import { Upload, CheckCircle, AlertCircle, Loader2 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useDropzone } from 'react-dropzone';
 import emailjs from '@emailjs/browser';
@@ -12,15 +12,6 @@ import emailjs from '@emailjs/browser';
 const EMAILJS_SERVICE_ID = import.meta.env.VITE_EMAILJS_SERVICE_ID;
 const EMAILJS_TEMPLATE_ID = import.meta.env.VITE_EMAILJS_TEMPLATE_ID;
 const EMAILJS_PUBLIC_KEY = import.meta.env.VITE_EMAILJS_PUBLIC_KEY;
-const PHONE_EMAIL_CLIENT_ID = import.meta.env.VITE_PHONE_EMAIL_CLIENT_ID;
-
-// --- Type declaration for the phone.email library ---
-declare global {
-  interface Window {
-    pn_ph_auth: (options: { client_id: string; country_code: string; phone_number: string; }) => void;
-    pn_ph_auth_verify: (options: { client_id: string; request_id: string; otp: string; }) => void;
-  }
-}
 
 interface FileUploadModalProps {
   isOpen: boolean;
@@ -33,39 +24,11 @@ interface UploadFile {
 }
 
 const FileUploadModal = ({ isOpen, onClose }: FileUploadModalProps) => {
-  const [step, setStep] = useState<'upload' | 'phone' | 'otp' | 'success' | 'failure'>('upload');
+  const [step, setStep] = useState<'upload' | 'success' | 'failure'>('upload');
   const [files, setFiles] = useState<UploadFile[]>([]);
   const [phoneNumber, setPhoneNumber] = useState('');
-  const [otp, setOtp] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
-  const [requestId, setRequestId] = useState('');
-  const [isSdkReady, setIsSdkReady] = useState(false);
-
-  useEffect(() => {
-    if (isOpen && step === 'phone') {
-      if (typeof window.pn_ph_auth === 'function') {
-        setIsSdkReady(true);
-        return;
-      }
-      const interval = setInterval(() => {
-        if (typeof window.pn_ph_auth === 'function') {
-          setIsSdkReady(true);
-          clearInterval(interval);
-        }
-      }, 500);
-      const timeout = setTimeout(() => {
-        clearInterval(interval);
-        if (typeof window.pn_ph_auth !== 'function') {
-          setError("Authentication service failed to load. Please check your ad blocker or refresh the page.");
-        }
-      }, 5000);
-      return () => {
-        clearInterval(interval);
-        clearTimeout(timeout);
-      };
-    }
-  }, [isOpen, step]);
 
   const allowedTypes = { 'application/pdf': ['.pdf'], 'image/jpeg': ['.jpg', '.jpeg'], 'image/png': ['.png'] };
 
@@ -86,64 +49,32 @@ const FileUploadModal = ({ isOpen, onClose }: FileUploadModalProps) => {
 
   const removeFile = (index: number) => setFiles(prev => prev.filter((_, i) => i !== index));
 
-  const handlePhoneSubmit = async () => {
-    if (phoneNumber.length !== 10) {
-      setError('Please enter a valid 10-digit phone number');
+  const handleSendNotification = async () => {
+    if (files.length === 0) {
+      setError('Please upload at least one file.');
       return;
     }
     setLoading(true);
     setError('');
-    window.pn_ph_auth({ client_id: PHONE_EMAIL_CLIENT_ID, country_code: "91", phone_number: phoneNumber });
-  };
-  
-  const handleOtpSubmit = async () => {
-    if (otp.length !== 6) {
-      setError('Please enter the 6-digit OTP.');
-      return;
-    }
-    setLoading(true);
-    setError('');
-    window.pn_ph_auth_verify({ client_id: PHONE_EMAIL_CLIENT_ID, request_id: requestId, otp: otp });
-  };
-
-  useEffect(() => {
-    const handlePhoneEmailEvent = async (event: any) => {
+    try {
+      const fileList = files.map(f => `${f.file.name} (${(f.file.size / 1024 / 1024).toFixed(1)} MB)`).join('\n');
+      const templateParams = { phoneNumber: phoneNumber || "Not provided", fileList };
+      await emailjs.send(EMAILJS_SERVICE_ID, EMAILJS_TEMPLATE_ID, templateParams, EMAILJS_PUBLIC_KEY);
+      setStep('success');
+    } catch (emailError) {
+      setError('Could not send notification.');
+      setStep('failure');
+    } finally {
       setLoading(false);
-      const data = event.detail;
-      if (data.status === 'success') {
-        if (data.event === 'otp_sent') {
-          setRequestId(data.request_id);
-          setStep('otp');
-        } else if (data.event === 'user_verified') {
-          try {
-            const fileList = files.map(f => `${f.file.name} (${(f.file.size / 1024 / 1024).toFixed(1)} MB)`).join('\n');
-            const templateParams = { phoneNumber: `+${data.country_code}${data.phone_number}`, fileList };
-            await emailjs.send(EMAILJS_SERVICE_ID, EMAILJS_TEMPLATE_ID, templateParams, EMAILJS_PUBLIC_KEY);
-            setStep('success');
-          } catch (emailError) {
-            setError('Verification succeeded, but could not send notification.');
-            setStep('failure');
-          }
-        }
-      } else {
-        setError(data.message || 'An unknown authentication error occurred.');
-        if (data.event === 'user_verified') setStep('failure');
-      }
-    };
-    
-    window.addEventListener('pn_ph_auth_event', handlePhoneEmailEvent);
-    return () => window.removeEventListener('pn_ph_auth_event', handlePhoneEmailEvent);
-  }, [files]);
+    }
+  };
 
   const resetModal = () => {
     setStep('upload');
     setFiles([]);
     setPhoneNumber('');
-    setOtp('');
     setError('');
     setLoading(false);
-    setRequestId('');
-    setIsSdkReady(false);
     onClose();
   };
 
@@ -179,38 +110,15 @@ const FileUploadModal = ({ isOpen, onClose }: FileUploadModalProps) => {
                    ))}
                  </div>
                )}
+                <div className="space-y-2">
+                  <Label htmlFor="phone">Phone Number (Optional)</Label>
+                  <Input id="phone" type="tel" placeholder="Enter your phone number" value={phoneNumber} onChange={e => setPhoneNumber(e.target.value.replace(/\D/g, '').slice(0, 10))} />
+                </div>
                {error && <p className="text-destructive text-sm">{error}</p>}
-               <Button variant="cyan" className="w-full" onClick={() => setStep('phone')} disabled={files.length === 0}>Continue</Button>
+               <Button variant="cyan" className="w-full" onClick={handleSendNotification} disabled={files.length === 0 || loading}>
+                {loading ? <><Loader2 className="mr-2 h-4 w-4 animate-spin" /> Sending...</> : 'Send Notification'}
+               </Button>
              </motion.div>
-          )}
-          {step === 'phone' && (
-            <motion.div key="phone" className="space-y-6">
-              <div className="text-center"><Phone className="w-12 h-12 mx-auto mb-4 text-cyan" /><p>Enter your phone number for OTP</p></div>
-              <div className="space-y-4">
-                <div className="flex">
-                  <span className="inline-flex items-center px-3 bg-muted border border-r-0 rounded-l-md">+91</span>
-                  <Input id="phone" type="tel" placeholder="10-digit number" value={phoneNumber} onChange={e => setPhoneNumber(e.target.value.replace(/\D/g, '').slice(0, 10))} className="rounded-l-none" />
-                </div>
-                {error && <p className="text-destructive text-sm">{error}</p>}
-                <div className="flex space-x-3">
-                  <Button variant="outline" onClick={() => setStep('upload')} className="flex-1">Back</Button>
-                  <Button variant="cyan" onClick={handlePhoneSubmit} disabled={loading || phoneNumber.length !== 10 || !isSdkReady} className="flex-1">
-                    {loading ? 'Sending...' : !isSdkReady ? <><Loader2 className="mr-2 h-4 w-4 animate-spin" /> Loading...</> : 'Send OTP'}
-                  </Button>
-                </div>
-              </div>
-            </motion.div>
-          )}
-          {step === 'otp' && (
-            <motion.div key="otp" className="space-y-6">
-              <div className="text-center"><p>Enter the 6-digit OTP sent to +91{phoneNumber}</p></div>
-              <Input id="otp" type="text" placeholder="Enter OTP" value={otp} onChange={e => setOtp(e.target.value.replace(/\D/g, '').slice(0, 6))} className="text-center tracking-widest" />
-              {error && <p className="text-destructive text-sm">{error}</p>}
-              <div className="flex space-x-3">
-                <Button variant="outline" onClick={() => { setStep('phone'); setError(''); }}>Back</Button>
-                <Button variant="cyan" onClick={handleOtpSubmit} disabled={loading || otp.length !== 6}>{loading ? 'Verifying...' : 'Verify & Notify'}</Button>
-              </div>
-            </motion.div>
           )}
           {step === 'success' && (
             <motion.div key="success" className="text-center space-y-6">
@@ -225,7 +133,7 @@ const FileUploadModal = ({ isOpen, onClose }: FileUploadModalProps) => {
               <AlertCircle className="w-16 h-16 mx-auto text-destructive" />
               <h3>Something Went Wrong</h3>
               <p>{error || "An unknown error occurred."}</p>
-              <Button variant="outline" onClick={() => setStep('otp')} className="w-full">Try Again</Button>
+              <Button variant="outline" onClick={() => setStep('upload')} className="w-full">Try Again</Button>
             </motion.div>
           )}
         </AnimatePresence>

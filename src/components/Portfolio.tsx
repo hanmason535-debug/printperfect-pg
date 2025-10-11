@@ -1,120 +1,44 @@
 /**
  * Portfolio.tsx
  * Displays a grid of portfolio items with filtering and a lightbox for detailed viewing.
- *
- * Performance Optimizations:
- * - Component is lazy-loaded in Index.tsx to reduce initial bundle size.
- * - Images use `loading="lazy"` and `srcset` for responsive and efficient loading.
- * - Static data (portfolioItems, filterCategories, animation variants) is defined outside
- *   the component to prevent recreation on every render.
- * - Event handlers are memoized using useCallback to prevent unnecessary re-renders of child components.
- * - Lightbox uses `AnimatePresence` for smooth mounting/unmounting animations.
+ * Data is fetched dynamically from Sanity CMS.
  */
 import { useState, useEffect, useCallback, useMemo, memo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { X, ChevronLeft, ChevronRight } from 'lucide-react';
-import businessCardsImg from '@/assets/services/business-cards.jpg';
-import flexBannersImg from '@/assets/services/flex-banners.jpg';
-import apparelImg from '@/assets/services/apparel.jpg';
-import stickersLabelsImg from '@/assets/services/stickers-labels.jpg';
-import foamBoardsImg from '@/assets/services/foam-boards.jpg';
+import { client } from '@/sanity/client';
+
+// --- Type Definition for Sanity Data ---
+interface PortfolioItem {
+  _id: string;
+  title: string;
+  description: string;
+  category: string;
+  imageUrl: string;
+  // The srcSet can be constructed if you have image metadata or use Sanity's image pipeline
+  srcSet?: string; 
+}
 
 // --- Static Data Definitions ---
 // By defining these outside the component, we prevent them from being recreated on every render.
-
-// Static data for portfolio items. Includes image paths and responsive srcset attributes.
-const portfolioItems = [
-    {
-      id: 1,
-      title: 'Matte Finish Business Cards',
-      description: 'Premium 300 GSM stock with matte finish',
-      category: 'Business Cards',
-      image: businessCardsImg,
-      srcSet: `${businessCardsImg.replace('.jpg', '-small.jpg')} 480w, ${businessCardsImg.replace('.jpg', '-medium.jpg')} 800w, ${businessCardsImg} 1200w`
-    },
-    {
-      id: 2,
-      title: 'Flex Banner — XYZ Company',
-      description: 'Large format outdoor advertising banner',
-      category: 'Banners',
-      image: flexBannersImg,
-      srcSet: `${flexBannersImg.replace('.jpg', '-small.jpg')} 480w, ${flexBannersImg.replace('.jpg', '-medium.jpg')} 800w, ${flexBannersImg} 1200w`
-    },
-    {
-      id: 3,
-      title: 'Custom Printed T-Shirt',
-      description: 'High-quality DTG printing on premium cotton',
-      category: 'Apparel',
-      image: apparelImg,
-      srcSet: `${apparelImg.replace('.jpg', '-small.jpg')} 480w, ${apparelImg.replace('.jpg', '-medium.jpg')} 800w, ${apparelImg} 1200w`
-    },
-    {
-      id: 4,
-      title: 'Vinyl Stickers & Labels',
-      description: 'Waterproof vinyl with UV-resistant printing',
-      category: 'Stickers',
-      image: stickersLabelsImg,
-      srcSet: `${stickersLabelsImg.replace('.jpg', '-small.jpg')} 480w, ${stickersLabelsImg.replace('.jpg', '-medium.jpg')} 800w, ${stickersLabelsImg} 1200w`
-    },
-    {
-      id: 5,
-      title: 'Event Foam Board Display',
-      description: 'Lightweight foam core with full-color graphics',
-      category: 'Banners',
-      image: foamBoardsImg,
-      srcSet: `${foamBoardsImg.replace('.jpg', '-small.jpg')} 480w, ${foamBoardsImg.replace('.jpg', '-medium.jpg')} 800w, ${foamBoardsImg} 1200w`
-    },
-    {
-      id: 6,
-      title: 'Corporate Stationery Set',
-      description: 'Letterheads, envelopes, and business cards',
-      category: 'Business Cards',
-      image: businessCardsImg,
-      srcSet: `${businessCardsImg.replace('.jpg', '-small.jpg')} 480w, ${businessCardsImg.replace('.jpg', '-medium.jpg')} 800w, ${businessCardsImg} 1200w`
-    },
-    {
-      id: 7,
-      title: 'Custom Hoodie Print',
-      description: 'Screen printing on premium fleece',
-      category: 'Apparel',
-      image: apparelImg,
-      srcSet: `${apparelImg.replace('.jpg', '-small.jpg')} 480w, ${apparelImg.replace('.jpg', '-medium.jpg')} 800w, ${apparelImg} 1200w`
-    },
-    {
-      id: 8,
-      title: 'Product Label Design',
-      description: 'High-gloss labels with brand colors',
-      category: 'Stickers',
-      image: stickersLabelsImg,
-      srcSet: `${stickersLabelsImg.replace('.jpg', '-small.jpg')} 480w, ${stickersLabelsImg.replace('.jpg', '-medium.jpg')} 800w, ${stickersLabelsImg} 1200w`
-    },
-    {
-      id: 9,
-      title: 'Trade Show Banner',
-      description: 'Retractable banner stand with graphics',
-      category: 'Banners',
-      image: flexBannersImg,
-      srcSet: `${flexBannersImg.replace('.jpg', '-small.jpg')} 480w, ${flexBannersImg.replace('.jpg', '-medium.jpg')} 800w, ${flexBannersImg} 1200w`
-    }
-];
 
 // Categories for filtering the portfolio.
 const filterCategories = ['All', 'Business Cards', 'Banners', 'Apparel', 'Stickers'];
 
 // Animation variants for Framer Motion.
 const containerVariants = {
-    hidden: { opacity: 0 },
-    visible: {
-      opacity: 1,
-      transition: {
-        staggerChildren: 0.1
-      }
+  hidden: { opacity: 0 },
+  visible: {
+    opacity: 1,
+    transition: {
+      staggerChildren: 0.1
     }
+  }
 };
 
 const itemVariants = {
-    hidden: { opacity: 0, y: 30 },
-    visible: { opacity: 1, y: 0 }
+  hidden: { opacity: 0, y: 30 },
+  visible: { opacity: 1, y: 0 }
 };
 
 
@@ -122,9 +46,34 @@ const itemVariants = {
 
 const Portfolio = () => {
   // --- State Management ---
+  const [portfolioItems, setPortfolioItems] = useState<PortfolioItem[]>([]);
+  const [loading, setLoading] = useState(true);
   const [activeFilter, setActiveFilter] = useState('All');
   const [lightboxOpen, setLightboxOpen] = useState(false);
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
+
+  // --- Data Fetching ---
+  useEffect(() => {
+    const fetchPortfolioItems = async () => {
+      setLoading(true);
+      try {
+        const query = `*[_type == "portfolioItem"]{
+          _id,
+          title,
+          description,
+          category,
+          "imageUrl": image.asset->url
+        }`;
+        const data = await client.fetch<PortfolioItem[]>(query);
+        setPortfolioItems(data);
+      } catch (error) {
+        console.error("Failed to fetch portfolio items:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchPortfolioItems();
+  }, []);
 
   // --- Derived State ---
   // useMemo ensures that filtering only re-runs when the activeFilter changes.
@@ -242,9 +191,14 @@ const Portfolio = () => {
           viewport={{ once: true }}
           key={activeFilter} // Re-animate when filter changes
         >
-          {filteredItems.map((item, index) => (
+          {loading ? (
+            <p className="text-center col-span-full text-muted-foreground">Loading portfolio...</p>
+          ) : filteredItems.length === 0 ? (
+            <p className="text-center col-span-full text-muted-foreground">No items to display for this category.</p>
+          ) : (
+            filteredItems.map((item, index) => (
             <motion.div
-              key={item.id}
+              key={item._id}
               variants={itemVariants}
               whileHover={{ y: -10, transition: { duration: 0.3 } }}
               className="group relative overflow-hidden rounded-xl bg-card shadow-elevation hover:shadow-premium transition-all duration-300 cursor-pointer"
@@ -253,8 +207,8 @@ const Portfolio = () => {
               {/* Portfolio Image */}
               <div className="relative h-64 overflow-hidden">
                 <img
-                  src={item.image}
-                  srcSet={item.srcSet}
+                  src={item.imageUrl}
+                  // srcSet={item.srcSet} // You can build this with Sanity's image pipeline
                   sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
                   alt={item.title}
                   className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
@@ -284,7 +238,8 @@ const Portfolio = () => {
               {/* CMYK Border Effect */}
               <div className="absolute inset-0 border-2 border-transparent group-hover:border-cyan-accent group-hover:shadow-cyan-glow transition-all duration-300 rounded-xl"></div>
             </motion.div>
-          ))}
+            ))
+          )}
         </motion.div>
 
         {/* Call to Action */}
@@ -356,8 +311,8 @@ const Portfolio = () => {
                 <div className="absolute inset-0 bg-gray-200 animate-pulse rounded-lg" />
                 
                 <img
-                  src={filteredItems[currentImageIndex]?.image}
-                  srcSet={filteredItems[currentImageIndex]?.srcSet}
+                  src={filteredItems[currentImageIndex]?.imageUrl}
+                  // srcSet={filteredItems[currentImageIndex]?.srcSet}
                   sizes="(max-width: 768px) 90vw, 80vw"
                   alt={filteredItems[currentImageIndex]?.title}
                   className="relative z-10 w-full h-full object-contain rounded-lg shadow-2xl"

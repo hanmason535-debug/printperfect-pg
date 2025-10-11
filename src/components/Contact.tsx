@@ -301,7 +301,7 @@ Message: ${formData.message}`;
                 <h4 className="font-semibold text-foreground mb-4">Find Us</h4>
                 <div className="rounded-lg overflow-hidden shadow-elevation">
                   <iframe
-                    src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3671.7909!2d72.57!3d23.029!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x395e84f9f9f9f9f9%3A0x9f9f9f9f9f9f9f9f!2sChandrika%20Chamber!5e0!3m2!1sen!2sin!4v1678886400000!5m2!1sen!2sin"
+                    src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3671.809325791378!2d72.5703963751011!3d23.03050891535944!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x395e84f2d3a3a5e1%3A0x33a33a12a32d560!2sParas%20Graphics!5e0!3m2!1sen!2sin!4v1721066898391!5m2!1sen!2sin"
                     width="100%"
                     height="200"
                     style={{ border: 0 }}

@@ -301,7 +301,7 @@ Message: ${formData.message}`;
                 <h4 className="font-semibold text-foreground mb-4">Find Us</h4>
                 <div className="rounded-lg overflow-hidden shadow-elevation">
                   <iframe
-                    src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3671.7727092166956!2d72.58748931481598!3d23.035063484940263!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x395e85c4c4c4c4c5%3A0x1234567890abcdef!2s2%2C%20Chandrika%20Chamber%2C%20Mirzapur%20Rd%2C%20Mirzapur%2C%20Ahmedabad%2C%20Gujarat%20380001!5e0!3m2!1sen!2sin!4v1640000000000!5m2!1sen!2sin"
+                    src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3671.7909!2d72.57!3d23.029!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x395e84f9f9f9f9f9%3A0x9f9f9f9f9f9f9f9f!2sChandrika%20Chamber!5e0!3m2!1sen!2sin!4v1678886400000!5m2!1sen!2sin"
                     width="100%"
                     height="200"
                     style={{ border: 0 }}
@@ -321,6 +321,7 @@ Message: ${formData.message}`;
                 <div className="flex space-x-4">
                   <motion.a
                     href={SOCIAL_MEDIA.facebook}
+                    aria-label="Follow us on Facebook"
                     className="bg-card p-3 rounded-lg text-muted-foreground hover:text-cyan hover:bg-cyan/10 transition-colors duration-300"
                     whileHover={{ scale: 1.1 }}
                     whileTap={{ scale: 0.95 }}
@@ -329,6 +330,7 @@ Message: ${formData.message}`;
                   </motion.a>
                   <motion.a
                     href={SOCIAL_MEDIA.instagram}
+                    aria-label="Follow us on Instagram"
                     className="bg-card p-3 rounded-lg text-muted-foreground hover:text-magenta hover:bg-magenta/10 transition-colors duration-300"
                     whileHover={{ scale: 1.1 }}
                     whileTap={{ scale: 0.95 }}
@@ -337,6 +339,7 @@ Message: ${formData.message}`;
                   </motion.a>
                   <motion.a
                     href={SOCIAL_MEDIA.linkedin}
+                    aria-label="Follow us on LinkedIn"
                     className="bg-card p-3 rounded-lg text-muted-foreground hover:text-primary hover:bg-primary/10 transition-colors duration-300"
                     whileHover={{ scale: 1.1 }}
                     whileTap={{ scale: 0.95 }}

@@ -25,6 +25,28 @@ jobs:
       - name: Install dependencies
         run: npm install
 
+      - name: TypeScript Type Check
+        run: npx tsc --noEmit
+
+      - name: Code Formatting Check
+        run: npm run format:check
+
+      - name: Dependency Security Scan
+        uses: actions/dependency-review-action@v4
+
+      - name: Git Ignore Security Check
+        run: |
+          if ! grep -q ".env" .gitignore && ! grep -q "firebase.ts" .gitignore; then
+            echo "Error: .gitignore is missing required entries for .env or firebase.ts"
+            exit 1
+          fi
+
+      - name: Unused Dependency Check (Depcheck)
+        if: >
+          contains(github.event.head_commit.modified, 'package.json') ||
+          contains(github.event.head_commit.modified, 'package-lock.json')
+        run: npm run depcheck
+
       - name: Run linter
         run: npx npm run lint
 
@@ -33,6 +55,11 @@ jobs:
 
       - name: Build project
         run: npm run build
+
+      - name: Broken Link Check
+        uses: lycheeverse/lychee-action@v1
+        with:
+          args: "--verbose ./dist/index.html"
 
       - name: Upload build output
         uses: actions/upload-pages-artifact@v3

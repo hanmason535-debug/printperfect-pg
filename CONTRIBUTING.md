@@ -105,6 +105,23 @@ src/
 └── index.css         # Global styles and design tokens
 ```
 
+## Architecture Overview
+
+To maintain a clean and scalable codebase, we've introduced a few key architectural patterns:
+
+-   **`src/config/constants.ts`**: This file is the single source of truth for any hardcoded or environment-specific values, such as phone numbers, API endpoints, or default settings. Centralizing these constants makes them easy to update and prevents magic strings from being scattered across the codebase.
+
+-   **`createForwardRef` Utility**: Found in `src/lib/utils.ts`, this utility helps reduce boilerplate when creating new UI components that need to forward a `ref`. It standardizes the process of combining `React.forwardRef` with a display name, making component code cleaner and more consistent.
+
+## Data Structure Guidelines (Sanity)
+
+**Note:** This section outlines upcoming requirements for data modeling in Sanity.
+
+To ensure consistent and predictable content rendering, all new Sanity schemas must include the following fields for data presentation control:
+
+-   **`priority: number`**: A numerical field to control the display order of items. Lower numbers have higher priority (e.g., `1` appears before `2`).
+-   **`filters: [reference]`**: A reference array that connects the data to relevant filter categories (e.g., linking a portfolio piece to "Business Cards" or "Banners").
+
 ## Design System
 
 - Use semantic tokens from `index.css` and `tailwind.config.ts`

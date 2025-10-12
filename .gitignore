@@ -16,6 +16,7 @@ docs
 # Local env/config files
 *.local
 .env
+.env.*
 
 # Editor directories and files
 .vscode/*

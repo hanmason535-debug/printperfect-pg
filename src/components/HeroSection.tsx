@@ -34,7 +34,6 @@ const HeroSection = ({ onUploadClick }: HeroSectionProps) => {
         src={heroBackground}
         alt="Abstract background with CMYK colors"
         className="absolute inset-0 w-full h-full object-cover"
-        fetchPriority="high"
         loading="eager"
         decoding="async"
       />

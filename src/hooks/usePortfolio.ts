@@ -7,7 +7,12 @@ export function usePortfolio() {
   const [data, setData] = useState<PortfolioItem[]>([])
 
   useEffect(() => {
-    sanity.fetch<PortfolioItem[]>(Q_PORTFOLIO).then(setData)
+    sanity.fetch(Q_PORTFOLIO)
+      .then(setData)
+      .catch((e) => {
+        console.error('[portfolio] sanity.fetch failed:', e)
+        setData([])
+      })
   }, [])
 
   return data

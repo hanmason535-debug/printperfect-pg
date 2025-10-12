@@ -7,7 +7,12 @@ export function useServices() {
   const [data, setData] = useState<Service[]>([])
 
   useEffect(() => {
-    sanity.fetch<Service[]>(Q_SERVICES).then(setData)
+    sanity.fetch(Q_SERVICES)
+      .then(setData)
+      .catch((e) => {
+        console.error('[services] sanity.fetch failed:', e)
+        setData([]) // keep UI stable
+      })
   }, [])
 
   return data

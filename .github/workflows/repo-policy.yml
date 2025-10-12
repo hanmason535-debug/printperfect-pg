@@ -2,7 +2,7 @@ name: Advisory Policy (non-blocking)
 
 on:
   pull_request:
-    types: [opened, synchronize, reopened]
+    types: [opened, synchronize, reopened, edited]
 
 permissions:
   contents: read
@@ -11,88 +11,88 @@ permissions:
 jobs:
   advise:
     runs-on: ubuntu-latest
+    continue-on-error: true
     steps:
       - uses: actions/checkout@v4
 
-      - name: Detect changed files
+      - name: Detect changed files (non-fatal)
         id: diff
+        shell: bash
         run: |
+          set +e
           base="${{ github.base_ref || 'main' }}"
-          git fetch origin "$base" --depth=1
-          git diff --name-only origin/"$base"...HEAD > changed.txt
-          echo "changed<<EOF" >> $GITHUB_OUTPUT
-          cat changed.txt >> $GITHUB_OUTPUT
-          echo "EOF" >> $GITHUB_OUTPUT
+          git fetch origin "$base" --depth=1 || true
+          git diff --name-only origin/"$base"...HEAD > changed.txt || true
+          {
+            echo "changed<<EOF"
+            cat changed.txt || true
+            echo "EOF"
+          } >> "$GITHUB_OUTPUT"
 
-      - name: Compose advisory message
+      - name: Compose advisory message (non-fatal)
         id: compose
+        shell: bash
         run: |
+          set +e
           CHANGED="$(echo "${{ steps.diff.outputs.changed }}" | tr '\n' ' ')"
           MSG="### ℹ️ Advisory checks (non-blocking)\n"
           NEEDS_MSG=false
 
-          # 1) CHANGELOG nudge for code changes
-          if echo "$CHANGED" | grep -Eq 
-'(src/|sanity/|seed/|package|vite|tsconfig|tailwind|public/)'
-;
- then
-            if ! echo "$CHANGED" | grep -q 
-'^CHANGELOG\.md'
-;
- then
-              MSG+="- Please update 
-`CHANGELOG.md`
- for code changes.\n"; NEEDS_MSG=true
+          # 1) CHANGELOG nudge
+          if echo "$CHANGED" | grep -Eq '(src/|sanity/|seed/|package|vite|tsconfig|tailwind|public/)' ; then
+            if ! echo "$CHANGED" | grep -q '^CHANGELOG\.md' ; then
+              MSG+="- Please update `CHANGELOG.md` for code changes.\n"; NEEDS_MSG=true
             fi
           fi
 
-          # 2) GROQ guard (nudge)
-          if grep -RIn --include=\*.ts\* 
-"from 'groq'"
- src 2>/dev/null; then
-            MSG+="- Use **plain string** GROQ; remove 
-`import 'groq'`
-.\n"; NEEDS_MSG=true
+          # 2) GROQ guard (nudge only)
+          if grep -RIn --include=\*.ts --include=\*.tsx "from 'groq'" src 2>/dev/null ; then
+            MSG+="- Use **plain string** GROQ; remove `import 'groq'`.\n"; NEEDS_MSG=true
           fi
 
           # 3) Protected UI/schema files touched?
-          if echo "$CHANGED" | grep -Eq 
-'src/components/(ServicesGrid|Portfolio|Contact)\.tsx|sanity/schemaTypes/|sanity/schema\.ts'
-;
- then
-            MSG+="- Protected UI/schema files changed. Add 
-`UI change approved: YES`
- in PR body if intended.\n"; NEEDS_MSG=true
+          if echo "$CHANGED" | grep -Eq 'src/components/(ServicesGrid|Portfolio|Contact)\.tsx|sanity/schemaTypes/|sanity/schema\.ts' ; then
+            MSG+="- Protected UI/schema files changed. Add `UI change approved: YES` in PR body if intended.\n"; NEEDS_MSG=true
           fi
 
           # 4) Agent attribution
-          body="$(jq -r 
-'.pull_request.body'
- < $GITHUB_EVENT_PATH)"
-          if ! echo "$body" | grep -qi 
-'^Agent:'
-;
- then
-            MSG+="- Please add 
-`Agent:`
- line in PR body (Lovable | Codex | Gemini | Human).\n"; NEEDS_MSG=true
+          body="$(jq -r '.pull_request.body' < "$GITHUB_EVENT_PATH" 2>/dev/null)"
+          if ! echo "$body" | grep -qi '^Agent:' ; then
+            MSG+="- Add `Agent:` line in PR body (Lovable | Codex | Gemini | Human).\n"; NEEDS_MSG=true
           fi
 
           if [ "$NEEDS_MSG" = true ]; then
-            echo "msg<<EOF" >> $GITHUB_OUTPUT
-            echo -e "$MSG" >> $GITHUB_OUTPUT
-            echo "EOF" >> $GITHUB_OUTPUT
+            {
+              echo "msg<<EOF"
+              echo -e "$MSG"
+              echo "EOF"
+            } >> "$GITHUB_OUTPUT"
           fi
 
-      - name: Comment on PR (advisory)
-        if: ${{ steps.compose.outputs.msg != '' }}
+      - name: Post advisory comment (non-fatal)
+        if: ${{ steps.compose.outputs.msg && steps.compose.outputs.msg != '' }}
         uses: actions/github-script@v7
         with:
           script: |
-            const body = `{{steps.compose.outputs.msg}}`;
-            github.rest.issues.createComment({
-              issue_number: context.payload.pull_request.number,
+            const body = `${{steps.compose.outputs.msg}}`;
+            // Replace previous bot advisory to reduce clutter
+            const { data: comments } = await github.rest.issues.listComments({
               owner: context.repo.owner,
               repo: context.repo.repo,
+              issue_number: context.payload.pull_request.number,
+              per_page: 50
+            });
+            const prev = comments.find(c => c.user?.type === 'Bot' && c.body?.startsWith('### ℹ️ Advisory checks'));
+            if (prev) {
+              await github.rest.issues.deleteComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                comment_id: prev.id
+              });
+            }
+            await github.rest.issues.createComment({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: context.payload.pull_request.number,
               body
             });

@@ -144,14 +144,22 @@ if (protectedTouched && !uiApproved) {
 if (codeTouched && changelogPatched) {
   notes.push(`- CHANGELOG.md was auto-stubbed for this PR (please refine before merge).`);
 }
+const GITHUB_OUTPUT = process.env.GITHUB_OUTPUT;
+
 if (!notes.length) {
-  // Nothing to say; expose empty output
-  process.stdout.write(`::set-output name=advisory::`);
+  if (GITHUB_OUTPUT) {
+    await fs.appendFile(GITHUB_OUTPUT, `advisory<<EOF
+EOF
+`);
+  }
 } else {
   const msg = `### 🤖 Auto-Fix advisory (non-blocking)
 ${notes.join('\n')}
 `;
-  // Escape newlines for output
-  const out = msg.replace(/\n/g, '%0A');
-  process.stdout.write(`::set-output name=advisory::${out}`);
+  if (GITHUB_OUTPUT) {
+    await fs.appendFile(GITHUB_OUTPUT, `advisory<<EOF
+${msg}
+EOF
+`);
+  }
 }

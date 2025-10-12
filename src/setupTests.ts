@@ -1,6 +1,7 @@
-import '@testing-library/jest-dom';
+import '@testing-library/jest-dom'
+import { vi } from 'vitest'
 
-const mockIntersectionObserver = vi.fn();
+const mockIntersectionObserver = vi.fn()
 mockIntersectionObserver.mockReturnValue({
   observe: () => null,
   unobserve: () => null,

@@ -1,179 +1,139 @@
-/**
- * Portfolio.tsx
- * Displays a grid of portfolio items with filtering and a lightbox for detailed viewing.
- * Data is fetched dynamically from Sanity CMS.
- */
-import { useState, useEffect, useCallback, useMemo, memo } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
-import { X, ChevronLeft, ChevronRight } from 'lucide-react';
-import { client, urlFor } from '@/sanity/client';
-import type { SanityImageSource } from '@sanity/image-url/lib/types/types';
+import { useState, useMemo, useEffect, useCallback } from 'react'
+import { motion, AnimatePresence } from 'framer-motion'
+import { X, ChevronLeft, ChevronRight } from 'lucide-react'
+import { usePortfolio } from '@/hooks/usePortfolio'
+import { urlFor } from '@/lib/image'
+import {
+  Pagination,
+  PaginationContent,
+  PaginationItem,
+  PaginationLink,
+  PaginationNext,
+  PaginationPrevious
+} from '@/components/ui/pagination'
 
-// --- Type Definition for Sanity Data ---
-interface PortfolioItem {
-  _id: string;
-  title: string;
-  description: string;
-  category: { _id: string; title: string } | null;
-  image?: SanityImageSource;
-  link?: string;
-  priority?: number;
-}
+const FILTERS = ['All', 'Business Cards', 'Banners', 'Apparel', 'Stickers'] as const
+const PER_PAGE = 9
 
-interface Category {
-  _id: string;
-  title: string;
-}
-
-// --- Static Data Definitions ---
-// By defining these outside the component, we prevent them from being recreated on every render.
-
-// Animation variants for Framer Motion.
-const containerVariants = {
-  hidden: { opacity: 0 },
-  visible: {
-    opacity: 1,
-    transition: {
-      staggerChildren: 0.1
-    }
-  }
-};
-
-const itemVariants = {
-  hidden: { opacity: 0, y: 30 },
-  visible: { opacity: 1, y: 0 }
-};
-
-
-// --- Component Definition ---
+type FilterValue = (typeof FILTERS)[number]
 
 const Portfolio = () => {
-  // --- State Management ---
-  const [portfolioItems, setPortfolioItems] = useState<PortfolioItem[]>([]);
-  const [categories, setCategories] = useState<Category[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [activeFilter, setActiveFilter] = useState('All');
-  const [lightboxOpen, setLightboxOpen] = useState(false);
-  const [currentImageIndex, setCurrentImageIndex] = useState(0);
+  const allItems = usePortfolio()
+  const [activeFilter, setActiveFilter] = useState<FilterValue>('All')
+  const [page, setPage] = useState(1)
+  const [lightboxOpen, setLightboxOpen] = useState(false)
+  const [currentImageIndex, setCurrentImageIndex] = useState(0)
 
-  // --- Data Fetching ---
-  // Fetch categories on mount
-  useEffect(() => {
-    const fetchCategories = async () => {
-      try {
-        const catQuery = `*[_type == "category"] | order(title asc)`;
-        const data = await client.fetch<Category[]>(catQuery);
-        setCategories([{ _id: 'All', title: 'All' }, ...data]);
-      } catch (error) {
-        console.error("Failed to fetch categories:", error);
-      }
-    };
-    fetchCategories();
-  }, []);
+  const normalizedItems = useMemo(
+    () =>
+      allItems.map((item) => ({
+        ...item,
+        category: item.category ?? '',
+        categorySlugs: item.categorySlugs ?? []
+      })),
+    [allItems]
+  )
 
-  // Fetch portfolio items when the filter changes
-  useEffect(() => {
-    const fetchItems = async () => {
-      setLoading(true);
-      try {
-        let query: string;
-        const params: { categoryRef?: string } = {};
-
-        if (activeFilter === 'All') {
-          query = `*[_type == "portfolioItem"] | order(priority asc, _createdAt desc) {..., "category": category->{_id, title}}`;
-        } else {
-          query = `*[_type == "portfolioItem" && category._ref == $categoryRef] | order(priority asc, _createdAt desc) {..., "category": category->{_id, title}}`;
-          params.categoryRef = activeFilter;
-        }
-
-        const data = await client.fetch<PortfolioItem[]>(query, params);
-        setPortfolioItems(data);
-      } catch (error) {
-        console.error("Failed to fetch portfolio items:", error);
-      } finally {
-        setLoading(false);
-      }
-    };
-    fetchItems();
-  }, [activeFilter]);
-
-  // --- Derived State ---
-  // useMemo ensures that filtering only re-runs when the activeFilter changes.
   const filteredItems = useMemo(() => {
     if (activeFilter === 'All') {
-      return portfolioItems;
+      return normalizedItems
     }
-    return portfolioItems.filter(item => item.category?._id === activeFilter);
-  }, [activeFilter, portfolioItems]);
 
-  const hasNoItems = filteredItems.length === 0;
-  const needsIndexReset = !hasNoItems && currentImageIndex >= filteredItems.length;
+    const targetLabel = activeFilter.toLowerCase()
+    const targetSlug = activeFilter.toLowerCase().replace(/\s+/g, '-')
+
+    return normalizedItems.filter((item) => {
+      const categoryName = item.category?.toLowerCase() ?? ''
+      const slugs = item.categorySlugs.map((slug) => slug.toLowerCase())
+      return categoryName === targetLabel || slugs.includes(targetSlug)
+    })
+  }, [activeFilter, normalizedItems])
 
   useEffect(() => {
-    if (hasNoItems) {
-      setLightboxOpen(false);
-      setCurrentImageIndex(0);
-      return;
+    setPage(1)
+  }, [activeFilter])
+
+  const totalPages = Math.max(1, Math.ceil(filteredItems.length / PER_PAGE))
+
+  useEffect(() => {
+    if (page > totalPages) {
+      setPage(totalPages)
     }
+  }, [page, totalPages])
 
-    if (needsIndexReset) {
-      setCurrentImageIndex(0);
-    }
-  }, [hasNoItems, needsIndexReset, currentImageIndex]);
+  const startIndex = (page - 1) * PER_PAGE
+  const pageItems = filteredItems.slice(startIndex, startIndex + PER_PAGE)
 
-  const currentLightboxItem = filteredItems[currentImageIndex] ?? null;
-  const lightboxImageUrl = currentLightboxItem?.image
-    ? urlFor(currentLightboxItem.image).width(1200).url()
-    : null;
+  const openLightbox = useCallback(
+    (globalIndex: number) => {
+      setCurrentImageIndex(globalIndex)
+      setLightboxOpen(true)
+      document.body.style.overflow = 'hidden'
+    },
+    []
+  )
 
-  // --- Event Handlers ---
-  // useCallback memoizes these functions so they aren't recreated on every render.
-
-  // Opens the lightbox, sets the correct image, and disables body scroll.
-  const openLightbox = useCallback((index: number) => {
-    setCurrentImageIndex(index);
-    setLightboxOpen(true);
-    document.body.style.overflow = 'hidden';
-  }, []);
-
-  // Closes the lightbox and re-enables body scroll.
   const closeLightbox = useCallback(() => {
-    setLightboxOpen(false);
-    document.body.style.overflow = 'unset';
-  }, []);
+    setLightboxOpen(false)
+    document.body.style.overflow = 'unset'
+  }, [])
 
-  // Navigates to the next image in the lightbox.
   const nextImage = useCallback(() => {
-    setCurrentImageIndex((prev) => (prev + 1) % filteredItems.length);
-  }, [filteredItems.length]);
+    setCurrentImageIndex((prev) => {
+      const count = filteredItems.length || 1
+      return (prev + 1) % count
+    })
+  }, [filteredItems.length])
 
-  // Navigates to the previous image in the lightbox.
   const prevImage = useCallback(() => {
-    setCurrentImageIndex((prev) => (prev - 1 + filteredItems.length) % filteredItems.length);
-  }, [filteredItems.length]);
+    setCurrentImageIndex((prev) => {
+      const count = filteredItems.length || 1
+      return (prev - 1 + count) % count
+    })
+  }, [filteredItems.length])
 
-  // Handles keyboard navigation for the lightbox.
-  const handleKeyDown = useCallback((e: KeyboardEvent) => {
-    if (e.key === 'Escape') closeLightbox();
-    if (e.key === 'ArrowRight') nextImage();
-    if (e.key === 'ArrowLeft') prevImage();
-  }, [closeLightbox, nextImage, prevImage]);
-
-  // --- Side Effects ---
-  // Attaches and cleans up the keyboard event listener for the lightbox.
   useEffect(() => {
-    if (lightboxOpen) {
-      document.addEventListener('keydown', handleKeyDown);
-      return () => document.removeEventListener('keydown', handleKeyDown);
+    if (!lightboxOpen) {
+      document.body.style.overflow = 'unset'
+      return
     }
-  }, [lightboxOpen, handleKeyDown]);
 
-  // --- Render Logic ---
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') closeLightbox()
+      if (e.key === 'ArrowRight') nextImage()
+      if (e.key === 'ArrowLeft') prevImage()
+    }
+
+    document.addEventListener('keydown', handleKeyDown)
+    return () => {
+      document.removeEventListener('keydown', handleKeyDown)
+      document.body.style.overflow = 'unset'
+    }
+  }, [closeLightbox, lightboxOpen, nextImage, prevImage])
+
+  const containerVariants = {
+    hidden: { opacity: 0 },
+    visible: {
+      opacity: 1,
+      transition: {
+        staggerChildren: 0.1
+      }
+    }
+  }
+
+  const itemVariants = {
+    hidden: { opacity: 0, y: 30 },
+    visible: { opacity: 1, y: 0 }
+  }
+
+  const currentLightboxItem = filteredItems[currentImageIndex]
+  const lightboxImageUrl = currentLightboxItem?.image ? urlFor(currentLightboxItem.image).width(1200).url() : ''
+
   return (
     <section id="portfolio" className="py-20 bg-background">
       <div className="container mx-auto px-4 lg:px-8">
         {/* Section Header */}
-        <motion.div 
+        <motion.div
           className="text-center mb-16"
           initial={{ opacity: 0, y: 30 }}
           whileInView={{ opacity: 1, y: 0 }}
@@ -181,19 +141,19 @@ const Portfolio = () => {
           viewport={{ once: true }}
         >
           <h2 className="text-3xl md:text-4xl lg:text-5xl font-heading font-bold text-foreground mb-4">
-            Our 
+            Our
             <span className="bg-gradient-cmyk bg-clip-text text-transparent ml-3">
               Portfolio
             </span>
           </h2>
           <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
-            Explore our collection of premium print work showcasing quality, 
+            Explore our collection of premium print work showcasing quality,
             creativity, and attention to detail across all our services.
           </p>
         </motion.div>
 
         {/* Filter Tabs with ARIA roles for accessibility */}
-        <motion.div 
+        <motion.div
           className="flex flex-wrap justify-center gap-4 mb-12"
           role="tablist"
           aria-label="Portfolio filter"
@@ -202,28 +162,28 @@ const Portfolio = () => {
           transition={{ duration: 0.6 }}
           viewport={{ once: true }}
         >
-          {categories.map((category) => (
+          {FILTERS.map((category) => (
             <motion.button
-              key={category._id}
+              key={category}
               role="tab"
-              aria-selected={activeFilter === category._id}
+              aria-selected={activeFilter === category}
               aria-controls="portfolio-grid"
-              onClick={() => setActiveFilter(category._id)}
+              onClick={() => setActiveFilter(category)}
               className={`px-6 py-3 rounded-full font-medium transition-all duration-300 ${
-                activeFilter === category._id
+                activeFilter === category
                   ? 'bg-gradient-cyan text-white shadow-cyan-glow'
                   : 'bg-card text-muted-foreground hover:text-cyan hover:bg-accent'
               }`}
               whileHover={{ scale: 1.05 }}
               whileTap={{ scale: 0.95 }}
             >
-              {category.title}
+              {category}
             </motion.button>
           ))}
         </motion.div>
 
         {/* Portfolio Grid */}
-        <motion.div 
+        <motion.div
           id="portfolio-grid"
           role="tabpanel"
           className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8"
@@ -231,71 +191,105 @@ const Portfolio = () => {
           initial="hidden"
           whileInView="visible"
           viewport={{ once: true }}
-          key={activeFilter} // Re-animate when filter changes
         >
-          {loading ? (
-            <p className="text-center col-span-full text-muted-foreground">Loading portfolio...</p>
-          ) : filteredItems.length === 0 ? (
-            <p className="text-center col-span-full text-muted-foreground">No items to display for this category.</p>
-          ) : (
-            filteredItems.map((item, index) => {
-              const imageUrl = item.image
-                ? urlFor(item.image).width(800).format('webp').url()
-                : null;
+          {pageItems.map((item, index) => {
+            const imageUrl = item.image ? urlFor(item.image).width(800).url() : ''
 
-              return (
-                <motion.div
-                  key={item._id}
-                  variants={itemVariants}
-                  whileHover={{ y: -10, transition: { duration: 0.3 } }}
-                  className="group relative overflow-hidden rounded-xl bg-card shadow-elevation hover:shadow-premium transition-all duration-300 cursor-pointer"
-                  onClick={() => openLightbox(index)}
-                >
-                  {/* Portfolio Image */}
-                  <div className="relative h-64 overflow-hidden">
-                    {imageUrl ? (
-                      <img
-                        src={imageUrl}
-                        sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
-                        alt={item.title}
-                        className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
-                        loading="lazy" // Performance: lazy load images
-                        onError={(e) => {
-                          // Fallback for broken images
-                          e.currentTarget.src =
-                            'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMzAwIiBoZWlnaHQ9IjIwMCIgdmlld0JveD0iMCAwIDMwMCAyMDAiIGZpbGw9Im5vbmUiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+CjxyZWN0IHdpZHRoPSIzMDAiIGhlaWdodD0iMjAwIiBmaWxsPSIjRjNGNEY2Ii8+Cjx0ZXh0IHg9IjE1MCIgeT0iMTA1IiB0ZXh0LWFuY2hvcj0ibWlkZGxlIiBmaWxsPSIjOUI5QkEwIiBmb250LWZhbWlseT0iSW50ZXIiIGZvbnQtc2l6ZT0iMTQiPkltYWdlIE5vdCBGb3VuZDwvdGV4dD4KPHN2Zz4=';
-                        }}
-                      />
-                    ) : (
-                      <div className="w-full h-full flex items-center justify-center bg-muted text-muted-foreground text-sm font-medium">
-                        Image coming soon
-                      </div>
-                    )}
+            return (
+              <motion.div
+                key={item._id ?? `${item.title}-${startIndex + index}`}
+                variants={itemVariants}
+                whileHover={{ y: -10, transition: { duration: 0.3 } }}
+                className="group relative overflow-hidden rounded-xl shadow-elevation bg-card hover:shadow-premium transition-all duration-300"
+              >
+                {/* Portfolio Image */}
+                <div className="relative h-72 overflow-hidden">
+                  <img
+                    src={imageUrl}
+                    alt={item.title}
+                    className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
+                    loading="lazy"
+                    onError={(e) => {
+                      e.currentTarget.src =
+                        'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMzAwIiBoZWlnaHQ9IjIwMCIgdmlld0JveD0iMCAwIDMwMCAyMDAiIGZpbGw9Im5vbmUiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+CjxyZWN0IHdpZHRoPSIzMDAiIGhlaWdodD0iMjAwIiBpZD0icmVjdDE2OTUiIGZpbGw9IiNGM0Y0RjYiLz4KPHRleHQgeD0iMTUwIiB5PSIxMDUiIHRleHQtYW5jaG9yPSJtaWRkbGUiIGlkPSJ0ZXh0MTY5NyIgZmlsbD0iIzk5QjlBMyIgZm9udC1mYW1pbHk9IkludGVyIiBmb250LXNpemU9IjE0Ij5JbWFnZSBLbm90IEZvdW5kPC90ZXh0Pgo8L3N2Zz4='
+                    }}
+                    onClick={() => openLightbox(startIndex + index)}
+                  />
 
-                    {/* Text Overlay - Always visible at bottom */}
-                    <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/80 to-transparent p-4">
-                      <h3 className="text-white font-heading font-semibold text-lg mb-1">
-                        {item.title}
-                      </h3>
-                      <p className="text-white/90 text-sm">{item.description}</p>
-                    </div>
+                  {/* Gradient Overlay */}
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-transparent to-transparent transition-opacity duration-300 group-hover:opacity-100 opacity-90"></div>
 
-                    {/* Category Badge */}
-                    <div className="absolute top-4 right-4 bg-cyan-accent text-white px-3 py-1 rounded-full text-xs font-medium">
-                      {item.category?.title ?? 'Uncategorized'}
-                    </div>
+                  <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/80 to-transparent p-4">
+                    <h3 className="text-white font-heading font-semibold text-lg mb-1">
+                      {item.title}
+                    </h3>
+                    <p className="text-white/90 text-sm">
+                      {item.description}
+                    </p>
                   </div>
 
-                  {/* CMYK Border Effect */}
-                  <div className="absolute inset-0 border-2 border-transparent group-hover:border-cyan-accent group-hover:shadow-cyan-glow transition-all duration-300 rounded-xl"></div>
-                </motion.div>
-              );
-            })
-          )}
+                  {/* Category Badge */}
+                  <div className="absolute top-4 right-4 bg-cyan-accent text-white px-3 py-1 rounded-full text-xs font-medium">
+                    {item.category}
+                  </div>
+                </div>
+
+                {/* CMYK Border Effect */}
+                <div className="absolute inset-0 border-2 border-transparent group-hover:border-cyan-accent group-hover:shadow-cyan-glow transition-all duration-300 rounded-xl"></div>
+              </motion.div>
+            )
+          })}
         </motion.div>
 
+        {totalPages > 1 && (
+          <div className="mt-10">
+            <Pagination>
+              <PaginationContent>
+                <PaginationItem>
+                  <PaginationPrevious
+                    href="#"
+                    className={page === 1 ? 'pointer-events-none opacity-50' : ''}
+                    onClick={(event) => {
+                      event.preventDefault()
+                      if (page > 1) {
+                        setPage(page - 1)
+                      }
+                    }}
+                  />
+                </PaginationItem>
+                {Array.from({ length: totalPages }, (_, i) => i + 1).map((pageNumber) => (
+                  <PaginationItem key={pageNumber}>
+                    <PaginationLink
+                      href="#"
+                      isActive={pageNumber === page}
+                      onClick={(event) => {
+                        event.preventDefault()
+                        setPage(pageNumber)
+                      }}
+                    >
+                      {pageNumber}
+                    </PaginationLink>
+                  </PaginationItem>
+                ))}
+                <PaginationItem>
+                  <PaginationNext
+                    href="#"
+                    className={page === totalPages ? 'pointer-events-none opacity-50' : ''}
+                    onClick={(event) => {
+                      event.preventDefault()
+                      if (page < totalPages) {
+                        setPage(page + 1)
+                      }
+                    }}
+                  />
+                </PaginationItem>
+              </PaginationContent>
+            </Pagination>
+          </div>
+        )}
+
         {/* Call to Action */}
-        <motion.div 
+        <motion.div
           className="text-center mt-16"
           initial={{ opacity: 0, y: 30 }}
           whileInView={{ opacity: 1, y: 0 }}
@@ -308,7 +302,9 @@ const Portfolio = () => {
           <motion.button
             className="bg-gradient-cyan text-white px-8 py-4 rounded-full font-semibold shadow-cyan-glow hover:shadow-lg transition-all duration-300"
             whileHover={{ scale: 1.05 }}
-            onClick={() => window.open('https://wa.me/919377476343?text=I would like to discuss my printing project', '_blank')}
+            onClick={() =>
+              window.open('https://wa.me/919377476343?text=I would like to discuss my printing project', '_blank')
+            }
           >
             Start Your Project
           </motion.button>
@@ -316,7 +312,7 @@ const Portfolio = () => {
 
         {/* Lightbox Modal */}
         <AnimatePresence>
-          {lightboxOpen && (
+          {lightboxOpen && filteredItems.length > 0 && (
             <motion.div
               className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm"
               initial={{ opacity: 0 }}
@@ -336,13 +332,19 @@ const Portfolio = () => {
               {filteredItems.length > 1 && (
                 <>
                   <button
-                    onClick={(e) => { e.stopPropagation(); prevImage(); }}
+                    onClick={(event) => {
+                      event.stopPropagation()
+                      prevImage()
+                    }}
                     className="absolute left-4 z-60 w-12 h-12 bg-white/20 hover:bg-white/30 text-white rounded-full flex items-center justify-center transition-colors duration-200"
                   >
                     <ChevronLeft className="w-8 h-8" />
                   </button>
                   <button
-                    onClick={(e) => { e.stopPropagation(); nextImage(); }}
+                    onClick={(event) => {
+                      event.stopPropagation()
+                      nextImage()
+                    }}
                     className="absolute right-4 z-60 w-12 h-12 bg-white/20 hover:bg-white/30 text-white rounded-full flex items-center justify-center transition-colors duration-200"
                   >
                     <ChevronRight className="w-8 h-8" />
@@ -356,12 +358,12 @@ const Portfolio = () => {
                 initial={{ scale: 0.8, opacity: 0 }}
                 animate={{ scale: 1, opacity: 1 }}
                 exit={{ scale: 0.8, opacity: 0 }}
-                transition={{ type: "spring", stiffness: 300, damping: 30 }}
-                onClick={(e) => e.stopPropagation()}
+                transition={{ type: 'spring', stiffness: 300, damping: 30 }}
+                onClick={(event) => event.stopPropagation()}
               >
                 {/* Loading placeholder */}
                 <div className="absolute inset-0 bg-gray-200 animate-pulse rounded-lg" />
-                
+
                 {lightboxImageUrl ? (
                   <img
                     src={lightboxImageUrl}
@@ -369,10 +371,9 @@ const Portfolio = () => {
                     alt={currentLightboxItem?.title ?? 'Portfolio item'}
                     className="relative z-10 w-full h-full object-contain rounded-lg shadow-2xl"
                     loading="lazy"
-                    onLoad={(e) => {
-                      // Hide placeholder when image loads
-                      const placeholder = e.currentTarget.previousElementSibling as HTMLElement;
-                      if (placeholder) placeholder.style.display = 'none';
+                    onLoad={(event) => {
+                      const placeholder = event.currentTarget.previousElementSibling as HTMLElement
+                      if (placeholder) placeholder.style.display = 'none'
                     }}
                   />
                 ) : (
@@ -380,7 +381,7 @@ const Portfolio = () => {
                     Image coming soon
                   </div>
                 )}
-                
+
                 {/* Image Info */}
                 <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/80 to-transparent p-6 rounded-b-lg">
                   <h3 className="text-white font-heading font-semibold text-xl mb-2">
@@ -396,8 +397,7 @@ const Portfolio = () => {
         </AnimatePresence>
       </div>
     </section>
-  );
-};
+  )
+}
 
-// Memoize the component to prevent re-renders if props haven't changed.
-export default memo(Portfolio);
+export default Portfolio

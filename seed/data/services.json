@@ -1,0 +1,106 @@
+[
+  {
+    "title": "Flex Banners",
+    "description": "High-quality flex banners for advertising and promotions",
+    "image": "flex-banners.jpg",
+    "priority": 1,
+    "filters": [],
+    "hoverId": null
+  },
+  {
+    "title": "Signs & Banners",
+    "description": "Professional signage solutions for businesses",
+    "image": "flex-banners.jpg",
+    "priority": 2,
+    "filters": [],
+    "hoverId": null
+  },
+  {
+    "title": "Foam Boards",
+    "description": "Lightweight foam board displays and presentations",
+    "image": "foam-boards.jpg",
+    "priority": 3,
+    "filters": [],
+    "hoverId": null
+  },
+  {
+    "title": "Apparel",
+    "description": "Custom apparel printing with premium quality",
+    "image": "apparel.jpg",
+    "priority": 4,
+    "filters": [],
+    "hoverId": null
+  },
+  {
+    "title": "Stickers & Labels",
+    "description": "Custom stickers and labels in various finishes",
+    "image": "stickers-labels.jpg",
+    "priority": 5,
+    "filters": [],
+    "hoverId": null
+  },
+  {
+    "title": "Business Cards",
+    "description": "Premium business cards with professional finishes",
+    "image": "business-cards.jpg",
+    "priority": 6,
+    "filters": [],
+    "hoverId": null
+  },
+  {
+    "title": "Roll Labels",
+    "description": "Industrial roll labels for products and packaging",
+    "image": "roll-labels.jpg",
+    "priority": 7,
+    "filters": [],
+    "hoverId": null
+  },
+  {
+    "title": "Frame Signs",
+    "description": "Elegant framed signage for offices and retail",
+    "image": "foam-boards.jpg",
+    "priority": 8,
+    "filters": [],
+    "hoverId": null
+  },
+  {
+    "title": "Retractable Banners",
+    "description": "Portable retractable banner stands",
+    "image": "flex-banners.jpg",
+    "priority": 9,
+    "filters": [],
+    "hoverId": null
+  },
+  {
+    "title": "Aluminum Boards",
+    "description": "Durable aluminum board displays",
+    "image": "foam-boards.jpg",
+    "priority": 10,
+    "filters": [],
+    "hoverId": null
+  },
+  {
+    "title": "Magnetic Boards",
+    "description": "Magnetic display boards for easy mounting",
+    "image": "foam-boards.jpg",
+    "priority": 11,
+    "filters": [],
+    "hoverId": null
+  },
+  {
+    "title": "PVC Boards",
+    "description": "Waterproof PVC board solutions",
+    "image": "foam-boards.jpg",
+    "priority": 12,
+    "filters": [],
+    "hoverId": null
+  },
+  {
+    "title": "Gift & DAccor",
+    "description": "Custom gifts and decorative printing items",
+    "image": "apparel.jpg",
+    "priority": 13,
+    "filters": [],
+    "hoverId": null
+  }
+]

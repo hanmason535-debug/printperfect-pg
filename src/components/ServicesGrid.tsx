@@ -1,64 +1,36 @@
-/**
- * ServicesGrid.tsx
- * Displays a grid of the company's services, fetched from Sanity.
- */
-import { useState, useEffect } from 'react';
-import { motion } from 'framer-motion';
-import { client, urlFor } from '@/sanity/client';
-import * as Icons from 'lucide-react';
-import type { SanityImageSource } from '@sanity/image-url/lib/types/types';
-
-// --- Type Definition for Sanity Data ---
-interface Service {
-  _id: string;
-  title: string;
-  description: string;
-  image?: SanityImageSource;
-  iconName: string; // Assuming you store the name of a lucide-react icon
-}
-
-// --- Dynamic Icon Component ---
-// A helper component to render a Lucide icon based on a string name.
-const DynamicIcon = ({ name, ...props }: { name: string } & Icons.LucideProps) => {
-  // Find the icon component from the imported lucide-react library
-  const IconComponent = (Icons as any)[name];
-
-  if (!IconComponent) {
-    return <Icons.Printer {...props} />; // Return a default icon if not found
-  }
-
-  return <IconComponent {...props} />;
-};
+import { motion } from 'framer-motion'
+import { useServices } from '@/hooks/useServices'
+import { urlFor } from '@/lib/image'
 
 const ServicesGrid = () => {
-  const [services, setServices] = useState<Service[]>([]);
-  const [loading, setLoading] = useState(true);
+  const services = useServices()
 
-  useEffect(() => {
-    const fetchServices = async () => {
-      setLoading(true);
-      try {
-        const query = `*[_type == "service"] | order(priority asc, _createdAt desc) {
-          _id,
-          title,
-          description,
-          image,
-          iconName
-        }`;
-        const data = await client.fetch<Service[]>(query);
-        setServices(data);
-      } catch (error) {
-        console.error("Failed to fetch services:", error);
-      } finally {
-        setLoading(false);
+  const handleServiceClick = (serviceName: string) => {
+    const message = encodeURIComponent(`Hi, I'm interested in ${serviceName} printing. Can you share details?`)
+    window.open(`https://wa.me/919377476343?text=${message}`, '_blank')
+  }
+
+  const containerVariants = {
+    hidden: { opacity: 0 },
+    visible: {
+      opacity: 1,
+      transition: {
+        staggerChildren: 0.1
       }
-    };
-    fetchServices();
-  }, []);
+    }
+  }
+
+  const itemVariants = {
+    hidden: { opacity: 0, y: 30 },
+    visible: { opacity: 1, y: 0 }
+  }
+
+  const displayedServices = services.slice(0, 12)
 
   return (
-    <section id="services" className="py-20 bg-background">
+    <section id="services" className="py-20 bg-gradient-subtle">
       <div className="container mx-auto px-4 lg:px-8">
+        {/* Section Header */}
         <motion.div
           className="text-center mb-16"
           initial={{ opacity: 0, y: 30 }}
@@ -67,56 +39,118 @@ const ServicesGrid = () => {
           viewport={{ once: true }}
         >
           <h2 className="text-3xl md:text-4xl lg:text-5xl font-heading font-bold text-foreground mb-4">
-            Our Services
+            Our Premium
+            <span className="bg-gradient-cmyk bg-clip-text text-transparent ml-3">
+              Services
+            </span>
           </h2>
           <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
-            We offer a wide range of printing services to meet all your needs.
+            From concept to completion, we offer comprehensive printing solutions
+            with unmatched quality and attention to detail.
           </p>
         </motion.div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-          {loading ? (
-            <p className="text-center col-span-full text-muted-foreground">Loading services...</p>
-          ) : services.length === 0 ? (
-            <p className="text-center col-span-full text-muted-foreground">No services to display.</p>
-          ) : (
-            services.map((service) => {
-              const imageUrl = service.image
-                ? urlFor(service.image).width(400).format('webp').url()
-                : null;
+        {/* Services Grid */}
+        <motion.div
+          className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6"
+          variants={containerVariants}
+          initial="hidden"
+          whileInView="visible"
+          viewport={{ once: true }}
+        >
+          {displayedServices.map((service, index) => {
+            const imageUrl = service.image ? urlFor(service.image).width(800).url() : ''
+            const description = service.description ?? ''
 
-              return (
-                <motion.div
-                  key={service._id}
-                  className="bg-card rounded-xl shadow-elevation hover:shadow-premium transition-all duration-300 overflow-hidden"
-                  initial={{ opacity: 0, y: 20 }}
-                  whileInView={{ opacity: 1, y: 0 }}
-                  viewport={{ once: true }}
-                >
-                  {imageUrl ? (
-                    <img
-                      src={imageUrl}
-                      alt={service.title}
-                      className="w-full h-48 object-cover"
-                      loading="lazy"
-                    />
-                  ) : (
-                    <div className="w-full h-48 flex items-center justify-center bg-muted text-muted-foreground text-sm font-medium">
-                      Image coming soon
-                    </div>
-                  )}
-                  <div className="p-6">
-                    <h3 className="text-xl font-bold font-heading text-foreground mb-2">{service.title}</h3>
-                    <p className="text-muted-foreground">{service.description}</p>
-                  </div>
-                </motion.div>
-              );
-            })
-          )}
-        </div>
+            return (
+              <motion.div
+                key={service._id ?? index}
+                variants={itemVariants}
+                whileHover={{
+                  y: -10,
+                  boxShadow: '0 20px 40px rgba(0, 191, 255, 0.3)',
+                  transition: { duration: 0.3 }
+                }}
+                className="group relative overflow-hidden rounded-xl bg-card shadow-elevation hover:shadow-premium transition-all duration-300 cursor-pointer"
+                onClick={() => handleServiceClick(service.title)}
+                title={`Click to WhatsApp us about ${service.title}`}
+              >
+                {/* Service Image */}
+                <div className="relative h-48 overflow-hidden">
+                  <img
+                    src={imageUrl}
+                    alt={service.title}
+                    className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-110"
+                  />
+                  {/* CMYK Border Glow on Hover */}
+                  <div className="absolute inset-0 border-2 border-transparent group-hover:border-cyan group-hover:shadow-cyan-glow transition-all duration-300 rounded-xl"></div>
+                  {/* Gradient Overlay */}
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent"></div>
+                </div>
+
+                {/* Service Content */}
+                <div className="p-6">
+                  <h3 className="text-xl font-heading font-semibold text-foreground mb-2 group-hover:text-cyan transition-colors duration-300">
+                    {service.title}
+                  </h3>
+                  <p className="text-muted-foreground text-sm leading-relaxed mb-4">
+                    {description}
+                  </p>
+
+                  {/* View Portfolio Samples Link */}
+                  <button
+                    onClick={() => {
+                      const portfolioSection = document.querySelector('#portfolio')
+                      if (portfolioSection) {
+                        portfolioSection.scrollIntoView({ behavior: 'smooth' })
+                      }
+                    }}
+                    className="opacity-0 group-hover:opacity-100 text-cyan hover:text-cyan-glow font-medium text-sm transition-all duration-300 flex items-center"
+                  >
+                    View Portfolio Samples
+                    <svg className="w-4 h-4 ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                    </svg>
+                  </button>
+                </div>
+
+                {/* Hover Effect Overlay */}
+                <div className="absolute inset-0 bg-gradient-cyan opacity-0 group-hover:opacity-10 transition-opacity duration-300"></div>
+              </motion.div>
+            )
+          })}
+        </motion.div>
+
+        {/* Call to Action */}
+        <motion.div
+          className="text-center mt-12"
+          initial={{ opacity: 0, y: 30 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.8, delay: 0.3 }}
+          viewport={{ once: true }}
+        >
+          <p className="text-muted-foreground mb-6">
+            Don't see what you're looking for? We specialize in custom solutions.
+          </p>
+          <motion.button
+            className="inline-flex items-center text-cyan hover:text-cyan-glow font-semibold transition-colors duration-300"
+            whileHover={{ scale: 1.05 }}
+            onClick={() =>
+              window.open(
+                'https://wa.me/919377476343?text=I need a custom printing solution. Can you help?',
+                '_blank'
+              )
+            }
+          >
+            Get Custom Quote
+            <svg className="w-5 h-5 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+            </svg>
+          </motion.button>
+        </motion.div>
       </div>
     </section>
-  );
-};
+  )
+}
 
-export default ServicesGrid;
+export default ServicesGrid

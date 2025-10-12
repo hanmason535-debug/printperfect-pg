@@ -1,80 +1,59 @@
 import React from 'react'
-import { render, screen, waitFor } from '@testing-library/react'
+import { render, screen } from '@testing-library/react'
 import { vi } from 'vitest'
 import ServicesGrid from './ServicesGrid'
 
-const { fetchMock, urlForMock } = vi.hoisted(() => {
+const { useServicesMock, urlForMock } = vi.hoisted(() => {
   const builderFactory = () => {
     const builder: any = {}
     builder.width = vi.fn(() => builder)
-    builder.format = vi.fn(() => builder)
     builder.url = vi.fn(() => 'https://example.com/image.webp')
     return builder
   }
 
   return {
-    fetchMock: vi.fn(),
+    useServicesMock: vi.fn(),
     urlForMock: vi.fn(() => builderFactory())
   }
 })
 
-vi.mock('@/sanity/client', () => ({
-  client: { fetch: fetchMock },
+vi.mock('@/hooks/useServices', () => ({
+  useServices: () => useServicesMock()
+}))
+
+vi.mock('@/lib/image', () => ({
   urlFor: urlForMock
 }))
 
+function makeServices(count: number) {
+  return Array.from({ length: count }, (_, index) => ({
+    _id: `service-${index + 1}`,
+    title: `Service ${index + 1}`,
+    description: `Description ${index + 1}`,
+    image: { asset: { _ref: `image-${index + 1}` } }
+  }))
+}
+
 describe('ServicesGrid', () => {
   beforeEach(() => {
-    fetchMock.mockReset()
+    useServicesMock.mockReset()
     urlForMock.mockClear()
   })
 
-  it('fetches services from Sanity and renders them', async () => {
-    fetchMock.mockResolvedValueOnce([
-      {
-        _id: 'service-1',
-        title: 'Business Cards',
-        description: 'Premium card printing',
-        image: undefined,
-        iconName: 'Printer'
-      },
-      {
-        _id: 'service-2',
-        title: 'Large Format Banners',
-        description: 'Vibrant outdoor banners',
-        image: undefined,
-        iconName: 'Printer'
-      }
-    ])
+  it('renders up to twelve services from Sanity', () => {
+    useServicesMock.mockReturnValue(makeServices(13))
 
     render(<ServicesGrid />)
 
-    expect(fetchMock).toHaveBeenCalledTimes(1)
-    expect(fetchMock.mock.calls[0][0]).toContain('*[_type == "service"]')
-
-    expect(await screen.findByText('Business Cards')).toBeInTheDocument()
-    expect(screen.getByText('Large Format Banners')).toBeInTheDocument()
-    await waitFor(() => expect(screen.queryByText('Loading services...')).toBeNull())
+    expect(screen.getAllByText(/Service \d+/).length).toBe(12)
+    expect(screen.queryByText('Service 13')).not.toBeInTheDocument()
   })
 
-  it('renders empty state when Sanity returns no services', async () => {
-    fetchMock.mockResolvedValueOnce([])
+  it('renders whatever data is returned when fewer than twelve services exist', () => {
+    useServicesMock.mockReturnValue(makeServices(4))
 
     render(<ServicesGrid />)
 
-    expect(await screen.findByText('No services to display.')).toBeInTheDocument()
-    await waitFor(() => expect(screen.queryByText('Loading services...')).toBeNull())
-  })
-
-  it('logs an error when the fetch fails but still clears the loader', async () => {
-    const error = new Error('Network down')
-    const consoleError = vi.spyOn(console, 'error').mockImplementation(() => {})
-    fetchMock.mockRejectedValueOnce(error)
-
-    render(<ServicesGrid />)
-
-    await waitFor(() => expect(consoleError).toHaveBeenCalledWith('Failed to fetch services:', error))
-    expect(screen.getByText('No services to display.')).toBeInTheDocument()
-    consoleError.mockRestore()
+    expect(screen.getAllByText(/Service \d+/).length).toBe(4)
   })
 })

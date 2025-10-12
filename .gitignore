@@ -28,3 +28,4 @@ docs
 *.sln
 *.sw
 docs
+*.tsbuildinfo

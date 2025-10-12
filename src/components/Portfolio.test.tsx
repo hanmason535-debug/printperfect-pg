@@ -1,125 +1,82 @@
 import React from 'react'
-import { render, screen, waitFor } from '@testing-library/react'
+import { render, screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { vi } from 'vitest'
 import Portfolio from './Portfolio'
 
-const { fetchMock, urlForMock } = vi.hoisted(() => {
+const { usePortfolioMock, urlForMock } = vi.hoisted(() => {
   const builderFactory = () => {
     const builder: any = {}
     builder.width = vi.fn(() => builder)
-    builder.format = vi.fn(() => builder)
     builder.url = vi.fn(() => 'https://example.com/image.webp')
     return builder
   }
 
   return {
-    fetchMock: vi.fn(),
+    usePortfolioMock: vi.fn(),
     urlForMock: vi.fn(() => builderFactory())
   }
 })
 
-vi.mock('@/sanity/client', () => ({
-  client: { fetch: fetchMock },
+vi.mock('@/hooks/usePortfolio', () => ({
+  usePortfolio: () => usePortfolioMock()
+}))
+
+vi.mock('@/lib/image', () => ({
   urlFor: urlForMock
 }))
 
-const categoriesResponse = [
-  { _id: 'cat-business', title: 'Business Cards' },
-  { _id: 'cat-banners', title: 'Banners' }
-]
-
-const allItems = [
-  {
-    _id: 'item-1',
-    title: 'Banner Deluxe',
-    description: 'Large outdoor banner',
-    category: { _id: 'cat-banners', title: 'Banners' },
-    image: undefined
-  },
-  {
-    _id: 'item-2',
-    title: 'Card Essentials',
-    description: 'Classic business card set',
-    category: { _id: 'cat-business', title: 'Business Cards' },
-    image: undefined
-  }
-]
+function makePortfolioItems(count: number) {
+  const categories = ['Business Cards', 'Banners', 'Apparel', 'Stickers'] as const
+  return Array.from({ length: count }, (_, index) => {
+    const category = categories[index % categories.length]
+    const slug = category.toLowerCase().replace(/\s+/g, '-')
+    return {
+      _id: `portfolio-${index + 1}`,
+      title: `Item ${index + 1}`,
+      description: `Description ${index + 1}`,
+      image: { asset: { _ref: `image-${index + 1}` } },
+      link: null,
+      category,
+      priority: index + 1,
+      categorySlugs: [slug],
+      hoverId: null
+    }
+  })
+}
 
 describe('Portfolio', () => {
   beforeEach(() => {
-    fetchMock.mockReset()
+    usePortfolioMock.mockReset()
     urlForMock.mockClear()
   })
 
-  it('renders categories and initial portfolio items', async () => {
-    fetchMock.mockImplementation((query: string, params?: { categoryRef?: string }) => {
-      if (query.includes('_type == "category"')) {
-        return Promise.resolve(categoriesResponse)
-      }
-      if (params?.categoryRef) {
-        return Promise.resolve(allItems.filter((item) => item.category?._id === params.categoryRef))
-      }
-      return Promise.resolve(allItems)
-    })
+  it('shows nine items on the first page and paginates through the rest', async () => {
+    usePortfolioMock.mockReturnValue(makePortfolioItems(11))
+    const user = userEvent.setup()
 
     render(<Portfolio />)
 
-    expect(await screen.findByRole('tab', { name: 'All' })).toHaveAttribute('aria-selected', 'true')
-    expect(await screen.findByText('Banner Deluxe')).toBeInTheDocument()
-    expect(screen.getByText('Card Essentials')).toBeInTheDocument()
-    await waitFor(() => expect(screen.queryByText('Loading portfolio...')).toBeNull())
+    expect(screen.getAllByText(/Item \d+/).length).toBe(9)
+    expect(screen.queryByText('Item 10')).not.toBeInTheDocument()
+
+    await user.click(screen.getByRole('link', { name: /Next/i }))
+
+    expect(await screen.findByText('Item 10')).toBeInTheDocument()
   })
 
-  it('filters items when a category is selected', async () => {
-    fetchMock.mockImplementation((query: string, params?: { categoryRef?: string }) => {
-      if (query.includes('_type == "category"')) {
-        return Promise.resolve(categoriesResponse)
-      }
-      if (params?.categoryRef) {
-        return Promise.resolve(allItems.filter((item) => item.category?._id === params.categoryRef))
-      }
-      return Promise.resolve(allItems)
-    })
-
+  it('filters by category and resets pagination', async () => {
+    usePortfolioMock.mockReturnValue(makePortfolioItems(12))
     const user = userEvent.setup()
+
     render(<Portfolio />)
 
-    const bannersTab = await screen.findByRole('tab', { name: 'Banners' })
-    await user.click(bannersTab)
+    await user.click(screen.getByRole('link', { name: /Next/i }))
+    expect(await screen.findByText('Item 10')).toBeInTheDocument()
 
-    await waitFor(() =>
-      expect(fetchMock).toHaveBeenLastCalledWith(
-        expect.stringContaining('_type == "portfolioItem"'),
-        { categoryRef: 'cat-banners' }
-      )
-    )
+    await user.click(screen.getByRole('tab', { name: /Business Cards/i }))
 
-    expect(await screen.findByText('Banner Deluxe')).toBeInTheDocument()
-    await waitFor(() => expect(screen.queryByText('Card Essentials')).toBeNull())
-  })
-
-  it('shows an empty state when the selected category has no items', async () => {
-    fetchMock.mockImplementation((query: string, params?: { categoryRef?: string }) => {
-      if (query.includes('_type == "category"')) {
-        return Promise.resolve(categoriesResponse)
-      }
-      if (params?.categoryRef === 'cat-business') {
-        return Promise.resolve([])
-      }
-      if (params?.categoryRef) {
-        return Promise.resolve(allItems.filter((item) => item.category?._id === params.categoryRef))
-      }
-      return Promise.resolve(allItems)
-    })
-
-    const user = userEvent.setup()
-    render(<Portfolio />)
-
-    const businessTab = await screen.findByRole('tab', { name: 'Business Cards' })
-    await user.click(businessTab)
-
-    expect(await screen.findByText('No items to display for this category.')).toBeInTheDocument()
-    await waitFor(() => expect(screen.queryByText('Loading portfolio...')).toBeNull())
+    expect(await screen.findByText('Item 1')).toBeInTheDocument()
+    expect(screen.queryByText('Item 10')).not.toBeInTheDocument()
   })
 })

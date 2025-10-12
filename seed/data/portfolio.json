@@ -1,0 +1,92 @@
+[
+  {
+    "title": "Matte Finish Business Cards",
+    "description": "Premium 300 GSM stock with matte finish",
+    "image": "business-cards.jpg",
+    "link": null,
+    "category": "Business Cards",
+    "priority": 1,
+    "categorySlugs": ["business-cards"],
+    "hoverId": null
+  },
+  {
+    "title": "Flex Banner - XYZ Company",
+    "description": "Large format outdoor advertising banner",
+    "image": "flex-banners.jpg",
+    "link": null,
+    "category": "Banners",
+    "priority": 2,
+    "categorySlugs": ["banners"],
+    "hoverId": null
+  },
+  {
+    "title": "Custom Printed T-Shirt",
+    "description": "High-quality DTG printing on premium cotton",
+    "image": "apparel.jpg",
+    "link": null,
+    "category": "Apparel",
+    "priority": 3,
+    "categorySlugs": ["apparel"],
+    "hoverId": null
+  },
+  {
+    "title": "Vinyl Stickers & Labels",
+    "description": "Waterproof vinyl with UV-resistant printing",
+    "image": "stickers-labels.jpg",
+    "link": null,
+    "category": "Stickers",
+    "priority": 4,
+    "categorySlugs": ["stickers"],
+    "hoverId": null
+  },
+  {
+    "title": "Event Foam Board Display",
+    "description": "Lightweight foam core with full-color graphics",
+    "image": "foam-boards.jpg",
+    "link": null,
+    "category": "Banners",
+    "priority": 5,
+    "categorySlugs": ["banners"],
+    "hoverId": null
+  },
+  {
+    "title": "Corporate Stationery Set",
+    "description": "Letterheads, envelopes, and business cards",
+    "image": "business-cards.jpg",
+    "link": null,
+    "category": "Business Cards",
+    "priority": 6,
+    "categorySlugs": ["business-cards"],
+    "hoverId": null
+  },
+  {
+    "title": "Custom Hoodie Print",
+    "description": "Screen printing on premium fleece",
+    "image": "apparel.jpg",
+    "link": null,
+    "category": "Apparel",
+    "priority": 7,
+    "categorySlugs": ["apparel"],
+    "hoverId": null
+  },
+  {
+    "title": "Product Label Design",
+    "description": "High-gloss labels with brand colors",
+    "image": "stickers-labels.jpg",
+    "link": null,
+    "category": "Stickers",
+    "priority": 8,
+    "categorySlugs": ["stickers"],
+    "hoverId": null
+  },
+  {
+    "title": "Trade Show Banner",
+    "description": "Retractable banner stand with graphics",
+    "image": "flex-banners.jpg",
+    "link": null,
+    "category": "Banners",
+    "priority": 9,
+    "categorySlugs": ["banners"],
+    "hoverId": null
+  }
+]

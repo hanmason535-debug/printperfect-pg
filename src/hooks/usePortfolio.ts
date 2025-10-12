@@ -10,7 +10,7 @@ export function usePortfolio() {
     sanity.fetch(Q_PORTFOLIO)
       .then(setData)
       .catch((e) => {
-        console.error('[portfolio] sanity.fetch failed:', e)
+        if (import.meta.env.DEV) console.error('[portfolio] sanity.fetch failed:', e)
         setData([])
       })
   }, [])

@@ -10,8 +10,8 @@ export function useServices() {
     sanity.fetch(Q_SERVICES)
       .then(setData)
       .catch((e) => {
-        console.error('[services] sanity.fetch failed:', e)
-        setData([]) // keep UI stable
+        if (import.meta.env.DEV) console.error('[services] sanity.fetch failed:', e)
+        setData([])
       })
   }, [])
 

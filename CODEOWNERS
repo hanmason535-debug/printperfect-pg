@@ -1,0 +1,6 @@
+# Protected UI + schema files require @PrasGph review
+src/components/ServicesGrid.tsx   @PrasGph
+src/components/Portfolio.tsx      @PrasGph
+src/components/Contact.tsx        @PrasGph
+sanity/schemaTypes/*              @PrasGph
+sanity/schema.ts                  @PrasGph

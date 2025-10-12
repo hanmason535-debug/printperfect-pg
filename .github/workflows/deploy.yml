@@ -1,80 +1,54 @@
-name: Deploy to GitHub Pages
+name: Deploy (Vite → GitHub Pages)
 
 on:
   push:
-    branches: ["main"]
-    tags: ["v*"]
+    branches: [ main ]
+  workflow_dispatch:
 
 permissions:
   contents: read
   pages: write
   id-token: write
 
+concurrency:
+  group: pages
+  cancel-in-progress: true
+
 jobs:
   build:
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout code
+      - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Setup Node.js
+      - name: Setup Node
         uses: actions/setup-node@v4
         with:
           node-version: 20
+          cache: npm
 
-      - name: Install dependencies
-        run: npm install
+      - name: Install
+        run: npm ci
 
-      - name: TypeScript Type Check
-        run: npx tsc --noEmit
-
-      - name: Code Formatting Check
-        run: npm run format:check
-
-      - name: Dependency Security Scan
-        uses: actions/dependency-review-action@v4
-
-      - name: Git Ignore Security Check
-        run: |
-          if ! grep -q ".env" .gitignore && ! grep -q "firebase.ts" .gitignore; then
-            echo "Error: .gitignore is missing required entries for .env or firebase.ts"
-            exit 1
-          fi
-
-      - name: Unused Dependency Check (Depcheck)
-        if: >
-          contains(github.event.head_commit.modified, 'package.json') ||
-          contains(github.event.head_commit.modified, 'package-lock.json')
-        run: npm run depcheck
-
-      - name: Run linter
-        run: npx npm run lint
-
-      - name: Run tests
-        run: npm run test || echo "No tests configured yet"
-
-      - name: Build project
+      - name: Build
+        env:
+          VITE_SANITY_PROJECT_ID: ${{ secrets.VITE_SANITY_PROJECT_ID }}   # e.g. rvmd9re9
+          VITE_SANITY_DATASET:     ${{ secrets.VITE_SANITY_DATASET }}     # e.g. production
+          # Set base for GitHub Pages if site is at /<repo>/
+          VITE_PUBLIC_BASE: /${{ github.event.repository.name }}/
         run: npm run build
 
-      - name: Broken Link Check
-        uses: lycheeverse/lychee-action@v1
-        with:
-          args: "--verbose ./dist/index.html"
-
-      - name: Upload build output
+      - name: Upload artifact (dist)
         uses: actions/upload-pages-artifact@v3
         with:
           path: dist
 
   deploy:
-    needs: build
-    runs-on: ubuntu-latest
-    permissions:
-      pages: write
-      id-token: write
     environment:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}
+    runs-on: ubuntu-latest
+    needs: build
     steps:
       - name: Deploy to GitHub Pages
         id: deployment

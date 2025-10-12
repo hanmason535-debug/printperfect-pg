@@ -1,0 +1,59 @@
+name: Auto-Fix (non-blocking)
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened, edited]
+  workflow_dispatch:
+
+permissions:
+  contents: write        # needed to push the CHANGELOG stub to the PR branch
+  pull-requests: write   # needed to edit PR body and comment
+
+jobs:
+  autofix:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout PR branch
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0  # we need base commit for diffs
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Run auto-fix
+        id: run
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: node scripts/auto-fix.mjs
+
+      # Always post a consolidated advisory comment (non-blocking)
+      - name: Post advisory comment
+        if: ${{ steps.run.outputs.advisory && steps.run.outputs.advisory != '' }}
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const body = `{{ steps.run.outputs.advisory }}`;
+            // Avoid duplicate comments by deleting the last "Auto-Fix advisory" if present
+            const { data: comments } = await github.rest.issues.listComments({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: context.payload.pull_request.number,
+              per_page: 50
+            });
+            const prev = comments.find(c => c.user.type === 'Bot' && c.body?.startsWith('### 🤖 Auto-Fix advisory'));
+            if (prev) {
+              await github.rest.issues.deleteComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                comment_id: prev.id
+              });
+            }
+            await github.rest.issues.createComment({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: context.payload.pull_request.number,
+              body
+            })

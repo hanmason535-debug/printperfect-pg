@@ -1,0 +1,13 @@
+name: Conventional Commit (PR title)
+on: pull_request
+jobs:
+  title:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Title must follow Conventional Commits
+        run: |
+          title=$(jq -r '.pull_request.title' < $GITHUB_EVENT_PATH)
+          echo "PR title: $title"
+          echo "$title" | grep -Eiq '^(feat|fix|chore|docs|refactor|test|perf)(\(.+\))?: ' \
+            || { echo '::error ::PR title must be Conventional Commit style, e.g., "fix: restore portfolio filter"'; exit 1; }
+

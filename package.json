@@ -43,6 +43,7 @@
     "@radix-ui/react-tooltip": "^1.2.8",
     "@sanity/client": "^6.29.1",
     "@sanity/image-url": "^1.2.0",
+    "@supabase/supabase-js": "^2.75.0",
     "@tanstack/react-query": "^5.90.2",
     "@types/react": "^19.2.2",
     "@types/react-dom": "^19.2.1",

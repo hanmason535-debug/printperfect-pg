@@ -207,7 +207,7 @@ const Portfolio = () => {
                   <img
                     src={imageUrl}
                     alt={item.title}
-                    className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
+                    className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105 cursor-pointer"
                     loading="lazy"
                     onError={(e) => {
                       e.currentTarget.src =

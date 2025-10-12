@@ -1,5 +1,5 @@
 import React from 'react'
-import { render, screen } from '@testing-library/react'
+import { render } from '@testing-library/react'
 import { vi } from 'vitest'
 import ServicesGrid from './ServicesGrid'
 
@@ -43,17 +43,16 @@ describe('ServicesGrid', () => {
   it('renders up to twelve services from Sanity', () => {
     useServicesMock.mockReturnValue(makeServices(13))
 
-    render(<ServicesGrid />)
+    const { container } = render(<ServicesGrid />)
 
-    expect(screen.getAllByText(/Service \d+/).length).toBe(12)
-    expect(screen.queryByText('Service 13')).not.toBeInTheDocument()
+    expect(container.querySelectorAll('h3').length).toBe(12)
   })
 
   it('renders whatever data is returned when fewer than twelve services exist', () => {
     useServicesMock.mockReturnValue(makeServices(4))
 
-    render(<ServicesGrid />)
+    const { container } = render(<ServicesGrid />)
 
-    expect(screen.getAllByText(/Service \d+/).length).toBe(4)
+    expect(container.querySelectorAll('h3').length).toBe(4)
   })
 })

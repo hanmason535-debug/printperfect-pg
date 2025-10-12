@@ -1,5 +1,5 @@
 import React from 'react'
-import { render, screen } from '@testing-library/react'
+import { render } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { vi } from 'vitest'
 import Portfolio from './Portfolio'
@@ -55,28 +55,28 @@ describe('Portfolio', () => {
     usePortfolioMock.mockReturnValue(makePortfolioItems(11))
     const user = userEvent.setup()
 
-    render(<Portfolio />)
+    const { container, getByRole, queryByText, findByText } = render(<Portfolio />)
 
-    expect(screen.getAllByText(/Item \d+/).length).toBe(9)
-    expect(screen.queryByText('Item 10')).not.toBeInTheDocument()
+    expect(container.querySelectorAll('h3').length).toBe(9)
+    expect(queryByText('Item 10')).not.toBeInTheDocument()
 
-    await user.click(screen.getByRole('link', { name: /Next/i }))
+    await user.click(getByRole('link', { name: /Next/i }))
 
-    expect(await screen.findByText('Item 10')).toBeInTheDocument()
+    expect(await findByText('Item 10')).toBeInTheDocument()
   })
 
   it('filters by category and resets pagination', async () => {
     usePortfolioMock.mockReturnValue(makePortfolioItems(12))
     const user = userEvent.setup()
 
-    render(<Portfolio />)
+    const { getByRole, queryByText, findByText } = render(<Portfolio />)
 
-    await user.click(screen.getByRole('link', { name: /Next/i }))
-    expect(await screen.findByText('Item 10')).toBeInTheDocument()
+    await user.click(getByRole('link', { name: /Next/i }))
+    expect(await findByText('Item 10')).toBeInTheDocument()
 
-    await user.click(screen.getByRole('tab', { name: /Business Cards/i }))
+    await user.click(getByRole('tab', { name: /Business Cards/i }))
 
-    expect(await screen.findByText('Item 1')).toBeInTheDocument()
-    expect(screen.queryByText('Item 10')).not.toBeInTheDocument()
+    expect(await findByText('Item 1')).toBeInTheDocument()
+    expect(queryByText('Item 10')).not.toBeInTheDocument()
   })
 })

@@ -41,7 +41,7 @@ const uiApproved = /(^|\n)\s*UI change approved:\s*YES/i.test(prBodyOriginal);
 // GROQ import scan on changed files only
 let groqHits = [];
 for (const f of changedFiles) {
-  if (/".(ts|tsx)$\/.test(f)) {
+  if (/\.(ts|tsx)$/.test(f)) {
     try {
       const txt = await fs.readFile(f, 'utf8');
       if (txt.includes(`from 'groq'`)) groqHits.push(f);
@@ -73,64 +73,4 @@ All notable changes will be documented here.
   await fs.writeFile('CHANGELOG.md', content, 'utf8');
 
   try {
-    await sh(`git config user.name "auto-fix-bot"`);
-    await sh(`git config user.email "auto-fix@users.noreply.github.com"`);
-    await sh(`git add CHANGELOG.md`);
-    await sh(`git commit -m "docs(changelog): auto-stub for PR #${pr.number}"`);
-    await sh(`git push origin HEAD:${headRef}`);
-    changelogPatched = true;
-  } catch { /* fork or permissions */ }
-} else if (codeTouched && !changelogTouched && !sameRepo) {
-  notes.push(`- ⚠️ CHANGELOG.md missing; fork PR so auto-commit skipped. Please add an entry.`);
-}
-
-// Auto-add Agent line
-if (!hasAgent && GITHUB_TOKEN) {
-  try {
-    const bodyNew = `${prBodyOriginal}\n\nAgent: Unknown (auto)`;
-    const res = await fetch(`https://api.github.com/repos/${owner}/${repoName}/issues/${pr.number}`, {
-      method: 'PATCH',
-      headers: {
-        Authorization: `Bearer ${GITHUB_TOKEN}`,
-        'Content-Type': 'application/json',
-        'Accept': 'application/vnd.github+json'
-      },
-      body: JSON.stringify({ body: bodyNew })
-    });
-    if (!res.ok) throw new Error(`Failed to patch PR body: ${res.status}`);
-    notes.push(`- Added 
-Agent: Unknown (auto)
- to PR body.`);
-  } catch (e) {
-    notes.push(`- ⚠️ Could not auto-add Agent line: ${e.message || e}`);
-  }
-}
-
-// Compose advisory
-if (groqHits.length) {
-  notes.push(`- Found 
-import 'groq'
- in:
-${groqHits.map(f => `  • ${f}`).join('\n')}
-  Use **plain string** GROQ instead (no import).`);
-}
-if (protectedTouched && !uiApproved) {
-  notes.push(`- Protected UI/schema files changed. If intended, add 
-UI change approved: YES
- in PR body (and ensure CODEOWNERS review).`);
-}
-if (codeTouched && changelogPatched) {
-  notes.push(`- CHANGELOG.md was auto-stubbed for this PR (please refine before merge).`);
-}
-
-// Output for workflow step
-const GITHUB_OUTPUT = process.env.GITHUB_OUTPUT;
-if (GITHUB_OUTPUT) {
-  const body = notes.length
-    ? `### 🤖 Auto-Fix advisory (non-blocking)\n${notes.join('\n')}\n`
-    : '';
-  await fs.appendFile(GITHUB_OUTPUT, `advisory<<EOF
-${body}
-EOF
-`);
-}
+    await sh(`git config user.name

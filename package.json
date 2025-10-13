@@ -7,13 +7,13 @@
     "dev": "vite",
     "build": "tsc -b && vite build",
     "build:dev": "vite build --mode development",
-    "lint": "eslint .",
+    "lint": "eslint . --ext .ts,.tsx",
     "preview": "vite preview",
     "format:check": "prettier --check 'src/**/*.{ts,tsx,css,js}'",
     "depcheck": "depcheck",
-    "test": "vitest run",
+    "test": "vitest",
     "test:watch": "vitest",
-    "typecheck": "tsc --noEmit",
+    "typecheck": "tsc -p tsconfig.json --noEmit",
     "sanity:dev": "sanity dev"
   },
   "dependencies": {

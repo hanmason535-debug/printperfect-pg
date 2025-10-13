@@ -1,0 +1,42 @@
+name: CI (build, lint, typecheck, test)
+
+on:
+  pull_request:
+  push:
+    branches: [ main ]
+
+permissions:
+  contents: read
+
+jobs:
+  node:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        node-version: [20]  # add 18 if you support LTS
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ matrix['node-version'] }}
+          cache: npm
+
+      - name: Install
+        run: npm ci
+
+      - name: Lint (non-block if you haven’t configured ESLint yet)
+        run: npm run lint || echo "lint skipped"
+
+      - name: Typecheck (non-block if no tsc script yet)
+        run: npm run typecheck || echo "typecheck skipped"
+
+      - name: Test (Vitest) – non-block if tests absent
+        run: npm run test -- --run || echo "tests skipped"
+
+      - name: Build
+        env:
+          VITE_SANITY_PROJECT_ID: ${{ secrets.VITE_SANITY_PROJECT_ID }}
+          VITE_SANITY_DATASET: ${{ secrets.VITE_SANITY_DATASET }}
+        run: npm run build

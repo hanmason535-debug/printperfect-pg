@@ -1,4 +1,4 @@
-name: Deploy (Vite → GitHub Pages)
+name: Deploy (Vite + GitHub Pages)
 
 on:
   push:
@@ -18,11 +18,9 @@ jobs:
   build:
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v4
 
-      - name: Setup Node
-        uses: actions/setup-node@v4
+      - uses: actions/setup-node@v4
         with:
           node-version: 20
           cache: npm
@@ -32,9 +30,8 @@ jobs:
 
       - name: Build
         env:
-          VITE_SANITY_PROJECT_ID: ${{ secrets.VITE_SANITY_PROJECT_ID }}   # e.g. rvmd9re9
-          VITE_SANITY_DATASET:     ${{ secrets.VITE_SANITY_DATASET }}     # e.g. production
-          # Set base for GitHub Pages if site is at /<repo>/
+          VITE_SANITY_PROJECT_ID: ${{ secrets.VITE_SANITY_PROJECT_ID }}
+          VITE_SANITY_DATASET: ${{ secrets.VITE_SANITY_DATASET }}
           VITE_PUBLIC_BASE: /${{ github.event.repository.name }}/
         run: npm run build
 

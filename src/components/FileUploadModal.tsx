@@ -57,8 +57,10 @@ const FileUploadModal = ({ isOpen, onClose }: FileUploadModalProps) => {
     setLoading(true);
     setError('');
     try {
-      const fileList = files.map(f => `${f.file.name} (${(f.file.size / 1024 / 1024).toFixed(1)} MB)`).join('\n');
-      const templateParams = { phoneNumber: phoneNumber || "Not provided", fileList };
+      const fileList = files
+        .map(f => `${f.file.name} (${(f.file.size / 1024 / 1024).toFixed(1)} MB)`) 
+        .join('\n');
+      const templateParams = { phoneNumber: phoneNumber || 'Not provided', fileList };
       await emailjs.send(EMAILJS_SERVICE_ID, EMAILJS_TEMPLATE_ID, templateParams, EMAILJS_PUBLIC_KEY);
       setStep('success');
     } catch (emailError) {
@@ -78,62 +80,96 @@ const FileUploadModal = ({ isOpen, onClose }: FileUploadModalProps) => {
     onClose();
   };
 
-  const getFileIcon = (file: File) => (file.type.includes('pdf') ? '📄' : '🖼️');
+  const getFileIcon = (file: File) => (file.type.includes('pdf') ? 'PDF' : 'IMG');
 
   return (
-    <Dialog open={isOpen} onOpenChange={resetModal}>
+    <Dialog open={isOpen} onOpenChange={(open) => { if (!open) resetModal(); }}>
       <DialogContent className="sm:max-w-md">
-        <DialogHeader><DialogTitle className="text-2xl font-heading font-bold text-center">Upload Your Files</DialogTitle></DialogHeader>
+        <DialogHeader>
+          <DialogTitle className="text-2xl font-heading font-bold text-center">
+            Upload Your Files
+          </DialogTitle>
+        </DialogHeader>
         <AnimatePresence mode="wait">
           {step === 'upload' && (
-             <motion.div key="upload" className="space-y-6">
-               <div {...getRootProps()} className={`border-2 border-dashed rounded-xl p-8 text-center cursor-pointer ${isDragActive ? 'border-cyan bg-cyan/5' : 'border-border hover:border-cyan hover:bg-cyan/5'}`}>
-                 <input {...getInputProps()} />
-                 <Upload className="w-12 h-12 mx-auto mb-4 text-muted-foreground" />
-                 <p className="text-lg font-medium">{isDragActive ? 'Drop files here' : 'Drag & drop files'}</p>
-                 <p className="text-sm text-muted-foreground">or click to browse • Max 15MB each</p>
-               </div>
-               {files.length > 0 && (
-                 <div className="space-y-2">
-                   <Label>Selected Files:</Label>
-                   {files.map((f, i) => (
-                     <div key={i} className="flex items-center justify-between p-3 bg-muted rounded-lg">
-                       <div className="flex items-center space-x-3">
-                         <span>{getFileIcon(f.file)}</span>
-                         <div>
-                           <p className="text-sm font-medium truncate max-w-[200px]">{f.file.name}</p>
-                           <p className="text-xs text-muted-foreground">{(f.file.size / 1024 / 1024).toFixed(1)} MB</p>
-                         </div>
-                       </div>
-                       <Button variant="ghost" size="sm" onClick={() => removeFile(i)}>×</Button>
-                     </div>
-                   ))}
-                 </div>
-               )}
+            <motion.div key="upload" className="space-y-6">
+              <div
+                {...getRootProps()}
+                className={`border-2 border-dashed rounded-xl p-8 text-center cursor-pointer ${
+                  isDragActive ? 'border-cyan bg-cyan/5' : 'border-border hover:border-cyan hover:bg-cyan/5'
+                }`}
+              >
+                <input {...getInputProps()} />
+                <Upload className="w-12 h-12 mx-auto mb-4 text-muted-foreground" />
+                <p className="text-lg font-medium">
+                  {isDragActive ? 'Drop files here' : 'Drag & drop files'}
+                </p>
+                <p className="text-sm text-muted-foreground">or click to browse — Max 15MB each</p>
+              </div>
+              {files.length > 0 && (
                 <div className="space-y-2">
-                  <Label htmlFor="phone">Phone Number (Optional)</Label>
-                  <Input id="phone" type="tel" placeholder="Enter your phone number" value={phoneNumber} onChange={e => setPhoneNumber(e.target.value.replace(/\D/g, '').slice(0, 10))} />
+                  <Label>Selected Files:</Label>
+                  {files.map((f, i) => (
+                    <div key={i} className="flex items-center justify-between p-3 bg-muted rounded-lg">
+                      <div className="flex items-center space-x-3">
+                        <span>{getFileIcon(f.file)}</span>
+                        <div>
+                          <p className="text-sm font-medium truncate max-w-[200px]">{f.file.name}</p>
+                          <p className="text-xs text-muted-foreground">{(f.file.size / 1024 / 1024).toFixed(1)} MB</p>
+                        </div>
+                      </div>
+                      <Button variant="ghost" size="sm" onClick={() => removeFile(i)}>
+                        Remove
+                      </Button>
+                    </div>
+                  ))}
                 </div>
-               {error && <p className="text-destructive text-sm">{error}</p>}
-               <Button variant="cyan" className="w-full" onClick={handleSendNotification} disabled={files.length === 0 || loading}>
-                {loading ? <><Loader2 className="mr-2 h-4 w-4 animate-spin" /> Sending...</> : 'Send Notification'}
-               </Button>
-             </motion.div>
+              )}
+              <div className="space-y-2">
+                <Label htmlFor="phone">Phone Number (Optional)</Label>
+                <Input
+                  id="phone"
+                  type="tel"
+                  placeholder="Enter your phone number"
+                  value={phoneNumber}
+                  onChange={e => setPhoneNumber(e.target.value.replace(/\D/g, '').slice(0, 10))}
+                />
+              </div>
+              {error && <p className="text-destructive text-sm">{error}</p>}
+              <Button
+                variant="cyan"
+                className="w-full"
+                onClick={handleSendNotification}
+                disabled={files.length === 0 || loading}
+              >
+                {loading ? (
+                  <>
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" /> Sending...
+                  </>
+                ) : (
+                  'Send Notification'
+                )}
+              </Button>
+            </motion.div>
           )}
           {step === 'success' && (
             <motion.div key="success" className="text-center space-y-6">
               <CheckCircle className="w-16 h-16 mx-auto text-green-500" />
               <h3>Notification Sent!</h3>
               <p>We've received your request. We will contact you shortly to arrange the file transfer.</p>
-              <Button variant="cyan" onClick={resetModal} className="w-full">Done</Button>
+              <Button variant="cyan" onClick={resetModal} className="w-full">
+                Done
+              </Button>
             </motion.div>
           )}
           {step === 'failure' && (
             <motion.div key="failure" className="text-center space-y-6">
               <AlertCircle className="w-16 h-16 mx-auto text-destructive" />
               <h3>Something Went Wrong</h3>
-              <p>{error || "An unknown error occurred."}</p>
-              <Button variant="outline" onClick={() => setStep('upload')} className="w-full">Try Again</Button>
+              <p>{error || 'An unknown error occurred.'}</p>
+              <Button variant="outline" onClick={() => setStep('upload')} className="w-full">
+                Try Again
+              </Button>
             </motion.div>
           )}
         </AnimatePresence>
@@ -143,3 +179,4 @@ const FileUploadModal = ({ isOpen, onClose }: FileUploadModalProps) => {
 };
 
 export default FileUploadModal;
+

@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { MessageCircle } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 
@@ -6,18 +6,26 @@ const FloatingWhatsApp = () => {
   const [isVisible, setIsVisible] = useState(false);
   const [showTooltip, setShowTooltip] = useState(false);
 
+  const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const tooltipTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const hideTooltipTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
   useEffect(() => {
     // Show the button after 2 seconds
-    const timer = setTimeout(() => {
+    timerRef.current = setTimeout(() => {
       setIsVisible(true);
       // Show tooltip for 3 seconds after the button appears
-      setTimeout(() => {
+      tooltipTimerRef.current = setTimeout(() => {
         setShowTooltip(true);
-        setTimeout(() => setShowTooltip(false), 3000);
+        hideTooltipTimerRef.current = setTimeout(() => setShowTooltip(false), 3000);
       }, 500);
     }, 2000);
 
-    return () => clearTimeout(timer);
+    return () => {
+      if (timerRef.current) clearTimeout(timerRef.current);
+      if (tooltipTimerRef.current) clearTimeout(tooltipTimerRef.current);
+      if (hideTooltipTimerRef.current) clearTimeout(hideTooltipTimerRef.current);
+    };
   }, []);
 
   const handleClick = () => {

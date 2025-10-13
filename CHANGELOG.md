@@ -2,6 +2,7 @@
 All notable changes are documented here. (Keep a Changelog + Conventional Commits)
 
 ## [Unreleased]
+- Auto-stub for PR #9: "chore(deps-dev): bump @types/testing-library__jest-dom from 5.14.9 to 6.0.0" (Agent: Unknown). Please refine before merge.
 
 ## [1.3.5] - 2025-10-12
 ### Fixed

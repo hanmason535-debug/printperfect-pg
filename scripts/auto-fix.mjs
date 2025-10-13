@@ -41,7 +41,7 @@ const uiApproved = /(^|\n)\s*UI change approved:\s*YES/i.test(prBodyOriginal);
 // GROQ import scan on changed files only
 let groqHits = [];
 for (const f of changedFiles) {
-  if (/\.(ts|tsx)$/.test(f)) {
+  if (/".(ts|tsx)$\/.test(f)) {
     try {
       const txt = await fs.readFile(f, 'utf8');
       if (txt.includes(`from 'groq'`)) groqHits.push(f);
@@ -98,7 +98,9 @@ if (!hasAgent && GITHUB_TOKEN) {
       body: JSON.stringify({ body: bodyNew })
     });
     if (!res.ok) throw new Error(`Failed to patch PR body: ${res.status}`);
-    notes.push(`- Added ationalAgent: Unknown (auto)ational to PR body.`);
+    notes.push(`- Added 
+Agent: Unknown (auto)
+ to PR body.`);
   } catch (e) {
     notes.push(`- ⚠️ Could not auto-add Agent line: ${e.message || e}`);
   }
@@ -106,10 +108,16 @@ if (!hasAgent && GITHUB_TOKEN) {
 
 // Compose advisory
 if (groqHits.length) {
-  notes.push(`- Found ationalimport 'groq'ational in:\n${groqHits.map(f => `  • ${f}`).join('\n')}\n  Use **plain string** GROQ instead (no import).`);
+  notes.push(`- Found 
+import 'groq'
+ in:
+${groqHits.map(f => `  • ${f}`).join('\n')}
+  Use **plain string** GROQ instead (no import).`);
 }
 if (protectedTouched && !uiApproved) {
-  notes.push(`- Protected UI/schema files changed. If intended, add ationalUI change approved: YESational in PR body (and ensure CODEOWNERS review).`);
+  notes.push(`- Protected UI/schema files changed. If intended, add 
+UI change approved: YES
+ in PR body (and ensure CODEOWNERS review).`);
 }
 if (codeTouched && changelogPatched) {
   notes.push(`- CHANGELOG.md was auto-stubbed for this PR (please refine before merge).`);

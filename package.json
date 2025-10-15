@@ -15,7 +15,10 @@
     "test:watch": "vitest",
     "test:coverage": "vitest --run --coverage",
     "typecheck": "tsc -p tsconfig.json --noEmit",
-    "sanity:dev": "sanity dev"
+    "sanity:dev": "sanity dev",
+    "ci:validate": "npm run lint && npm run typecheck && npm run test -- --run && npm run build",
+    "e2e": "playwright test",
+    "e2e:ui": "playwright test --ui"
   },
   "dependencies": {
     "@emailjs/browser": "^4.4.1",
@@ -79,6 +82,7 @@
     "vaul": "^1.1.2"
   },
   "devDependencies": {
+    "@playwright/test": "^1.56.0",
     "@testing-library/jest-dom": "^6.9.1",
     "@testing-library/react": "^16.3.0",
     "@testing-library/user-event": "^14.6.1",

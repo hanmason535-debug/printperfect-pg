@@ -9,11 +9,12 @@ export default defineConfig({
     environment: 'jsdom',
     setupFiles: ['./src/setupTests.ts'],
     css: true,
+    exclude: ['tests/e2e/**', '**/node_modules/**', '**/dist/**'],
     reporters: ['default'],
     coverage: {
       provider: 'v8',
       reports: ['text', 'html'],
-      exclude: ['**/node_modules/**', '**/dist/**']
+      exclude: ['tests/e2e/**', '**/node_modules/**', '**/dist/**']
     }
   },
   resolve: {

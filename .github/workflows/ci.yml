@@ -1,4 +1,4 @@
-name: CI (build, lint, typecheck, test)
+name: CI (lint, typecheck, test, build)
 
 on:
   pull_request:
@@ -13,7 +13,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        node-version: [20]  # add 18 if you support LTS
+        node-version: [20]
     steps:
       - uses: actions/checkout@v4
 
@@ -26,17 +26,12 @@ jobs:
       - name: Install
         run: npm ci
 
-      - name: Lint (non-block if you haven’t configured ESLint yet)
-        run: npm run lint || echo "lint skipped"
-
-      - name: Typecheck (non-block if no tsc script yet)
-        run: npm run typecheck || echo "typecheck skipped"
-
-      - name: Test (Vitest) – non-block if tests absent
-        run: npm run test -- --run || echo "tests skipped"
-
-      - name: Build
+      - name: Validate (lint + typecheck + tests + build)
         env:
           VITE_SANITY_PROJECT_ID: ${{ secrets.VITE_SANITY_PROJECT_ID }}
           VITE_SANITY_DATASET: ${{ secrets.VITE_SANITY_DATASET }}
-        run: npm run build
+        run: npm run ci:validate
+
+      - name: Coverage (text + html)
+        run: npm run test:coverage
+

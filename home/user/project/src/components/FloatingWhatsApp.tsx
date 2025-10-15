@@ -1,40 +1,45 @@
-import { useState, useEffect, useRef } from 'react';
-import { MessageCircle } from 'lucide-react';
+
 import { motion, AnimatePresence } from 'framer-motion';
+import { MessageCircle } from 'lucide-react';
+import { useState, useEffect } from 'react';
 
 const FloatingWhatsApp = () => {
   const [isVisible, setIsVisible] = useState(false);
   const [showTooltip, setShowTooltip] = useState(false);
 
-  const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const tooltipTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const hideTooltipTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-
   useEffect(() => {
+    // Store all timer IDs for proper cleanup
+    let outerTimer: ReturnType<typeof setTimeout> | null = null;
+    let tooltipShowTimer: ReturnType<typeof setTimeout> | null = null;
+    let tooltipHideTimer: ReturnType<typeof setTimeout> | null = null;
+
     // Show the button after 2 seconds
-    timerRef.current = setTimeout(() => {
+    outerTimer = setTimeout(() => {
       setIsVisible(true);
+      
       // Show tooltip for 3 seconds after the button appears
-      tooltipTimerRef.current = setTimeout(() => {
+      tooltipShowTimer = setTimeout(() => {
         setShowTooltip(true);
-        hideTooltipTimerRef.current = setTimeout(() => setShowTooltip(false), 3000);
+        
+        tooltipHideTimer = setTimeout(() => {
+          setShowTooltip(false);
+        }, 3000);
       }, 500);
     }, 2000);
 
+    // Cleanup function - clear ALL timers
     return () => {
-      if (timerRef.current) clearTimeout(timerRef.current);
-      if (tooltipTimerRef.current) clearTimeout(tooltipTimerRef.current);
-      if (hideTooltipTimerRef.current) clearTimeout(hideTooltipTimerRef.current);
+      if (outerTimer) clearTimeout(outerTimer);
+      if (tooltipShowTimer) clearTimeout(tooltipShowTimer);
+      if (tooltipHideTimer) clearTimeout(tooltipHideTimer);
     };
   }, []);
 
   const handleClick = () => {
-    const message = encodeURIComponent("Hi! I'm interested in your printing services. Can you help me?");
+    const message = encodeURIComponent(
+      "Hi! I'm interested in your printing services. Can you help me?"
+    );
     window.open(`https://wa.me/919377476343?text=${message}`, '_blank');
-  };
-
-  const scrollToTop = () => {
-    window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
   return (
@@ -85,11 +90,10 @@ const FloatingWhatsApp = () => {
               transition={{ 
                 duration: 2,
                 repeat: Infinity,
-                ease: "easeInOut"
+                repeatType: "reverse"
               }}
             >
-              <MessageCircle className="w-5 h-5 mb-0.5" />
-              <span className="text-xs font-medium leading-none">WhatsApp</span>
+              <MessageCircle className="w-8 h-8" />
             </motion.button>
           </motion.div>
         )}

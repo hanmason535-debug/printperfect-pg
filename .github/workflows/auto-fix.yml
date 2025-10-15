@@ -6,38 +6,92 @@ on:
   workflow_dispatch:
 
 permissions:
-  contents: write        # PRs from forks won't have this; script will detect and skip writes
-  pull-requests: write
+  contents: read
 
 jobs:
   autofix:
     runs-on: ubuntu-latest
+    timeout-minutes: 5
     continue-on-error: true
+    if: github.event.pull_request.draft == false
     steps:
+      - name: Notice (advisory only; won't fail)
+        run: echo "::notice title=Auto-Fix::This job is advisory and will not fail your PR."
+
       - uses: actions/checkout@v4
-        with: { fetch-depth: 0 }
+        with:
+          fetch-depth: 0
 
-      - uses: actions/setup-node@v4
-        with: { node-version: 20 }
+      - name: Paths filter
+        id: filter
+        uses: dorny/paths-filter@v3
+        with:
+          filters: |
+            code:
+              - 'src/**'
+              - 'sanity/**'
+              - 'seed/**'
+              - 'public/**'
+              - 'package*.json'
+              - 'tsconfig*.json'
+              - 'tailwind.config.ts'
+              - 'vite.config.ts'
+              - '.github/**'
 
-      - name: Run auto-fix
+      - name: Setup Node
+        if: steps.filter.outputs.code == 'true'
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          check-latest: true
+          cache: npm
+
+      # Compose advisory WITHOUT executing repo code when PR is from a fork
+      - name: Compose advisory (fork-safe)
+        id: compose
+        if: steps.filter.outputs.code == 'true' && github.event.pull_request.head.repo.fork == true
+        run: |
+          {
+            echo "advisory<<EOF"
+            echo "### Auto-Fix advisory <!-- auto-fix-advisory -->"
+            echo ""
+            echo "- Fork PR detected. Auto-commit is disabled for security."
+            echo "- Please add an \`Agent:\` line in PR body (Lovable | Codex | Gemini | Human) if missing."
+            echo "- If code changed, ensure \`CHANGELOG.md\` is updated (CI will advise)."
+            echo "- Use plain-string GROQ (no \`import 'groq'\`)."
+            echo "EOF"
+          } >> "$GITHUB_OUTPUT"
+
+      # Same-repo PRs: run our script (safe to execute) which sets the advisory via $GITHUB_OUTPUT
+      - name: Install (same-repo only)
+        if: steps.filter.outputs.code == 'true' && github.event.pull_request.head.repo.fork == false
+        run: npm ci --ignore-scripts
+
+      - name: Run auto-fix script (same-repo only)
         id: run
+        if: steps.filter.outputs.code == 'true' && github.event.pull_request.head.repo.fork == false
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: node scripts/auto-fix.mjs
 
+      # Always post (if we have some advisory), using a sticky comment + hidden marker
       - name: Post advisory comment
-        if: ${{ steps.run.outputs.advisory && steps.run.outputs.advisory != '' }}
-        uses: actions/github-script@v7
-        env:
-          BODY: ${{ steps.run.outputs.advisory }}
+        if: always() && (steps.run.outputs.advisory || steps.compose.outputs.advisory)
+        permissions:
+          pull-requests: write
+        uses: marocchino/sticky-pull-request-comment@v2
         with:
-          script: |
-            const body = process.env.BODY;
-            const { data: comments } = await github.rest.issues.listComments({
-              owner: context.repo.owner, repo: context.repo.repo,
-              issue_number: context.payload.pull_request.number, per_page: 50
-            });
-            const prev = comments.find(c => c.user?.type === 'Bot' && c.body?.startsWith('### 🤖 Auto-Fix advisory'));
-            if (prev) await github.rest.issues.deleteComment({ owner: context.repo.owner, repo: context.repo.repo, comment_id: prev.id });
-            await github.rest.issues.createComment({ owner: context.repo.owner, repo: context.repo.repo, issue_number: context.payload.pull_request.number, body });
+          header: auto-fix-advisory
+          message: ${{ steps.run.outputs.advisory || steps.compose.outputs.advisory }}
+
+      - name: Summary
+        if: always()
+        run: |
+          echo "## Auto-Fix Result" >> $GITHUB_STEP_SUMMARY
+          if [ -n "${{ steps.run.outputs.advisory }}" ]; then
+            echo "${{ steps.run.outputs.advisory }}" >> $GITHUB_STEP_SUMMARY
+          elif [ -n "${{ steps.compose.outputs.advisory }}" ]; then
+            echo "${{ steps.compose.outputs.advisory }}" >> $GITHUB_STEP_SUMMARY
+          else
+            echo "No advisory messages (nothing relevant changed)." >> $GITHUB_STEP_SUMMARY
+

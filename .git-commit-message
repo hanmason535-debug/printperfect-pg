@@ -1,0 +1,5 @@
+fix: portfolio pagination disabled state and lightbox rendering
+
+- Use aria-disabled and pointer-events-none for pagination buttons instead of disabled prop
+- Add null checks in Lightbox to prevent rendering errors
+- Improve Lightbox dialog content styling for proper display

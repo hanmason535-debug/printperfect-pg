@@ -63,12 +63,12 @@ describe('Portfolio', () => {
     usePortfolioMock.mockReturnValue(makePortfolioItems(11))
     const user = userEvent.setup()
 
-    const { container, getByRole, queryByText, findByText } = render(<Portfolio />)
+    const { container, queryByText, findByText } = render(<Portfolio />)
 
     expect(container.querySelectorAll('h3').length).toBe(9)
     expect(queryByText('Item 10')).not.toBeInTheDocument()
 
-    await user.click(getByRole('link', { name: /Next/i }))
+    await user.click(screen.getByTestId('portfolio-page-next'))
 
     expect(await findByText('Item 10')).toBeInTheDocument()
   })
@@ -77,15 +77,12 @@ describe('Portfolio', () => {
     usePortfolioMock.mockReturnValue(makePortfolioItems(12))
     const user = userEvent.setup()
 
-    const { getByRole, queryByText, findByText } = render(<Portfolio />)
+    const { queryByText, findByText } = render(<Portfolio />)
 
-    await user.click(getByRole('link', { name: /Next/i }))
+    await user.click(screen.getByTestId('portfolio-page-next'))
     expect(await findByText('Item 10')).toBeInTheDocument()
 
-    const matches = await screen.findAllByText(/Business Cards/i)
-    const btn = matches.map((el) => el.closest('button')).find(Boolean)
-    expect(btn).toBeTruthy()
-    await user.click(btn as Element)
+    await user.click(screen.getByTestId('portfolio-filter-business-cards'))
 
     expect(await findByText('Item 1')).toBeInTheDocument()
     expect(queryByText('Item 10')).not.toBeInTheDocument()

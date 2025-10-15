@@ -103,6 +103,7 @@ export default function Lightbox({ open, onOpenChange, items, startIndex }: Prop
 
             {/* Stage (image + caption) */}
             <motion.div
+              data-testid="lightbox-stage"
               className="fixed inset-0 z-[95] flex items-center justify-center"
               initial={{ opacity: 0, scale: 0.98 }}
               animate={{ opacity: 1, scale: 1 }}
@@ -136,6 +137,7 @@ export default function Lightbox({ open, onOpenChange, items, startIndex }: Prop
             <button
               onClick={() => onOpenChange(false)}
               aria-label="Close"
+              data-testid="lightbox-close"
               className="fixed right-5 top-5 z-[100] rounded-full bg-black/55 hover:bg-black/65 backdrop-blur px-3 py-3 text-white ring-1 ring-white/20 shadow-lg transition"
             >
               <X className="h-7 w-7" />
@@ -146,6 +148,7 @@ export default function Lightbox({ open, onOpenChange, items, startIndex }: Prop
               <button
                 onClick={prev}
                 aria-label="Previous"
+                data-testid="lightbox-prev"
                 className="fixed left-6 top-1/2 z-[100] -translate-y-1/2 rounded-full bg-black/55 hover:bg-black/65 backdrop-blur px-3.5 py-3.5 text-white ring-1 ring-white/20 shadow-lg transition"
               >
                 <ChevronLeft className="h-8 w-8" />
@@ -160,6 +163,7 @@ export default function Lightbox({ open, onOpenChange, items, startIndex }: Prop
                 onMouseLeave={() => setHoverNext(false)}
                 onClick={next}
                 aria-label="Next"
+                data-testid="lightbox-next"
                 className="fixed right-6 top-1/2 z-[100] -translate-y-1/2 rounded-full bg-black/55 hover:bg-black/65 backdrop-blur px-3.5 py-3.5 text-white ring-1 ring-white/20 shadow-lg transition"
                 animate={
                   reduceMotion || hoverNext

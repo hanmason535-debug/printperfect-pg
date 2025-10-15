@@ -10,10 +10,24 @@ if (!projectId) {
 
 const sanity = createClient({ projectId, dataset, apiVersion: '2023-10-01', useCdn: true })
 
+async function fetchWithRetry(query, { retries = 3, delay = 1000 } = {}) {
+  let attempt = 0
+  for (; attempt < retries; attempt++) {
+    try {
+      return await sanity.fetch(query)
+    } catch (err) {
+      if (attempt === retries - 1) throw err
+      const waitMs = delay * Math.pow(2, attempt)
+      console.warn(`[sanity-healthcheck] fetch retry ${attempt + 1}/${retries} after error:`, err.message)
+      await new Promise((resolve) => setTimeout(resolve, waitMs))
+    }
+  }
+}
+
 async function main() {
   const [servicesCount, portfolioCount] = await Promise.all([
-    sanity.fetch('*[ _type == "service" ] | count()'),
-    sanity.fetch('*[ _type == "portfolioItem" ] | count()'),
+    fetchWithRetry('*[ _type == "service" ] | count()'),
+    fetchWithRetry('*[ _type == "portfolioItem" ] | count()'),
   ])
 
   const report = { servicesCount, portfolioCount, timestamp: new Date().toISOString() }
@@ -31,4 +45,3 @@ main().catch((err) => {
   console.error('[sanity-healthcheck] error', err)
   process.exit(1)
 })
-

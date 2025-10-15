@@ -26,6 +26,16 @@ jobs:
       - name: Install
         run: npm ci
 
+      - name: Ensure Sanity env
+        env:
+          VITE_SANITY_PROJECT_ID: ${{ secrets.VITE_SANITY_PROJECT_ID }}
+          VITE_SANITY_DATASET: ${{ secrets.VITE_SANITY_DATASET }}
+        run: |
+          if [ -z "$VITE_SANITY_PROJECT_ID" ] || [ -z "$VITE_SANITY_DATASET" ]; then
+            echo "❌ VITE_SANITY_PROJECT_ID or VITE_SANITY_DATASET is not set"
+            exit 1
+          fi
+
       - name: Validate (lint + typecheck + tests + build)
         env:
           VITE_SANITY_PROJECT_ID: ${{ secrets.VITE_SANITY_PROJECT_ID }}
@@ -34,4 +44,3 @@ jobs:
 
       - name: Coverage (text + html)
         run: npm run test:coverage
-

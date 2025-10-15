@@ -128,6 +128,7 @@ const Portfolio = () => {
               aria-selected={activeFilter === category}
               aria-controls="portfolio-grid"
               onClick={() => setActiveFilter(category)}
+              data-testid={`portfolio-filter-${category.toLowerCase().replace(/\s+/g, '-')}`}
               className={`px-6 py-2 rounded-full text-sm font-medium transition-all duration-300 ${
                 activeFilter === category
                   ? 'bg-primary text-primary-foreground shadow-lg'
@@ -153,6 +154,7 @@ const Portfolio = () => {
             {pageItems.map((p) => (
               <motion.article
                 key={p._id}
+                data-testid={`portfolio-item-${p._id}`}
                 className="group relative overflow-hidden rounded-xl bg-card shadow-lg hover:shadow-xl transition-shadow duration-300"
                 variants={itemVariants}
                 whileHover={{ y: -10 }}
@@ -200,6 +202,7 @@ const Portfolio = () => {
                       setPage((prev) => Math.max(1, prev - 1))
                     }}
                     disabled={page === 1}
+                    data-testid="portfolio-page-prev"
                   />
                 </PaginationItem>
                 {Array.from({ length: totalPages }, (_, i) => i + 1).map((pageNum) => (
@@ -224,6 +227,7 @@ const Portfolio = () => {
                       setPage((prev) => Math.min(totalPages, prev + 1))
                     }}
                     disabled={page === totalPages}
+                    data-testid="portfolio-page-next"
                   />
                 </PaginationItem>
               </PaginationContent>

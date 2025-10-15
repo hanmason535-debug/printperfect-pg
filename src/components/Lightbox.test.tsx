@@ -13,16 +13,17 @@ test("opens, shows title/desc, arrows navigate, esc closes", () => {
 
   // dialog is present
   expect(screen.getByRole("dialog")).toBeInTheDocument()
+  expect(screen.getByTestId("lightbox-stage")).toBeInTheDocument()
   // heading shows current title (h3)
   expect(screen.getByRole("heading", { name: "A", level: 3 })).toBeInTheDocument()
 
-  // next via keyboard
-  fireEvent.keyDown(window, { key: "ArrowRight" })
+  // next via data-testid
+  fireEvent.click(screen.getByTestId("lightbox-next"))
   expect(screen.getByRole("dialog", { name: "B" })).toBeInTheDocument()
   expect(screen.getByRole("heading", { name: "B", level: 3 })).toBeInTheDocument()
 
-  // prev via keyboard
-  fireEvent.keyDown(window, { key: "ArrowLeft" })
+  // prev via data-testid
+  fireEvent.click(screen.getByTestId("lightbox-prev"))
   expect(screen.getByRole("dialog", { name: "A" })).toBeInTheDocument()
   expect(screen.getByRole("heading", { name: "A", level: 3 })).toBeInTheDocument()
 

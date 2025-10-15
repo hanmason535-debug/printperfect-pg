@@ -80,12 +80,14 @@ export default function Lightbox({ open, onOpenChange, items, startIndex }: Prop
     return () => clearInterval(id)
   }, [open, hoverNext, reduceMotion])
 
+  if (!open || !current) return null
+
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <AnimatePresence>
-        {open && (
+        {open && current && (
           <DialogContent
-            className="p-0 border-0 bg-transparent shadow-none"
+            className="p-0 border-0 bg-transparent shadow-none max-w-none w-full h-full"
             onOpenAutoFocus={(e) => e.preventDefault()}
           >
             {/* Backdrop */}

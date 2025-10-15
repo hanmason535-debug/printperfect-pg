@@ -197,9 +197,10 @@ const Portfolio = () => {
                     href="#"
                     onClick={(e) => {
                       e.preventDefault()
-                      setPage((prev) => Math.max(1, prev - 1))
+                      if (page > 1) setPage((prev) => prev - 1)
                     }}
-                    disabled={page === 1}
+                    aria-disabled={page === 1}
+                    className={page === 1 ? 'pointer-events-none opacity-50' : ''}
                   />
                 </PaginationItem>
                 {Array.from({ length: totalPages }, (_, i) => i + 1).map((pageNum) => (
@@ -221,9 +222,10 @@ const Portfolio = () => {
                     href="#"
                     onClick={(e) => {
                       e.preventDefault()
-                      setPage((prev) => Math.min(totalPages, prev + 1))
+                      if (page < totalPages) setPage((prev) => prev + 1)
                     }}
-                    disabled={page === totalPages}
+                    aria-disabled={page === totalPages}
+                    className={page === totalPages ? 'pointer-events-none opacity-50' : ''}
                   />
                 </PaginationItem>
               </PaginationContent>

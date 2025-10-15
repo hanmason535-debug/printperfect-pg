@@ -1,38 +1,4 @@
-# ═══════════════════════════════════════════════════════════════════════════
-# CI Workflow - Continuous Integration Pipeline
-# ═══════════════════════════════════════════════════════════════════════════
-#
-# Purpose: Validate code quality on every push and pull request
-#
-# Triggers:
-#   - Every pull request (from any branch)
-#   - Every push to main branch
-#
-# Jobs:
-#   1. Lint - Check code style (ESLint)
-#   2. Type check - Verify TypeScript types
-#   3. Test - Run unit tests with Vitest
-#   4. Build - Compile production bundle
-#   5. Upload artifacts - Store build output for 7 days
-#
-# Environment Variables:
-#   - VITE_SANITY_PROJECT_ID: Sanity CMS project ID (from secrets)
-#   - VITE_SANITY_DATASET: Sanity dataset name (defaults to 'production')
-#
-# Success Criteria:
-#   - All linting rules pass
-#   - No TypeScript errors
-#   - All tests pass
-#   - Production build completes successfully
-#
-# Artifacts:
-#   - dist/ folder uploaded for inspection
-#   - Retained for 7 days
-#   - Named: dist-{node-version}
-#
-# ═══════════════════════════════════════════════════════════════════════════
-
-name: CI (build, lint, typecheck, test)
+name: CI (lint, typecheck, test, build)
 
 on:
   pull_request:
@@ -47,7 +13,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        node-version: [20]  # add 18 if you support LTS
+        node-version: [20]
     steps:
       - uses: actions/checkout@v4
 
@@ -57,31 +23,15 @@ jobs:
           node-version: ${{ matrix['node-version'] }}
           cache: npm
 
-      - name: Install dependencies
+      - name: Install
         run: npm ci
 
-      - name: Lint
-        run: npm run lint
-
-      - name: Type check
-        run: npm run typecheck
-
-      - name: Run tests
+      - name: Validate (lint + typecheck + tests + build)
         env:
-          VITE_SANITY_PROJECT_ID: ${{ secrets.VITE_SANITY_PROJECT_ID || 'test-project-id' }}
-          VITE_SANITY_DATASET: ${{ secrets.VITE_SANITY_DATASET || 'production' }}
-        run: npm run test -- --run
+          VITE_SANITY_PROJECT_ID: ${{ secrets.VITE_SANITY_PROJECT_ID }}
+          VITE_SANITY_DATASET: ${{ secrets.VITE_SANITY_DATASET }}
+        run: npm run ci:validate
 
-      - name: Build
-        env:
-          VITE_SANITY_PROJECT_ID: ${{ secrets.VITE_SANITY_PROJECT_ID || '' }}
-          VITE_SANITY_DATASET: ${{ secrets.VITE_SANITY_DATASET || 'production' }}
-        run: npm run build
-      
-      - name: Upload build artifacts
-        if: success()
-        uses: actions/upload-artifact@v4
-        with:
-          name: dist-${{ matrix.node-version }}
-          path: dist/
-          retention-days: 7
+      - name: Coverage (text + html)
+        run: npm run test:coverage
+

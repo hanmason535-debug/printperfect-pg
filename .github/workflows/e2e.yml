@@ -9,25 +9,37 @@ permissions:
 
 jobs:
   e2e:
-    if: ${{ hashFiles('tests/e2e/**/*.spec.ts') != '' }}
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+
+      - name: Check for E2E specs
+        id: has_e2e
+        run: |
+          if compgen -G "tests/e2e/**/*.spec.ts" > /dev/null; then
+            echo "run=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "run=false" >> "$GITHUB_OUTPUT"
+          fi
 
       - name: Setup Node
         uses: actions/setup-node@v4
         with:
           node-version: 20
           cache: npm
+        if: steps.has_e2e.outputs.run == 'true'
 
       - name: Install
         run: npm ci
+        if: steps.has_e2e.outputs.run == 'true'
 
       - name: Install Playwright Browsers
         run: npx playwright install --with-deps
+        if: steps.has_e2e.outputs.run == 'true'
 
       - name: E2E tests
         run: npm run e2e
+        if: steps.has_e2e.outputs.run == 'true'
 
       - name: Upload Playwright report (on failure)
         if: failure()
@@ -37,3 +49,6 @@ jobs:
           path: playwright-report
           if-no-files-found: ignore
 
+      - name: Skip notice
+        if: steps.has_e2e.outputs.run != 'true'
+        run: echo "Skipping E2E tests (no tests found)"

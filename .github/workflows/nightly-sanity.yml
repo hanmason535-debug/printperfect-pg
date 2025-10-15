@@ -38,11 +38,10 @@ jobs:
           script: |
             const title = 'Sanity data healthcheck failing'
             const body = `Nightly Sanity healthcheck failed.\n\nRepo: ${context.repo.owner}/${context.repo.repo}\nRun: ${context.runId}\n\nPlease investigate content availability for types service/portfolioItem.`
-            const { data: issues } = await github.rest.issues.listForRepo({
+            const issues = await github.paginate(github.rest.issues.listForRepo, {
               owner: context.repo.owner,
               repo: context.repo.repo,
-              state: 'open',
-              labels: 'automated'
+              state: 'open'
             })
             const existing = issues.find(i => i.title === title)
             if (existing) {
@@ -50,4 +49,3 @@ jobs:
             } else {
               await github.rest.issues.create({ owner: context.repo.owner, repo: context.repo.repo, title, body, labels: ['automated'] })
             }
-

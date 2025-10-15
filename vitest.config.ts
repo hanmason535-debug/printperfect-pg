@@ -13,8 +13,15 @@ export default defineConfig({
     reporters: ['default'],
     coverage: {
       provider: 'v8',
+      include: ['src/components/Lightbox.tsx', 'src/components/Portfolio.tsx', 'src/components/ServicesGrid.tsx'],
       reports: ['text', 'html'],
-      exclude: ['tests/e2e/**', '**/node_modules/**', '**/dist/**']
+      exclude: ['tests/e2e/**', '**/node_modules/**', '**/dist/**'],
+      thresholds: {
+        lines: 90,
+        functions: 40,
+        branches: 60,
+        statements: 90
+      }
     }
   },
   resolve: {

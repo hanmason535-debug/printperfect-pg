@@ -9,16 +9,12 @@ export default defineConfig({
     environment: 'jsdom',
     setupFiles: ['./src/setupTests.ts'],
     css: true,
+    reporters: ['default'],
     coverage: {
       provider: 'v8',
-      reporter: ['text', 'json', 'html', 'lcov'],
-      exclude: [
-        'node_modules/',
-        'src/setupTests.ts',
-        '**/*.d.ts',
-        '**/*.config.ts',
-      ],
-    },
+      reports: ['text', 'html'],
+      exclude: ['**/node_modules/**', '**/dist/**']
+    }
   },
   resolve: {
     alias: {

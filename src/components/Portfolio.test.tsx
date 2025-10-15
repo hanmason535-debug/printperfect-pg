@@ -1,5 +1,5 @@
 import React from 'react'
-import { render } from '@testing-library/react'
+import { render, screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { vi } from 'vitest'
 import Portfolio from './Portfolio'
@@ -82,7 +82,10 @@ describe('Portfolio', () => {
     await user.click(getByRole('link', { name: /Next/i }))
     expect(await findByText('Item 10')).toBeInTheDocument()
 
-    await user.click(getByRole('tab', { name: /Business Cards/i }))
+    const matches = await screen.findAllByText(/Business Cards/i)
+    const btn = matches.map((el) => el.closest('button')).find(Boolean)
+    expect(btn).toBeTruthy()
+    await user.click(btn as Element)
 
     expect(await findByText('Item 1')).toBeInTheDocument()
     expect(queryByText('Item 10')).not.toBeInTheDocument()

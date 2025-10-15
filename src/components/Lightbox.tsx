@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react"
 import { AnimatePresence, motion, useReducedMotion } from "framer-motion"
-import { Dialog, DialogContent } from "@/components/ui/dialog"
+import { Dialog, DialogContent, DialogTitle, DialogDescription } from "@/components/ui/dialog"
 import { X, ChevronLeft, ChevronRight } from "lucide-react"
 import { urlFor } from "@/lib/image"
 import type { PortfolioItem } from "@/types/cms"
@@ -88,6 +88,11 @@ export default function Lightbox({ open, onOpenChange, items, startIndex }: Prop
             className="p-0 border-0 bg-transparent shadow-none"
             onOpenAutoFocus={(e) => e.preventDefault()}
           >
+            {/* Accessible name/description for the dialog */}
+            <DialogTitle className="sr-only">{current?.title ?? "Image viewer"}</DialogTitle>
+            {current?.description && (
+              <DialogDescription className="sr-only">{current.description}</DialogDescription>
+            )}
             {/* Backdrop */}
             <motion.div
               className="fixed inset-0 z-[90] bg-black/70 backdrop-blur-sm"
@@ -98,8 +103,6 @@ export default function Lightbox({ open, onOpenChange, items, startIndex }: Prop
 
             {/* Stage (image + caption) */}
             <motion.div
-              role="dialog"
-              aria-label={current?.title ?? "Image viewer"}
               className="fixed inset-0 z-[95] flex items-center justify-center"
               initial={{ opacity: 0, scale: 0.98 }}
               animate={{ opacity: 1, scale: 1 }}

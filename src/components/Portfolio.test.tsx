@@ -8,6 +8,10 @@ const { usePortfolioMock, urlForMock } = vi.hoisted(() => {
   const builderFactory = () => {
     const builder: any = {}
     builder.width = vi.fn(() => builder)
+    builder.height = vi.fn(() => builder)
+    builder.fit = vi.fn(() => builder)
+    builder.format = vi.fn(() => builder)
+    builder.blur = vi.fn(() => builder)
     builder.url = vi.fn(() => 'https://example.com/image.webp')
     return builder
   }
@@ -23,6 +27,10 @@ vi.mock('@/hooks/usePortfolio', () => ({
 }))
 
 vi.mock('@/lib/image', () => ({
+  urlFor: urlForMock
+}))
+
+vi.mock('@/lib/sanity', () => ({
   urlFor: urlForMock
 }))
 

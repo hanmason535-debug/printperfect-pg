@@ -22,7 +22,7 @@ const Portfolio = () => {
   const allItems = usePortfolio()
   const [activeFilter, setActiveFilter] = useState<FilterValue>('All')
   const [page, setPage] = useState(1)
-  
+
   // Lightbox state
   const [lightboxOpen, setLightboxOpen] = useState(false)
   const [lightboxStart, setLightboxStart] = useState(0)
@@ -54,6 +54,7 @@ const Portfolio = () => {
 
   useEffect(() => {
     setPage(1)
+    setLightboxOpen(false)
   }, [activeFilter])
 
   const totalPages = Math.max(1, Math.ceil(filteredItems.length / PER_PAGE))
@@ -69,8 +70,10 @@ const Portfolio = () => {
 
   const handleImageClick = useCallback((itemId: string) => {
     const idx = filteredItems.findIndex((x) => x._id === itemId)
-    setLightboxStart(Math.max(0, idx))
-    setLightboxOpen(true)
+    if (idx >= 0) {
+      setLightboxStart(idx)
+      setLightboxOpen(true)
+    }
   }, [filteredItems])
 
   const containerVariants = {
@@ -152,10 +155,11 @@ const Portfolio = () => {
         >
           <AnimatePresence>
             {pageItems.map((p) => (
-              <motion.article
+              <motion.button
                 key={p._id}
+                type="button"
                 data-testid={`portfolio-item-${p._id}`}
-                className="group relative overflow-hidden rounded-xl bg-card shadow-lg hover:shadow-xl transition-shadow duration-300"
+                className="group relative w-full overflow-hidden rounded-xl bg-card shadow-lg hover:shadow-xl transition-shadow duration-300 text-left focus:outline-none focus-visible:ring-2 focus-visible:ring-primary/70"
                 variants={itemVariants}
                 whileHover={{ y: -10 }}
                 onClick={() => handleImageClick(p._id)}
@@ -178,9 +182,14 @@ const Portfolio = () => {
                   <h3 className="text-xl font-bold mb-1">{p.title}</h3>
                   <p className="text-sm opacity-90">{p.category}</p>
                 </div>
-              </motion.article>
+              </motion.button>
             ))}
           </AnimatePresence>
+          {pageItems.length === 0 && (
+            <div className="col-span-full py-10 text-center text-sm text-muted-foreground">
+              No items available for "{activeFilter}".
+            </div>
+          )}
         </motion.div>
 
         {/* Pagination */}

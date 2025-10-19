@@ -54,27 +54,44 @@ const Portfolio = () => {
 
   useEffect(() => {
     setPage(1)
-    setLightboxOpen(false)
   }, [activeFilter])
 
   const totalPages = Math.max(1, Math.ceil(filteredItems.length / PER_PAGE))
+  const currentPage = Math.min(Math.max(page, 1), totalPages)
 
   useEffect(() => {
-    if (page > totalPages) {
-      setPage(totalPages)
+    if (page !== currentPage) {
+      setPage(currentPage)
     }
-  }, [page, totalPages])
+  }, [page, currentPage])
 
-  const startIndex = (page - 1) * PER_PAGE
+  const startIndex = (currentPage - 1) * PER_PAGE
   const pageItems = filteredItems.slice(startIndex, startIndex + PER_PAGE)
 
-  const handleImageClick = useCallback((itemId: string) => {
-    const idx = filteredItems.findIndex((x) => x._id === itemId)
-    if (idx >= 0) {
-      setLightboxStart(idx)
-      setLightboxOpen(true)
+  const filteredCount = filteredItems.length
+
+  useEffect(() => {
+    if (filteredCount === 0) {
+      setLightboxStart(0)
+      if (lightboxOpen) {
+        setLightboxOpen(false)
+      }
+      return
     }
-  }, [filteredItems])
+
+    setLightboxStart((prev) => (prev >= filteredCount ? filteredCount - 1 : prev))
+  }, [filteredCount, lightboxOpen])
+
+  const handleImageClick = useCallback(
+    (itemId: string) => {
+      const idx = filteredItems.findIndex((x) => x._id === itemId)
+      if (idx >= 0) {
+        setLightboxStart(idx)
+        setLightboxOpen(true)
+      }
+    },
+    [filteredItems]
+  )
 
   const containerVariants = {
     hidden: { opacity: 0 },
@@ -208,9 +225,9 @@ const Portfolio = () => {
                     href="#"
                     onClick={(e) => {
                       e.preventDefault()
-                      setPage((prev) => Math.max(1, prev - 1))
+                      setPage(Math.max(1, currentPage - 1))
                     }}
-                    disabled={page === 1}
+                    disabled={currentPage === 1}
                     data-testid="portfolio-page-prev"
                   />
                 </PaginationItem>
@@ -222,7 +239,7 @@ const Portfolio = () => {
                         e.preventDefault()
                         setPage(pageNum)
                       }}
-                      isActive={page === pageNum}
+                      isActive={currentPage === pageNum}
                     >
                       {pageNum}
                     </PaginationLink>
@@ -233,9 +250,9 @@ const Portfolio = () => {
                     href="#"
                     onClick={(e) => {
                       e.preventDefault()
-                      setPage((prev) => Math.min(totalPages, prev + 1))
+                      setPage(Math.min(totalPages, currentPage + 1))
                     }}
-                    disabled={page === totalPages}
+                    disabled={currentPage === totalPages}
                     data-testid="portfolio-page-next"
                   />
                 </PaginationItem>

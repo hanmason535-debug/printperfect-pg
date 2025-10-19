@@ -8,7 +8,13 @@ export function useServices() {
 
   useEffect(() => {
     sanity.fetch(Q_SERVICES)
-      .then(setData)
+      .then((result) => {
+        if (Array.isArray(result)) {
+          setData(result)
+        } else {
+          setData([])
+        }
+      })
       .catch((e) => {
         if (import.meta.env.DEV) console.error('[services] sanity.fetch failed:', e)
         setData([])

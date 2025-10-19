@@ -72,6 +72,7 @@ const ServicesGrid = () => {
                   transition: { duration: 0.3 }
                 }}
                 className="group relative overflow-hidden rounded-xl bg-card shadow-elevation hover:shadow-premium transition-all duration-300 cursor-pointer"
+                data-testid={`services-card-${service._id ?? index}`}
                 onClick={() => handleServiceClick(service.title)}
                 title={`Click to WhatsApp us about ${service.title}`}
               >
@@ -119,6 +120,11 @@ const ServicesGrid = () => {
               </motion.div>
             )
           })}
+          {displayedServices.length === 0 && (
+            <div className="col-span-full rounded-xl bg-card/60 p-10 text-center text-sm text-muted-foreground shadow-sm">
+              Services are coming soon. Please check back shortly.
+            </div>
+          )}
         </motion.div>
 
         {/* Call to Action */}

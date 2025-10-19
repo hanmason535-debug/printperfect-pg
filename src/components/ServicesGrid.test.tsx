@@ -55,4 +55,12 @@ describe('ServicesGrid', () => {
 
     expect(container.querySelectorAll('h3').length).toBe(4)
   })
+
+  it('shows a placeholder message when no services are available', () => {
+    useServicesMock.mockReturnValue([])
+
+    const { getByText } = render(<ServicesGrid />)
+
+    expect(getByText('Services are coming soon. Please check back shortly.')).toBeInTheDocument()
+  })
 })

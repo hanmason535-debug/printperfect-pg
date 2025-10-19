@@ -1,256 +1,225 @@
-import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react"
-import { AnimatePresence, motion, useReducedMotion } from "framer-motion"
-import { Dialog, DialogContent, DialogTitle, DialogDescription } from "@/components/ui/dialog"
-import { X, ChevronLeft, ChevronRight } from "lucide-react"
+import { useCallback, useEffect, useMemo, useState } from "react"
+import { AnimatePresence, motion } from "framer-motion"
+import { Dialog, DialogContent, DialogDescription, DialogTitle } from "@/components/ui/dialog"
+import { ChevronLeft, ChevronRight, X } from "lucide-react"
 import { urlFor } from "@/lib/image"
 import type { PortfolioItem } from "@/types/cms"
 
 type Props = {
   open: boolean
-  onOpenChange: (v: boolean) => void
-  items: PortfolioItem[]           // filtered set (in display order)
-  startIndex: number               // index of clicked card within filtered set
+  onOpenChange: (value: boolean) => void
+  items: PortfolioItem[]
+  startIndex: number
 }
 
-const clamp = (value: number, min: number, max: number) => Math.min(Math.max(value, min), max)
+const FALLBACK_IMAGE =
+  "data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMzAwIiBoZWlnaHQ9IjIwMCIgdmlld0JveD0iMCAwIDMwMCAyMDAiIGZpbGw9Im5vbmUiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+CjxyZWN0IHdpZHRoPSIzMDAiIGhlaWdodD0iMjAwIiBmaWxsPSIjRjNGNEY2Ii8+Cjx0ZXh0IHg9IjE1MCIgeT0iMTA1IiB0ZXh0LWFuY2hvcj0ibWlkZGxlIiBmaWxsPSIjOUI5QkEwIiBmb250LWZhbWlseT0iSW50ZXIiIGZvbnQtc2l6ZT0iMTQiPkltYWdlIE5vdCBGb3VuZDwvdGV4dD4KPHN2Zz4="
+
+const buildImageSrc = (item?: PortfolioItem) => {
+  if (!item?.image) return ""
+  return urlFor(item.image).width(1600).format("webp").url()
+}
 
 export default function Lightbox({ open, onOpenChange, items, startIndex }: Props) {
   const [index, setIndex] = useState(startIndex)
-  const [hoverNext, setHoverNext] = useState(false)
-  const [nudgeActive, setNudgeActive] = useState(false)
-  const reduceMotion = useReducedMotion()
-  const imgRef = useRef<HTMLImageElement | null>(null)
-  const nudgeTimeoutRef = useRef<number | null>(null)
-  const [arrowPos, setArrowPos] = useState(() => {
-    if (typeof window === "undefined") {
-      return { left: 96, right: 96, midY: 360 }
-    }
-    const width = window.innerWidth
-    const height = window.innerHeight
-    return {
-      left: Math.max(24, width * 0.2),
-      right: Math.min(width - 24, width * 0.8),
-      midY: clamp(height / 2, 80, height - 80)
-    }
-  })
+  const [imageLoaded, setImageLoaded] = useState(false)
 
-  const measureArrows = useCallback(() => {
-    if (typeof window === "undefined") return
-    const width = window.innerWidth
-    const height = window.innerHeight
-    const fallback = {
-      left: Math.max(24, width * 0.2),
-      right: Math.min(width - 24, width * 0.8),
-      midY: clamp(height / 2, 80, height - 80)
-    }
+  const itemCount = items.length
+  const current = itemCount > 0 ? items[Math.min(index, itemCount - 1)] : undefined
 
-    if (!imgRef.current) {
-      setArrowPos(fallback)
+  const imageSrc = useMemo(() => buildImageSrc(current), [current])
+
+  useEffect(() => {
+    if (!open) return
+    const nextIndex = itemCount > 0 ? Math.min(Math.max(startIndex, 0), itemCount - 1) : 0
+    setIndex(nextIndex)
+  }, [open, startIndex, itemCount])
+
+  useEffect(() => {
+    if (!open) return
+    if (itemCount === 0) {
+      setIndex(0)
       return
     }
+    setIndex((value) => Math.min(Math.max(value, 0), itemCount - 1))
+  }, [itemCount, open])
 
-    const rect = imgRef.current.getBoundingClientRect()
-    const pad = 24
-    const left = clamp(rect.left - pad, 24, width / 2)
-    const right = clamp(rect.right + pad, width / 2, width - 24)
-    const midY = clamp(rect.top + rect.height / 2, 80, height - 80)
-    setArrowPos({ left, right, midY })
-  }, [])
-
-  // keep index valid if items change while open
   useEffect(() => {
-    if (open) setIndex((i) => Math.min(Math.max(0, i), Math.max(0, items.length - 1)))
-  }, [items.length, open])
+    setImageLoaded(false)
+  }, [imageSrc])
 
-  // reset to the clicked item when opening
-  useEffect(() => {
-    if (open) setIndex(startIndex)
-  }, [open, startIndex])
+  const close = useCallback(() => onOpenChange(false), [onOpenChange])
 
   const prev = useCallback(() => {
-    if (!items.length) return
-    setIndex((i) => (i - 1 + items.length) % items.length)
-  }, [items.length])
+    if (itemCount <= 1) return
+    setIndex((value) => (value - 1 + itemCount) % itemCount)
+  }, [itemCount])
 
   const next = useCallback(() => {
-    if (!items.length) return
-    setIndex((i) => (i + 1) % items.length)
-  }, [items.length])
+    if (itemCount <= 1) return
+    setIndex((value) => (value + 1) % itemCount)
+  }, [itemCount])
 
-  // keyboard: esc closes; arrows navigate
   useEffect(() => {
     if (!open) return
-    const onKey = (e: KeyboardEvent) => {
-      if (e.key === "Escape") onOpenChange(false)
-      else if (e.key === "ArrowRight") next()
-      else if (e.key === "ArrowLeft") prev()
+    const handler = (event: KeyboardEvent) => {
+      if (event.key === "Escape") close()
+      else if (event.key === "ArrowRight") next()
+      else if (event.key === "ArrowLeft") prev()
     }
-    window.addEventListener("keydown", onKey)
-    return () => window.removeEventListener("keydown", onKey)
-  }, [open, onOpenChange, next, prev])
-
-  // position controls when lightbox/image changes
-  useLayoutEffect(() => {
-    if (!open) return
-    measureArrows()
-  }, [open, index, measureArrows])
+    window.addEventListener("keydown", handler)
+    return () => window.removeEventListener("keydown", handler)
+  }, [close, next, open, prev])
 
   useEffect(() => {
     if (!open) return
-    const handler = () => measureArrows()
-    window.addEventListener("resize", handler)
-    window.addEventListener("orientationchange", handler)
+    if (typeof document === "undefined") return
+    const original = document.body.style.overflow
+    document.body.style.overflow = "hidden"
     return () => {
-      window.removeEventListener("resize", handler)
-      window.removeEventListener("orientationchange", handler)
+      document.body.style.overflow = original
     }
-  }, [open, measureArrows])
+  }, [open])
 
-  // preload neighbors
   useEffect(() => {
-    if (!items.length) return
-    for (const offset of [-1, 1]) {
-      const idx = (index + offset + items.length) % items.length
-      const it = items[idx]
-      if (!it?.image) continue
-      const src = urlFor(it.image).width(1600).format("webp").url()
-      const im = new Image()
-      im.src = src
+    if (!open) return
+    if (itemCount < 2) return
+    const preload = (targetIndex: number) => {
+      const item = items[targetIndex]
+      if (!item?.image) return
+      const src = urlFor(item.image).width(1600).format("webp").url()
+      const img = new Image()
+      img.src = src
     }
-  }, [index, items])
+    preload((index + 1) % itemCount)
+    preload((index - 1 + itemCount) % itemCount)
+  }, [index, itemCount, items, open])
 
-  const current = items[index]
-  const imgSrc = useMemo(() => {
-    if (!current?.image) return ""
-    return urlFor(current.image).width(1600).format("webp").url()
-  }, [current])
-
-  // gentle nudge on the Next button every 5s (disabled on hover / reduce-motion)
-  useEffect(() => {
-    if (!open || reduceMotion) return
-    const interval = window.setInterval(() => {
-      if (hoverNext) return
-      setNudgeActive(true)
-      if (nudgeTimeoutRef.current) window.clearTimeout(nudgeTimeoutRef.current)
-      nudgeTimeoutRef.current = window.setTimeout(() => {
-        setNudgeActive(false)
-        nudgeTimeoutRef.current = null
-      }, 600)
-    }, 5000)
-
-    return () => {
-      window.clearInterval(interval)
-      if (nudgeTimeoutRef.current) {
-        window.clearTimeout(nudgeTimeoutRef.current)
-        nudgeTimeoutRef.current = null
-      }
-      setNudgeActive(false)
-    }
-  }, [open, hoverNext, reduceMotion])
+  const showNavigation = itemCount > 1
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <AnimatePresence>
         {open && (
           <DialogContent
-            className="p-0 border-0 bg-transparent shadow-none [&_[data-radix-dialog-close]]:hidden"
-            onOpenAutoFocus={(e) => e.preventDefault()}
+            className="z-[999] p-0 border-0 bg-transparent shadow-none [&_[data-radix-dialog-close]]:hidden"
+            onOpenAutoFocus={(event) => event.preventDefault()}
           >
-            {/* Accessible name/description for the dialog */}
             <DialogTitle className="sr-only">{current?.title ?? "Image viewer"}</DialogTitle>
             {current?.description && (
               <DialogDescription className="sr-only">{current.description}</DialogDescription>
             )}
-            {/* Backdrop */}
-            <motion.div
-              className="fixed inset-0 z-[900] bg-black/70 backdrop-blur-sm"
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-            />
 
-            {/* Stage (image + caption) */}
-            <motion.div
-              data-testid="lightbox-stage"
-              className="fixed inset-0 z-[950] flex items-center justify-center"
-              initial={{ opacity: 0, scale: 0.98 }}
-              animate={{ opacity: 1, scale: 1 }}
-              exit={{ opacity: 0, scale: 0.98 }}
-              transition={{ duration: 0.18, ease: "easeOut" }}
-            >
-              <div className="relative mx-4 my-8 max-h-[90vh] max-w-[92vw]">
-                {imgSrc && (
-                  <img
-                    ref={imgRef}
-                    onLoad={measureArrows}
-                    src={imgSrc}
-                    alt={current?.title || "Portfolio image"}
-                    className="max-h-[80vh] max-w-[92vw] object-contain select-none rounded-2xl"
-                    draggable={false}
-                  />
-                )}
+            <AnimatePresence>
+              <motion.div
+                key="lightbox-backdrop"
+                className="fixed inset-0 z-[900] bg-black/80 backdrop-blur-sm"
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                transition={{ duration: 0.2, ease: "easeOut" }}
+                onClick={close}
+              />
+            </AnimatePresence>
 
-                {(current?.title || current?.description) && (
-                  <div className="mt-3 rounded-md bg-black/60 px-3 py-2 text-white">
-                    {current?.title && <h3 className="text-sm font-medium">{current.title}</h3>}
-                    {current?.description && (
-                      <p className="mt-1 text-xs opacity-90">{current.description}</p>
+            <AnimatePresence>
+              <motion.div
+                key="lightbox-stage-wrapper"
+                className="fixed inset-0 z-[950] flex items-center justify-center px-4 py-8"
+                initial={{ opacity: 0, scale: 0.96 }}
+                animate={{ opacity: 1, scale: 1 }}
+                exit={{ opacity: 0, scale: 0.96 }}
+                transition={{ duration: 0.22, ease: "easeOut" }}
+                onClick={close}
+              >
+                <motion.div
+                  data-testid="lightbox-stage"
+                  className="relative mx-auto max-h-[90vh] max-w-[90vw] w-full pointer-events-auto"
+                  initial={{ y: 12, opacity: 0 }}
+                  animate={{ y: 0, opacity: 1 }}
+                  exit={{ y: 12, opacity: 0 }}
+                  transition={{ duration: 0.2, ease: "easeOut" }}
+                  onClick={(event) => event.stopPropagation()}
+                >
+                  <div className="relative max-h-[90vh] overflow-hidden rounded-xl bg-black/20 shadow-2xl">
+                    {!imageLoaded && (
+                      <div className="absolute inset-0 animate-pulse rounded-xl bg-muted" />
+                    )}
+                    {imageSrc ? (
+                      <img
+                        src={imageSrc}
+                        alt={current?.title || "Portfolio image"}
+                        className="relative z-10 max-h-[90vh] w-full rounded-xl object-contain"
+                        loading="lazy"
+                        onLoad={() => setImageLoaded(true)}
+                        onError={(event) => {
+                          event.currentTarget.src = FALLBACK_IMAGE
+                          setImageLoaded(true)
+                        }}
+                        draggable={false}
+                      />
+                    ) : (
+                      <div className="relative z-10 flex h-[60vh] items-center justify-center rounded-xl bg-muted text-sm text-muted-foreground">
+                        Image unavailable
+                      </div>
+                    )}
+                    {(current?.title || current?.description) && (
+                      <div className="absolute bottom-0 left-0 right-0 rounded-b-xl bg-gradient-to-t from-black/80 via-black/40 to-transparent p-6">
+                        {current?.title && (
+                          <h3 className="text-xl font-semibold text-white">{current.title}</h3>
+                        )}
+                        {current?.description && (
+                          <p className="mt-2 text-sm text-white/90">{current.description}</p>
+                        )}
+                      </div>
                     )}
                   </div>
-                )}
-              </div>
-            </motion.div>
+                </motion.div>
+              </motion.div>
+            </AnimatePresence>
 
-            {/* OUTSIDE controls (always above) */}
-            {/* Close (top-right) */}
             <button
-              onClick={() => onOpenChange(false)}
+              type="button"
               aria-label="Close"
               data-testid="lightbox-close"
-              className="fixed right-6 top-6 z-[1000] rounded-full bg-black/55 hover:bg-black/65 backdrop-blur px-4 py-4 text-white ring-1 ring-white/20 shadow-lg transition focus:outline-none focus:ring-2 focus:ring-white/40"
+              className="fixed right-6 top-6 z-[1000] rounded-full bg-white/15 px-4 py-4 text-white shadow-lg backdrop-blur transition hover:bg-white/25 focus:outline-none focus:ring-2 focus:ring-white/40"
+              onClick={(event) => {
+                event.stopPropagation()
+                close()
+              }}
             >
               <X className="h-8 w-8" />
             </button>
 
-            {/* Prev (left outside) */}
-            {items.length > 1 && (
-              <button
-                onClick={prev}
-                aria-label="Previous"
-                data-testid="lightbox-prev"
-                style={{ left: `${arrowPos.left}px`, top: `${arrowPos.midY}px` }}
-                className="fixed z-[1000] -translate-x-full -translate-y-1/2 rounded-full bg-black/55 hover:bg-black/65 backdrop-blur px-4 py-4 text-white ring-1 ring-white/20 shadow-lg transition focus:outline-none focus:ring-2 focus:ring-white/40"
-              >
-                <ChevronLeft className="h-9 w-9" />
-              </button>
-            )}
+            {showNavigation && (
+              <>
+                <button
+                  type="button"
+                  aria-label="Previous"
+                  data-testid="lightbox-prev"
+                  className="fixed left-6 top-1/2 z-[1000] -translate-y-1/2 rounded-full bg-white/15 px-4 py-4 text-white shadow-lg backdrop-blur transition hover:bg-white/25 focus:outline-none focus:ring-2 focus:ring-white/40"
+                  onClick={(event) => {
+                    event.stopPropagation()
+                    prev()
+                  }}
+                >
+                  <ChevronLeft className="h-9 w-9" />
+                </button>
 
-            {/* Next (right outside) with gentle nudge */}
-            {items.length > 1 && (
-              <motion.button
-                onMouseEnter={() => setHoverNext(true)}
-                onMouseLeave={() => setHoverNext(false)}
-                onClick={next}
-                aria-label="Next"
-                data-testid="lightbox-next"
-                style={{ left: `${arrowPos.right}px`, top: `${arrowPos.midY}px` }}
-                className="fixed z-[1000] -translate-y-1/2 rounded-full bg-black/55 hover:bg-black/65 backdrop-blur px-4 py-4 text-white ring-1 ring-white/20 shadow-lg transition focus:outline-none focus:ring-2 focus:ring-white/40"
-                animate={
-                  reduceMotion || hoverNext || !nudgeActive
-                    ? { x: 0, scale: 1 }
-                    : { x: [0, 6, 0], scale: [1, 1.04, 1], transition: { duration: 0.6, ease: "easeInOut" } }
-                }
-              >
-                <ChevronRight className="h-9 w-9" />
-              </motion.button>
+                <button
+                  type="button"
+                  aria-label="Next"
+                  data-testid="lightbox-next"
+                  className="fixed right-6 top-1/2 z-[1000] -translate-y-1/2 rounded-full bg-white/15 px-4 py-4 text-white shadow-lg backdrop-blur transition hover:bg-white/25 focus:outline-none focus:ring-2 focus:ring-white/40"
+                  onClick={(event) => {
+                    event.stopPropagation()
+                    next()
+                  }}
+                >
+                  <ChevronRight className="h-9 w-9" />
+                </button>
+              </>
             )}
-            <style>
-              {`
-                :where(button[data-testid="lightbox-prev"], button[data-testid="lightbox-next"], button[data-testid="lightbox-close"]) {
-                  transition: background-color 0.2s ease, transform 0.2s ease;
-                }
-              `}
-            </style>
           </DialogContent>
         )}
       </AnimatePresence>

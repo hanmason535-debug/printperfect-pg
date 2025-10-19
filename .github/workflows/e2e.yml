@@ -1,4 +1,4 @@
-name: E2E (Playwright)
+name: E2E
 
 on:
   pull_request:
@@ -23,26 +23,26 @@ jobs:
           fi
 
       - name: Setup Node
+        if: steps.has_e2e.outputs.run == 'true'
         uses: actions/setup-node@v4
         with:
           node-version: 20
           cache: npm
-        if: steps.has_e2e.outputs.run == 'true'
 
-      - name: Install
-        run: npm ci
+      - name: Install dependencies
         if: steps.has_e2e.outputs.run == 'true'
+        run: npm ci
 
       - name: Install Playwright Browsers
+        if: steps.has_e2e.outputs.run == 'true'
         run: npx playwright install --with-deps
-        if: steps.has_e2e.outputs.run == 'true'
 
-      - name: E2E tests
+      - name: Run E2E tests
+        if: steps.has_e2e.outputs.run == 'true'
         run: npm run e2e
-        if: steps.has_e2e.outputs.run == 'true'
 
-      - name: Upload Playwright report (on failure)
-        if: failure()
+      - name: Upload Playwright report
+        if: always() && steps.has_e2e.outputs.run == 'true'
         uses: actions/upload-artifact@v4
         with:
           name: playwright-report

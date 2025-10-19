@@ -1,5 +1,5 @@
 import React from 'react'
-import { render, screen } from '@testing-library/react'
+import { render, screen, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { vi } from 'vitest'
 import Portfolio from './Portfolio'
@@ -30,10 +30,6 @@ vi.mock('@/lib/image', () => ({
   urlFor: urlForMock
 }))
 
-vi.mock('@/lib/sanity', () => ({
-  urlFor: urlForMock
-}))
-
 function makePortfolioItems(count: number) {
   const categories = ['Business Cards', 'Banners', 'Apparel', 'Stickers'] as const
   return Array.from({ length: count }, (_, index) => {
@@ -59,32 +55,50 @@ describe('Portfolio', () => {
     urlForMock.mockClear()
   })
 
-  it('shows nine items on the first page and paginates through the rest', async () => {
+  it('shows the first 9 items and paginates to the next page', async () => {
     usePortfolioMock.mockReturnValue(makePortfolioItems(11))
     const user = userEvent.setup()
 
-    const { container, queryByText, findByText } = render(<Portfolio />)
+    render(<Portfolio />)
 
-    expect(container.querySelectorAll('h3').length).toBe(9)
-    expect(queryByText('Item 10')).not.toBeInTheDocument()
+    // Wait for items to appear
+    await waitFor(() => {
+      expect(screen.getAllByRole('button', { name: /Item \d+/ })).toHaveLength(9)
+    })
+    expect(screen.queryByText('Item 10')).not.toBeInTheDocument()
 
+    // Click next page
     await user.click(screen.getByTestId('portfolio-page-next'))
 
-    expect(await findByText('Item 10')).toBeInTheDocument()
+    // Now item 10 should be visible
+    await waitFor(() => {
+      expect(screen.getByText('Item 10')).toBeInTheDocument()
+      expect(screen.getAllByRole('button', { name: /Item \d+/ })).toHaveLength(2)
+    })
   })
 
   it('filters by category and resets pagination', async () => {
     usePortfolioMock.mockReturnValue(makePortfolioItems(12))
     const user = userEvent.setup()
 
-    const { queryByText, findByText } = render(<Portfolio />)
+    render(<Portfolio />)
 
+    // Go to page 2
     await user.click(screen.getByTestId('portfolio-page-next'))
-    expect(await findByText('Item 10')).toBeInTheDocument()
+    await waitFor(() => {
+      expect(screen.getByText('Item 10')).toBeInTheDocument()
+    })
 
+    // Click a filter
     await user.click(screen.getByTestId('portfolio-filter-business-cards'))
 
-    expect(await findByText('Item 1')).toBeInTheDocument()
-    expect(queryByText('Item 10')).not.toBeInTheDocument()
+    // Should reset to page 1 and show only 'Business Cards'
+    await waitFor(() => {
+      expect(screen.getByText('Item 1')).toBeInTheDocument()
+      expect(screen.getByText('Item 5')).toBeInTheDocument()
+      expect(screen.getByText('Item 9')).toBeInTheDocument()
+      expect(screen.queryByText('Item 2')).not.toBeInTheDocument() // 'Banners'
+      expect(screen.queryByText('Item 10')).not.toBeInTheDocument() // Was on page 2
+    })
   })
 })

@@ -55,6 +55,15 @@ describe('Portfolio', () => {
     urlForMock.mockClear()
   })
 
+  it('only renders filters for categories with data', async () => {
+    usePortfolioMock.mockReturnValue(makePortfolioItems(4))
+
+    render(<Portfolio />)
+
+    expect(await screen.findByTestId('portfolio-filter-business-cards')).toBeInTheDocument()
+    expect(screen.queryByTestId('portfolio-filter-brochures')).not.toBeInTheDocument()
+  })
+
   it('shows the first 9 items and paginates to the next page', async () => {
     usePortfolioMock.mockReturnValue(makePortfolioItems(11))
     const user = userEvent.setup()

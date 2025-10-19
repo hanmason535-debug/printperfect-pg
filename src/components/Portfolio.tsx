@@ -13,9 +13,7 @@ import { urlFor } from '@/lib/image'
 import { useState, useMemo, useEffect, useCallback } from 'react'
 import Lightbox from '@/components/Lightbox'
 
-type FilterValue = 'All' | 'Business Cards' | 'Brochures' | 'Banners' | 'Packaging' | 'Stationery'
-
-const FILTERS: FilterValue[] = ['All', 'Business Cards', 'Brochures', 'Banners', 'Packaging', 'Stationery']
+type FilterValue = string
 const PER_PAGE = 9
 
 const Portfolio = () => {
@@ -36,6 +34,32 @@ const Portfolio = () => {
       })),
     [allItems]
   )
+
+  const { filters, categoryCounts } = useMemo(() => {
+    const counts: Record<string, number> = {}
+    const orderedCategories: string[] = []
+
+    normalizedItems.forEach((item) => {
+      const rawCategory = item.category?.trim()
+      if (!rawCategory) return
+
+      counts[rawCategory] = (counts[rawCategory] ?? 0) + 1
+      if (!orderedCategories.includes(rawCategory)) {
+        orderedCategories.push(rawCategory)
+      }
+    })
+
+    return {
+      filters: (['All', ...orderedCategories] as FilterValue[]),
+      categoryCounts: counts
+    }
+  }, [normalizedItems])
+
+  useEffect(() => {
+    if (!filters.includes(activeFilter)) {
+      setActiveFilter(filters[0] ?? 'All')
+    }
+  }, [filters, activeFilter])
 
   const filteredItems = useMemo(() => {
     if (activeFilter === 'All') {
@@ -141,25 +165,37 @@ const Portfolio = () => {
           transition={{ duration: 0.6 }}
           viewport={{ once: true }}
         >
-          {FILTERS.map((category) => (
-            <motion.button
-              key={category}
-              role="tab"
-              aria-selected={activeFilter === category}
-              aria-controls="portfolio-grid"
-              onClick={() => setActiveFilter(category)}
-              data-testid={`portfolio-filter-${category.toLowerCase().replace(/\s+/g, '-')}`}
-              className={`px-6 py-2 rounded-full text-sm font-medium transition-all duration-300 ${
-                activeFilter === category
-                  ? 'bg-primary text-primary-foreground shadow-lg'
-                  : 'bg-secondary text-secondary-foreground hover:bg-secondary/80'
-              }`}
-              whileHover={{ scale: 1.05 }}
-              whileTap={{ scale: 0.95 }}
-            >
-              {category}
-            </motion.button>
-          ))}
+          {filters.map((category) => {
+            const sanitized = category.toLowerCase().replace(/\s+/g, '-')
+            const isAll = category === 'All'
+            const itemCount = isAll ? normalizedItems.length : categoryCounts[category] ?? 0
+            const isDisabled = !isAll && itemCount === 0
+
+            return (
+              <motion.button
+                key={category}
+                role="tab"
+                aria-selected={activeFilter === category}
+                aria-controls="portfolio-grid"
+                onClick={() => {
+                  if (!isDisabled) {
+                    setActiveFilter(category)
+                  }
+                }}
+                data-testid={`portfolio-filter-${sanitized}`}
+                disabled={isDisabled}
+                className={`px-6 py-2 rounded-full text-sm font-medium transition-all duration-300 ${
+                  activeFilter === category
+                    ? 'bg-primary text-primary-foreground shadow-lg'
+                    : 'bg-secondary text-secondary-foreground hover:bg-secondary/80'
+                } ${isDisabled ? 'opacity-60 cursor-not-allowed' : ''}`}
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
+              >
+                {category}
+              </motion.button>
+            )
+          })}
         </motion.div>
 
         {/* Portfolio Grid */}

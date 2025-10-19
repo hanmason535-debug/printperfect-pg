@@ -26,8 +26,8 @@ async function fetchWithRetry(query, { retries = 3, delay = 1000 } = {}) {
 
 async function main() {
   const [servicesCount, portfolioCount] = await Promise.all([
-    fetchWithRetry('*[ _type == "service" ] | count()'),
-    fetchWithRetry('*[ _type == "portfolioItem" ] | count()'),
+    fetchWithRetry('count(*[_type == "service"])'),
+    fetchWithRetry('count(*[_type == "portfolioItem"])'),
   ])
 
   const report = { servicesCount, portfolioCount, timestamp: new Date().toISOString() }

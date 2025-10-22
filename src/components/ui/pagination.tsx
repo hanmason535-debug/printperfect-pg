@@ -28,19 +28,34 @@ PaginationItem.displayName = "PaginationItem";
 
 type PaginationLinkProps = {
   isActive?: boolean;
+  /** Disable interaction for this link (visual + a11y). */
+  disabled?: boolean;
 } & Pick<ButtonProps, "size"> &
-  React.ComponentProps<"a">;
+  Omit<React.ComponentProps<"a">, "disabled">;
 
-const PaginationLink = ({ className, isActive, size = "icon", ...props }: PaginationLinkProps) => (
+const PaginationLink = ({ className, isActive, size = "icon", disabled = false, onClick, ...props }: PaginationLinkProps) => (
   <a
+    // Accessibility: indicate current page and disabled state
     aria-current={isActive ? "page" : undefined}
+    aria-disabled={disabled ? true : undefined}
+    tabIndex={disabled ? -1 : props.tabIndex}
+    // Merge button styles and apply a visual disabled appearance when needed
     className={cn(
       buttonVariants({
         variant: isActive ? "outline" : "ghost",
         size,
       }),
+      disabled ? 'opacity-50 cursor-not-allowed pointer-events-none' : '',
       className,
     )}
+    // Prevent onClick when disabled
+    onClick={(e) => {
+      if (disabled) {
+        e.preventDefault()
+        return
+      }
+      onClick?.(e as any)
+    }}
     {...props}
   />
 );

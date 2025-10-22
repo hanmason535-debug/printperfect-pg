@@ -5,6 +5,14 @@ import { ChevronLeft, ChevronRight, X } from "lucide-react"
 import { urlFor } from "@/lib/image"
 import type { PortfolioItem } from "@/types/cms"
 
+/**
+ * Lightbox Props
+ * 
+ * @property open - Whether the lightbox is currently visible
+ * @property onOpenChange - Callback to update lightbox visibility
+ * @property items - Array of portfolio items to display (in gallery order)
+ * @property startIndex - Initial item index when lightbox opens (default: 0)
+ */
 type Props = {
   open: boolean
   onOpenChange: (value: boolean) => void
@@ -12,29 +20,67 @@ type Props = {
   startIndex: number
 }
 
+// SVG placeholder shown when image fails to load
 const FALLBACK_IMAGE =
   "data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMzAwIiBoZWlnaHQ9IjIwMCIgdmlld0JveD0iMCAwIDMwMCAyMDAiIGZpbGw9Im5vbmUiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+CjxyZWN0IHdpZHRoPSIzMDAiIGhlaWdodD0iMjAwIiBmaWxsPSIjRjNGNEY2Ii8+Cjx0ZXh0IHg9IjE1MCIgeT0iMTA1IiB0ZXh0LWFuY2hvcj0ibWlkZGxlIiBmaWxsPSIjOUI5QkEwIiBmb250LWZhbWlseT0iSW50ZXIiIGZvbnQtc2l6ZT0iMTQiPkltYWdlIE5vdCBGb3VuZDwvdGV4dD4KPHN2Zz4="
 
+/**
+ * buildImageSrc
+ * 
+ * Constructs the Sanity image URL for display at 1600px width in WebP format.
+ * Returns empty string if item or image is not available.
+ * 
+ * @param item - Portfolio item (optional)
+ * @returns Full image URL or empty string
+ */
 const buildImageSrc = (item?: PortfolioItem) => {
   if (!item?.image) return ""
   return urlFor(item.image).width(1600).format("webp").url()
 }
 
+/**
+ * Lightbox
+ *
+ * A full-screen modal image gallery viewer for portfolio items.
+ *
+ * Features:
+ * - Smooth enter/exit animations with backdrop
+ * - Previous/Next navigation with keyboard shortcuts (Arrow keys)
+ * - ESC key to close
+ * - Circular navigation (loops to opposite end)
+ * - Image preloading for next/previous items
+ * - Lazy loading with placeholder skeleton
+ * - Fallback image on load failure
+ * - Title and description overlay at bottom
+ * - Prevents body scroll when open
+ * - Full accessibility support
+ * - No navigation controls when fewer than 2 items
+ *
+ * Props: see `Props` type above
+ *
+ * State:
+ * - `index`: current position in items array
+ * - `imageLoaded`: whether the current image has finished loading
+ */
 export default function Lightbox({ open, onOpenChange, items, startIndex }: Props) {
   const [index, setIndex] = useState(startIndex)
   const [imageLoaded, setImageLoaded] = useState(false)
 
+  // Derived state: current item and item count
   const itemCount = items.length
   const current = itemCount > 0 ? items[Math.min(index, itemCount - 1)] : undefined
 
+  // Memoized image source URL for current item
   const imageSrc = useMemo(() => buildImageSrc(current), [current])
 
+  // Sync index with startIndex when lightbox opens (ensuring bounds)
   useEffect(() => {
     if (!open) return
     const nextIndex = itemCount > 0 ? Math.min(Math.max(startIndex, 0), itemCount - 1) : 0
     setIndex(nextIndex)
   }, [open, startIndex, itemCount])
 
+  // Ensure index stays within bounds when item count changes
   useEffect(() => {
     if (!open) return
     if (itemCount === 0) {
@@ -44,22 +90,41 @@ export default function Lightbox({ open, onOpenChange, items, startIndex }: Prop
     setIndex((value) => Math.min(Math.max(value, 0), itemCount - 1))
   }, [itemCount, open])
 
+  // Reset image loaded state when image source changes (for loading skeleton)
   useEffect(() => {
     setImageLoaded(false)
   }, [imageSrc])
 
+  /**
+   * close
+   * 
+   * Closes the lightbox modal by calling onOpenChange(false).
+   */
   const close = useCallback(() => onOpenChange(false), [onOpenChange])
 
+  /**
+   * prev
+   * 
+   * Navigates to previous image in circular fashion.
+   * No-op if fewer than 2 items.
+   */
   const prev = useCallback(() => {
     if (itemCount <= 1) return
     setIndex((value) => (value - 1 + itemCount) % itemCount)
   }, [itemCount])
 
+  /**
+   * next
+   * 
+   * Navigates to next image in circular fashion.
+   * No-op if fewer than 2 items.
+   */
   const next = useCallback(() => {
     if (itemCount <= 1) return
     setIndex((value) => (value + 1) % itemCount)
   }, [itemCount])
 
+  // Keyboard navigation: ESC to close, Arrow keys to navigate
   useEffect(() => {
     if (!open) return
     const handler = (event: KeyboardEvent) => {
@@ -71,6 +136,7 @@ export default function Lightbox({ open, onOpenChange, items, startIndex }: Prop
     return () => window.removeEventListener("keydown", handler)
   }, [close, next, open, prev])
 
+  // Prevent body scroll when lightbox is open (and restore on close)
   useEffect(() => {
     if (!open) return
     if (typeof document === "undefined") return
@@ -81,6 +147,7 @@ export default function Lightbox({ open, onOpenChange, items, startIndex }: Prop
     }
   }, [open])
 
+  // Preload next and previous images for smoother navigation
   useEffect(() => {
     if (!open) return
     if (itemCount < 2) return
@@ -95,6 +162,7 @@ export default function Lightbox({ open, onOpenChange, items, startIndex }: Prop
     preload((index - 1 + itemCount) % itemCount)
   }, [index, itemCount, items, open])
 
+  // Show navigation controls only if gallery has multiple items
   const showNavigation = itemCount > 1
 
   return (

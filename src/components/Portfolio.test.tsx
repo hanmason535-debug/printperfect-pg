@@ -55,12 +55,13 @@ describe('Portfolio', () => {
     urlForMock.mockClear()
   })
 
-  it('only renders filters for categories with data', async () => {
+  it('only renders filters for categories with data and shows counts', async () => {
     usePortfolioMock.mockReturnValue(makePortfolioItems(4))
 
     render(<Portfolio />)
 
-    expect(await screen.findByTestId('portfolio-filter-business-cards')).toBeInTheDocument()
+    const businessCardsButton = await screen.findByTestId('portfolio-filter-business-cards')
+    expect(businessCardsButton).toHaveTextContent('Business Cards (1)')
     expect(screen.queryByTestId('portfolio-filter-brochures')).not.toBeInTheDocument()
   })
 
@@ -109,5 +110,14 @@ describe('Portfolio', () => {
       expect(screen.queryByText('Item 2')).not.toBeInTheDocument() // 'Banners'
       expect(screen.queryByText('Item 10')).not.toBeInTheDocument() // Was on page 2
     })
+  })
+
+  it('shows an empty state when no portfolio items exist', async () => {
+    usePortfolioMock.mockReturnValue([])
+
+    render(<Portfolio />)
+
+    expect(await screen.findByTestId('portfolio-empty')).toBeInTheDocument()
+    expect(screen.getByText('No portfolio items found for "All".')).toBeInTheDocument()
   })
 })

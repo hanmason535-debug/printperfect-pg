@@ -16,12 +16,46 @@ import Lightbox from '@/components/Lightbox'
 type FilterValue = string
 const PER_PAGE = 9
 
+/**
+ * Portfolio
+ *
+ * Displays a filterable, paginated portfolio grid with animated items and a lightbox viewer.
+ *
+ * Features:
+ * - Dynamic category filter tabs with item counts
+ * - 9-item per page pagination
+ * - Responsive grid layout (1 col mobile → 3 cols desktop)
+ * - Smooth Framer Motion animations and transitions
+ * - Lightbox modal for viewing full-size images
+ * - Keyboard navigation support (via Lightbox)
+ * - Full accessibility support (ARIA labels, keyboard focus)
+ *
+ * State:
+ * - `activeFilter`: currently selected category filter (default: 'All')
+ * - `page`: current pagination page
+ * - `lightboxOpen`: whether the lightbox modal is visible
+ * - `lightboxStart`: starting index for lightbox gallery
+ *
+ * Memoized computations:
+ * - `normalizedItems`: ensures all items have category and categorySlugs fields
+ * - `availableCategories`: extracts unique categories from items, sorted alphabetically
+ * - `categoryCounts`: counts items per category
+ * - `filteredItems`: filters items based on activeFilter
+ *
+ * Side effects:
+ * - Auto-resets page to 1 when filter changes
+ * - Closes lightbox if filtered items become empty
+ * - Keeps pagination bounds in sync with item count
+ */
 const Portfolio = () => {
+  // Fetch all portfolio items from CMS
   const allItems = usePortfolio()
+  
+  // Track the active category filter and current page
   const [activeFilter, setActiveFilter] = useState<FilterValue>('All')
   const [page, setPage] = useState(1)
 
-  // Lightbox state
+  // Lightbox state for image gallery modal
   const [lightboxOpen, setLightboxOpen] = useState(false)
   const [lightboxStart, setLightboxStart] = useState(0)
 
@@ -35,32 +69,46 @@ const Portfolio = () => {
     [allItems]
   )
 
-  const { filters, categoryCounts } = useMemo(() => {
-    const counts: Record<string, number> = {}
-    const orderedCategories: string[] = []
-
+  // Extract unique, sorted category names from all items
+  const availableCategories = useMemo(() => {
+    const categorySet = new Set<string>()
     normalizedItems.forEach((item) => {
-      const rawCategory = item.category?.trim()
-      if (!rawCategory) return
-
-      counts[rawCategory] = (counts[rawCategory] ?? 0) + 1
-      if (!orderedCategories.includes(rawCategory)) {
-        orderedCategories.push(rawCategory)
+      const category = item.category?.trim()
+      if (category) {
+        categorySet.add(category)
       }
     })
-
-    return {
-      filters: (['All', ...orderedCategories] as FilterValue[]),
-      categoryCounts: counts
-    }
+    return Array.from(categorySet).sort((a, b) => a.localeCompare(b))
   }, [normalizedItems])
 
+  // Build a map of category → item count (including total for 'All')
+  const categoryCounts = useMemo(() => {
+    const counts: Record<string, number> = {
+      All: normalizedItems.length
+    }
+
+    availableCategories.forEach((category) => {
+      counts[category] = normalizedItems.filter(
+        (item) => item.category?.toLowerCase() === category.toLowerCase()
+      ).length
+    })
+
+    return counts
+  }, [normalizedItems, availableCategories])
+
+  const filters = useMemo(
+    () => (['All', ...availableCategories] as FilterValue[]),
+    [availableCategories]
+  )
+
+  // Ensure activeFilter is always valid (fallback to 'All' if categories change)
   useEffect(() => {
     if (!filters.includes(activeFilter)) {
       setActiveFilter(filters[0] ?? 'All')
     }
   }, [filters, activeFilter])
 
+  // Filter items by active category, supporting both label and slug matching
   const filteredItems = useMemo(() => {
     if (activeFilter === 'All') {
       return normalizedItems
@@ -76,24 +124,29 @@ const Portfolio = () => {
     })
   }, [activeFilter, normalizedItems])
 
+  // Reset pagination to page 1 when filter changes
   useEffect(() => {
     setPage(1)
   }, [activeFilter])
 
+  // Calculate total pages and ensure current page is within bounds [1, totalPages]
   const totalPages = Math.max(1, Math.ceil(filteredItems.length / PER_PAGE))
   const currentPage = Math.min(Math.max(page, 1), totalPages)
 
+  // Sync page state if it falls out of bounds (e.g., after filter change)
   useEffect(() => {
     if (page !== currentPage) {
       setPage(currentPage)
     }
   }, [page, currentPage])
 
+  // Calculate start and end indices for current page
   const startIndex = (currentPage - 1) * PER_PAGE
   const pageItems = filteredItems.slice(startIndex, startIndex + PER_PAGE)
 
   const filteredCount = filteredItems.length
 
+  // Sync lightbox start index with filtered item count and close if no items remain
   useEffect(() => {
     if (filteredCount === 0) {
       setLightboxStart(0)
@@ -106,6 +159,14 @@ const Portfolio = () => {
     setLightboxStart((prev) => (prev >= filteredCount ? filteredCount - 1 : prev))
   }, [filteredCount, lightboxOpen])
 
+  /**
+   * handleImageClick
+   * 
+   * Opens the lightbox modal and sets the starting index to the clicked item.
+   * Finds the index of the clicked item in the filtered list.
+   * 
+   * @param itemId - The portfolio item ID to display
+   */
   const handleImageClick = useCallback(
     (itemId: string) => {
       const idx = filteredItems.findIndex((x) => x._id === itemId)
@@ -117,23 +178,25 @@ const Portfolio = () => {
     [filteredItems]
   )
 
+  // Framer Motion animation variants for container and items
   const containerVariants = {
     hidden: { opacity: 0 },
     visible: {
       opacity: 1,
       transition: {
-        staggerChildren: 0.1
+        staggerChildren: 0.1 // Stagger item animations by 100ms
       }
     }
   }
 
+  // Individual item animation: fade in and slide up from 30px below
   const itemVariants = {
     hidden: { opacity: 0, y: 30 },
     visible: { opacity: 1, y: 0 }
   }
 
   return (
-    <section id="portfolio" className="py-20 bg-background">
+    <section id="portfolio" data-testid="portfolio-section" className="py-20 bg-background">
       <div className="container mx-auto px-4 lg:px-8">
         {/* Section Header */}
         <motion.div
@@ -168,8 +231,9 @@ const Portfolio = () => {
           {filters.map((category) => {
             const sanitized = category.toLowerCase().replace(/\s+/g, '-')
             const isAll = category === 'All'
-            const itemCount = isAll ? normalizedItems.length : categoryCounts[category] ?? 0
-            const isDisabled = !isAll && itemCount === 0
+            const count = categoryCounts[category] ?? 0
+            const isDisabled = !isAll && count === 0
+            const label = `${category} (${count})`
 
             return (
               <motion.button
@@ -177,22 +241,27 @@ const Portfolio = () => {
                 role="tab"
                 aria-selected={activeFilter === category}
                 aria-controls="portfolio-grid"
+                aria-label={`${category} (${count} items)`}
+                title={isDisabled ? 'No items in this category' : `View ${category}`}
                 onClick={() => {
                   if (!isDisabled) {
                     setActiveFilter(category)
                   }
                 }}
                 data-testid={`portfolio-filter-${sanitized}`}
+                data-test-id={`filter-${sanitized}`}
                 disabled={isDisabled}
                 className={`px-6 py-2 rounded-full text-sm font-medium transition-all duration-300 ${
                   activeFilter === category
                     ? 'bg-primary text-primary-foreground shadow-lg'
+                    : isDisabled
+                    ? 'bg-secondary/60 text-secondary-foreground/70 cursor-not-allowed'
                     : 'bg-secondary text-secondary-foreground hover:bg-secondary/80'
-                } ${isDisabled ? 'opacity-60 cursor-not-allowed' : ''}`}
-                whileHover={{ scale: 1.05 }}
-                whileTap={{ scale: 0.95 }}
+                }`}
+                whileHover={!isDisabled ? { scale: 1.05 } : {}}
+                whileTap={!isDisabled ? { scale: 0.95 } : {}}
               >
-                {category}
+                {label}
               </motion.button>
             )
           })}
@@ -200,6 +269,7 @@ const Portfolio = () => {
 
         {/* Portfolio Grid */}
         <motion.div
+          data-testid="portfolio-grid"
           className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8"
           variants={containerVariants}
           initial="hidden"
@@ -239,9 +309,15 @@ const Portfolio = () => {
             ))}
           </AnimatePresence>
           {pageItems.length === 0 && (
-            <div className="col-span-full py-10 text-center text-sm text-muted-foreground">
-              No items available for "{activeFilter}".
-            </div>
+            <motion.div
+              data-testid="portfolio-empty"
+              className="col-span-full py-12 text-center text-muted-foreground"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+            >
+              <p className="text-lg font-semibold mb-2">No portfolio items found for "{activeFilter}".</p>
+              <p className="text-sm">Try selecting a different category or check back soon for new work!</p>
+            </motion.div>
           )}
         </motion.div>
 

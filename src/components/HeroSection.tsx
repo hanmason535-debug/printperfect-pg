@@ -1,15 +1,27 @@
 /**
  * HeroSection.tsx
- * Displays the main hero section of the website with a background image, animated elements,
- * a compelling headline, subheadline, and call-to-action buttons.
+ *
+ * Main hero banner section featuring a full-screen background image with animated overlays,
+ * headline/subheadline, CTAs, trust indicators, and scroll indicator.
+ *
+ * Features:
+ * - Full-screen responsive layout with background image
+ * - Animated CMYK-colored floating elements
+ * - Main headline with gradient text "Solutions"
+ * - Subheadline with key value proposition
+ * - Two CTA buttons: "Upload File" and "WhatsApp Us"
+ * - Trust indicators: happy clients, express service, quality badge
+ * - Animated scroll-down indicator
+ * - Gradient overlays for text readability
  *
  * Performance Optimizations:
- * - The background image is now rendered using an `<img>` tag with `fetchPriority="high"`
- *   and `loading="eager"` to optimize Largest Contentful Paint (LCP).
- * - The image is also preloaded in `index.html` for even faster discovery and loading.
- * - Animations are handled by Framer Motion, with careful consideration for performance.
- * - Event handlers for CTA buttons are defined inline for simplicity, but could be memoized
- *   with `useCallback` if this component were to re-render frequently with complex props.
+ * - Background image uses `loading="eager"` and `decoding="async"` for LCP optimization
+ * - Image is preloaded in index.html for faster discovery
+ * - Framer Motion animations with viewport detection for smooth 60fps rendering
+ * - Floating elements use loop animations (no heavy computations)
+ *
+ * Props:
+ * - `onUploadClick`: callback fired when "Upload File" button is clicked
  */
 import { Button } from '@/components/ui/button';
 import { Upload, MessageCircle } from 'lucide-react';

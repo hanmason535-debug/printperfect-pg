@@ -8,21 +8,56 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { useDropzone } from 'react-dropzone';
 import emailjs from '@emailjs/browser';
 
-// --- Securely read all API keys ---
-const EMAILJS_SERVICE_ID = import.meta.env.VITE_EMAILJS_SERVICE_ID;
-const EMAILJS_TEMPLATE_ID = import.meta.env.VITE_EMAILJS_TEMPLATE_ID;
-const EMAILJS_PUBLIC_KEY = import.meta.env.VITE_EMAILJS_PUBLIC_KEY;
-
+/**
+ * FileUploadModal Props
+ *
+ * @property isOpen - Whether the modal is visible
+ * @property onClose - Callback fired when modal closes
+ */
 interface FileUploadModalProps {
   isOpen: boolean;
   onClose: () => void;
 }
 
+/**
+ * UploadFile
+ * 
+ * Internal type for tracking uploaded files
+ * @property file - The File object
+ * @property preview - Object URL for preview (if applicable)
+ */
 interface UploadFile {
   file: File;
   preview: string;
 }
 
+// Securely read EmailJS credentials from environment variables
+const EMAILJS_SERVICE_ID = import.meta.env.VITE_EMAILJS_SERVICE_ID;
+const EMAILJS_TEMPLATE_ID = import.meta.env.VITE_EMAILJS_TEMPLATE_ID;
+const EMAILJS_PUBLIC_KEY = import.meta.env.VITE_EMAILJS_PUBLIC_KEY;
+
+/**
+ * FileUploadModal
+ *
+ * Modal dialog for uploading design files with email notification.
+ *
+ * Features:
+ * - Drag-and-drop file upload interface
+ * - Accepts: PDF, JPEG, PNG files (max 15MB each, 5 files max)
+ * - Optional phone number field
+ * - Multi-step flow: upload → success/failure
+ * - Email notification via EmailJS on submission
+ * - File list with removal capability
+ * - Animated transitions between steps
+ * - Error handling with user feedback
+ *
+ * State:
+ * - `step`: current modal step ('upload', 'success', 'failure')
+ * - `files`: array of uploaded files with preview URLs
+ * - `phoneNumber`: optional contact number
+ * - `loading`: tracks email submission state
+ * - `error`: error message string
+ */
 const FileUploadModal = ({ isOpen, onClose }: FileUploadModalProps) => {
   const [step, setStep] = useState<'upload' | 'success' | 'failure'>('upload');
   const [files, setFiles] = useState<UploadFile[]>([]);
@@ -30,25 +65,40 @@ const FileUploadModal = ({ isOpen, onClose }: FileUploadModalProps) => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
 
+  // Allowed file types configuration for react-dropzone
   const allowedTypes = { 'application/pdf': ['.pdf'], 'image/jpeg': ['.jpg', '.jpeg'], 'image/png': ['.png'] };
 
   const { getRootProps, getInputProps, isDragActive } = useDropzone({
     accept: allowedTypes,
     maxFiles: 5,
-    maxSize: 15 * 1024 * 1024,
+    maxSize: 15 * 1024 * 1024, // 15MB
     onDrop: (acceptedFiles, rejectedFiles) => {
       if (rejectedFiles.length > 0) {
         setError(rejectedFiles[0].errors[0]?.message || 'File not allowed');
         return;
       }
+      // Create preview URLs for each accepted file
       const newFiles = acceptedFiles.map(file => ({ file, preview: URL.createObjectURL(file) }));
       setFiles(prev => [...prev, ...newFiles]);
       setError('');
     },
   });
 
+  /**
+   * removeFile
+   *
+   * Removes a file from the upload list by index.
+   *
+   * @param index - Index of file to remove
+   */
   const removeFile = (index: number) => setFiles(prev => prev.filter((_, i) => i !== index));
 
+  /**
+   * handleSendNotification
+   *
+   * Validates form, compiles file list, and sends email notification via EmailJS.
+   * Transitions to success/failure step based on result.
+   */
   const handleSendNotification = async () => {
     if (files.length === 0) {
       setError('Please upload at least one file.');
@@ -57,6 +107,7 @@ const FileUploadModal = ({ isOpen, onClose }: FileUploadModalProps) => {
     setLoading(true);
     setError('');
     try {
+      // Format file list for email body
       const fileList = files
         .map(f => `${f.file.name} (${(f.file.size / 1024 / 1024).toFixed(1)} MB)`) 
         .join('\n');
@@ -71,6 +122,11 @@ const FileUploadModal = ({ isOpen, onClose }: FileUploadModalProps) => {
     }
   };
 
+  /**
+   * resetModal
+   *
+   * Resets all modal state and closes the dialog.
+   */
   const resetModal = () => {
     setStep('upload');
     setFiles([]);
@@ -80,6 +136,14 @@ const FileUploadModal = ({ isOpen, onClose }: FileUploadModalProps) => {
     onClose();
   };
 
+  /**
+   * getFileIcon
+   *
+   * Returns a display label for file type (PDF or IMG).
+   *
+   * @param file - File object
+   * @returns File type label
+   */
   const getFileIcon = (file: File) => (file.type.includes('pdf') ? 'PDF' : 'IMG');
 
   return (

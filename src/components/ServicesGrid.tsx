@@ -2,20 +2,51 @@ import { motion } from 'framer-motion'
 import { useServices } from '@/hooks/useServices'
 import { urlFor } from '@/lib/image'
 
+/**
+ * ServicesGrid
+ *
+ * Displays available services in a responsive grid with animations and WhatsApp integration.
+ *
+ * Features:
+ * - Fetches services from Sanity CMS using `useServices` hook
+ * - Displays up to 12 services in a responsive grid (1 col mobile → 4 cols desktop)
+ * - Hover effects with image zoom and glow shadows (CMYK colors)
+ * - Click handler sends inquiry message via WhatsApp
+ * - Link to view portfolio samples for each service
+ * - "Get Custom Quote" CTA at bottom
+ * - Smooth staggered animations via Framer Motion
+ * - Empty state message if no services available
+ * - Optimized image URLs from Sanity (800px width)
+ *
+ * State:
+ * - Services array fetched from `useServices()` hook
+ * - No local state used
+ *
+ * No props required.
+ */
 const ServicesGrid = () => {
   const services = useServices()
 
+  /**
+   * handleServiceClick
+   *
+   * Opens WhatsApp with pre-filled message about the selected service.
+   * Message format: "Hi, I'm interested in [service name] printing. Can you share details?"
+   *
+   * @param serviceName - Name of the service
+   */
   const handleServiceClick = (serviceName: string) => {
     const message = encodeURIComponent(`Hi, I'm interested in ${serviceName} printing. Can you share details?`)
     window.open(`https://wa.me/919377476343?text=${message}`, '_blank')
   }
 
+  // Framer Motion animation variants for grid container and cards
   const containerVariants = {
     hidden: { opacity: 0 },
     visible: {
       opacity: 1,
       transition: {
-        staggerChildren: 0.1
+        staggerChildren: 0.1 // Stagger cards by 100ms
       }
     }
   }
@@ -25,10 +56,11 @@ const ServicesGrid = () => {
     visible: { opacity: 1, y: 0 }
   }
 
+  // Display only first 12 services (pagination limit)
   const displayedServices = services.slice(0, 12)
 
   return (
-    <section id="services" className="py-20 bg-gradient-subtle">
+    <section id="services" data-testid="services-section" className="py-20 bg-gradient-subtle">
       <div className="container mx-auto px-4 lg:px-8">
         {/* Section Header */}
         <motion.div
@@ -56,7 +88,8 @@ const ServicesGrid = () => {
           variants={containerVariants}
           initial="hidden"
           whileInView="visible"
-          viewport={{ once: true }}
+          viewport={{ once: true, margin: '-100px' }}
+          style={{ isolation: 'isolate' }}
         >
           {displayedServices.map((service, index) => {
             const imageUrl = service.image ? urlFor(service.image).width(800).url() : ''
@@ -73,6 +106,7 @@ const ServicesGrid = () => {
                 }}
                 className="group relative overflow-hidden rounded-xl bg-card shadow-elevation hover:shadow-premium transition-all duration-300 cursor-pointer"
                 data-testid={`services-card-${service._id ?? index}`}
+                data-test-id={`services-card-${(service.title || `${index}`).toLowerCase().replace(/\s+/g, '-')}`}
                 onClick={() => handleServiceClick(service.title)}
                 title={`Click to WhatsApp us about ${service.title}`}
               >
@@ -84,13 +118,13 @@ const ServicesGrid = () => {
                     className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-110"
                   />
                   {/* CMYK Border Glow on Hover */}
-                  <div className="absolute inset-0 border-2 border-transparent group-hover:border-cyan group-hover:shadow-cyan-glow transition-all duration-300 rounded-xl"></div>
+                  <div className="absolute inset-0 border-2 border-transparent group-hover:border-cyan group-hover:shadow-cyan-glow transition-all duration-300 rounded-xl pointer-events-none z-10"></div>
                   {/* Gradient Overlay */}
-                  <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent"></div>
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent pointer-events-none z-0"></div>
                 </div>
 
                 {/* Service Content */}
-                <div className="p-6">
+                <div className="relative z-20 p-6">
                   <h3 className="text-xl font-heading font-semibold text-foreground mb-2 group-hover:text-cyan transition-colors duration-300">
                     {service.title}
                   </h3>
@@ -100,7 +134,8 @@ const ServicesGrid = () => {
 
                   {/* View Portfolio Samples Link */}
                   <button
-                    onClick={() => {
+                    onClick={(event) => {
+                      event.stopPropagation()
                       const portfolioSection = document.querySelector('#portfolio')
                       if (portfolioSection) {
                         portfolioSection.scrollIntoView({ behavior: 'smooth' })
@@ -116,14 +151,20 @@ const ServicesGrid = () => {
                 </div>
 
                 {/* Hover Effect Overlay */}
-                <div className="absolute inset-0 bg-gradient-cyan opacity-0 group-hover:opacity-10 transition-opacity duration-300"></div>
+                <div className="absolute inset-0 bg-gradient-cyan opacity-0 group-hover:opacity-10 transition-opacity duration-300 pointer-events-none z-0"></div>
               </motion.div>
             )
           })}
           {displayedServices.length === 0 && (
-            <div className="col-span-full rounded-xl bg-card/60 p-10 text-center text-sm text-muted-foreground shadow-sm">
+            <motion.div
+              data-testid="services-empty"
+              data-test-id="services-empty"
+              className="col-span-full rounded-xl bg-card/60 p-10 text-center text-sm text-muted-foreground shadow-sm"
+              initial={{ opacity: 0, y: 16 }}
+              animate={{ opacity: 1, y: 0 }}
+            >
               Services are coming soon. Please check back shortly.
-            </div>
+            </motion.div>
           )}
         </motion.div>
 

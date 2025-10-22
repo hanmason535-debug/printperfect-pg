@@ -5,8 +5,35 @@ import { Button } from '@/components/ui/button';
 import { useToast } from '@/hooks/use-toast';
 import { CONTACT, SOCIAL_MEDIA, COMPANY } from '@/config/constants';
 
+/**
+ * Contact
+ *
+ * Complete contact section component with a contact form, contact info display, Google Maps embed, and footer.
+ *
+ * Features:
+ * - Contact form with validation (name, email, phone, message)
+ * - Honeypot field for bot detection
+ * - Form submission via WhatsApp integration
+ * - Contact information display (address, phone, email, hours)
+ * - Google Maps embed showing business location
+ * - Social media links (Facebook, Instagram, LinkedIn)
+ * - Footer with company info, quick links, and copyright
+ * - Toast notifications for form feedback
+ * - Responsive grid layout (2-column on desktop, 1 on mobile)
+ * - Smooth animations via Framer Motion
+ * - Input field constraints (max lengths) for security
+ *
+ * Form State:
+ * - `name`, `email`, `phone`, `message`: form input fields
+ * - `honeypot`: hidden security field (bot detector)
+ * - `isSubmitting`: tracks form submission state
+ *
+ * No props required.
+ */
 const Contact = () => {
   const { toast } = useToast();
+  
+  // Form state with honeypot field for bot detection
   const [formData, setFormData] = useState({
     name: '',
     email: '',
@@ -17,6 +44,17 @@ const Contact = () => {
 
   const [isSubmitting, setIsSubmitting] = useState(false);
 
+  /**
+   * handleSubmit
+   *
+   * Validates form data, checks honeypot, and sends message via WhatsApp.
+   * - Validates required fields (name, email, message)
+   * - Checks email format
+   * - Shows toast notifications for feedback
+   * - Resets form after successful submission
+   *
+   * @param e - Form submission event
+   */
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
     

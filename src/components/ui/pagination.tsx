@@ -28,37 +28,64 @@ PaginationItem.displayName = "PaginationItem";
 
 type PaginationLinkProps = {
   isActive?: boolean;
-  /** Disable interaction for this link (visual + a11y). */
+  /** Disable interaction for this link/button (visual + a11y). */
   disabled?: boolean;
+  /** Optional href — when provided renders an anchor; otherwise renders a button for correct semantics */
+  href?: string;
 } & Pick<ButtonProps, "size"> &
-  Omit<React.ComponentProps<"a">, "disabled">;
+  // Allow either anchor or button attributes; keep typing permissive to allow passing common props
+  Omit<React.ComponentProps<"a">, "disabled"> & Omit<React.ComponentProps<"button">, "disabled">;
 
-const PaginationLink = ({ className, isActive, size = "icon", disabled = false, onClick, ...props }: PaginationLinkProps) => (
-  <a
-    // Accessibility: indicate current page and disabled state
-    aria-current={isActive ? "page" : undefined}
-    aria-disabled={disabled ? true : undefined}
-    tabIndex={disabled ? -1 : props.tabIndex}
-    // Merge button styles and apply a visual disabled appearance when needed
-    className={cn(
-      buttonVariants({
-        variant: isActive ? "outline" : "ghost",
-        size,
-      }),
-      disabled ? 'opacity-50 cursor-not-allowed pointer-events-none' : '',
-      className,
-    )}
-    // Prevent onClick when disabled
-    onClick={(e) => {
-      if (disabled) {
-        e.preventDefault()
-        return
-      }
-      onClick?.(e as any)
-    }}
-    {...props}
-  />
-);
+const PaginationLink = ({ className, isActive, size = "icon", disabled = false, onClick, href, ...props }: PaginationLinkProps) => {
+  const classes = cn(
+    buttonVariants({
+      variant: isActive ? "outline" : "ghost",
+      size,
+    }),
+    disabled ? 'opacity-50 cursor-not-allowed pointer-events-none' : '',
+    className,
+  )
+
+  // Render anchor when href is provided to preserve link semantics
+  if (href) {
+    return (
+      <a
+        href={href}
+        aria-current={isActive ? "page" : undefined}
+        aria-disabled={disabled ? true : undefined}
+        tabIndex={disabled ? -1 : (props as any).tabIndex}
+        className={classes}
+        onClick={(e) => {
+          if (disabled) {
+            e.preventDefault()
+            return
+          }
+          onClick?.(e as any)
+        }}
+        {...(props as React.ComponentProps<"a">)}
+      />
+    )
+  }
+
+  // Otherwise render a semantic button
+  return (
+    <button
+      type="button"
+      aria-current={isActive ? "page" : undefined}
+      aria-disabled={disabled ? true : undefined}
+      tabIndex={disabled ? -1 : (props as any).tabIndex}
+      className={classes}
+      onClick={(e) => {
+        if (disabled) {
+          e.preventDefault()
+          return
+        }
+        onClick?.(e as any)
+      }}
+      {...(props as React.ComponentProps<"button">)}
+    />
+  )
+}
 PaginationLink.displayName = "PaginationLink";
 
 const PaginationPrevious = ({ className, ...props }: React.ComponentProps<typeof PaginationLink>) => (

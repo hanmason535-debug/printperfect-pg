@@ -60,21 +60,41 @@ import { useState, useEffect, useRef } from 'react';
 import { MessageCircle } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 
+/**
+ * FloatingWhatsApp
+ *
+ * Fixed-position floating button for quick WhatsApp contact.
+ *
+ * Features:
+ * - Appears after 2 seconds on page load with smooth spring animation
+ * - Shows tooltip "Chat with us on WhatsApp" for 3 seconds after appearing
+ * - Pulsing glow shadow animation to draw attention
+ * - Click opens WhatsApp chat with pre-filled message
+ * - Positioned bottom-right with z-index 50 to float above content
+ * - Smooth scale animations on hover/tap
+ * - Cleanup timers on unmount to prevent memory leaks
+ *
+ * No props required.
+ */
 const FloatingWhatsApp = () => {
+  // Control button visibility and tooltip display
   const [isVisible, setIsVisible] = useState(false);
   const [showTooltip, setShowTooltip] = useState(false);
 
+  // Timer references for cleanup
   const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const tooltipTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const hideTooltipTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
+  // Show button after delay and auto-hide tooltip
   useEffect(() => {
-    // Show the button after 2 seconds
+    // Show the button after 2 seconds of page load
     timerRef.current = setTimeout(() => {
       setIsVisible(true);
       // Show tooltip for 3 seconds after the button appears
       tooltipTimerRef.current = setTimeout(() => {
         setShowTooltip(true);
+        // Auto-hide tooltip after 3 seconds
         hideTooltipTimerRef.current = setTimeout(() => setShowTooltip(false), 3000);
       }, 500);
     }, 2000);
@@ -86,15 +106,16 @@ const FloatingWhatsApp = () => {
     };
   }, []);
 
+  /**
+   * handleClick
+   *
+   * Opens WhatsApp with pre-filled inquiry message.
+   */
   const handleClick = () => {
     const message = encodeURIComponent(
       "Hi! I'm interested in your printing services. Can you help me?"
     );
     window.open(`https://wa.me/919377476343?text=${message}`, '_blank');
-  };
-
-  const scrollToTop = () => {
-    window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
   return (

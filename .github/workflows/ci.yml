@@ -6,26 +6,25 @@ on:
   pull_request:
     branches: [ main ]
 
+permissions:
+  contents: read
+
 jobs:
-  ci:
+  node:
+    name: Node CI
     runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        node-version: [18]
     steps:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Use Node.js
+      - name: Setup Node
         uses: actions/setup-node@v4
         with:
-          node-version: '18'
+          node-version: ${{ matrix.node-version }}
           cache: 'npm'
-
-      - name: Restore npm cache
-        uses: actions/cache@v4
-        with:
-          path: ~/.npm
-          key: ${{ runner.os }}-node-${{ hashFiles('**/package-lock.json') }}
-          restore-keys: |
-            ${{ runner.os }}-node-
 
       - name: Install dependencies
         run: npm ci
@@ -46,54 +45,8 @@ jobs:
           CI: true
 
       - name: Upload coverage (optional)
-        if: success() || failure()
+        if: always()
         uses: actions/upload-artifact@v4
         with:
           name: coverage
           path: coverage
-name: CI (lint, typecheck, test, build)
-
-on:
-  pull_request:
-  push:
-    branches: [ main ]
-
-permissions:
-  contents: read
-
-jobs:
-  node:
-    runs-on: ubuntu-latest
-    strategy:
-      matrix:
-        node-version: [20]
-    steps:
-      - uses: actions/checkout@v4
-
-      - name: Setup Node
-        uses: actions/setup-node@v4
-        with:
-          node-version: ${{ matrix['node-version'] }}
-          cache: npm
-
-      - name: Install
-        run: npm ci
-
-      - name: Ensure Sanity env
-        env:
-          VITE_SANITY_PROJECT_ID: ${{ secrets.VITE_SANITY_PROJECT_ID }}
-          VITE_SANITY_DATASET: ${{ secrets.VITE_SANITY_DATASET }}
-        run: |
-          if [ -z "$VITE_SANITY_PROJECT_ID" ] || [ -z "$VITE_SANITY_DATASET" ]; then
-            echo "❌ VITE_SANITY_PROJECT_ID or VITE_SANITY_DATASET is not set"
-            exit 1
-          fi
-
-      - name: Validate (lint + typecheck + tests + build)
-        env:
-          VITE_SANITY_PROJECT_ID: ${{ secrets.VITE_SANITY_PROJECT_ID }}
-          VITE_SANITY_DATASET: ${{ secrets.VITE_SANITY_DATASET }}
-        run: npm run ci:validate
-
-      - name: Coverage (text + html)
-        run: npm run test:coverage

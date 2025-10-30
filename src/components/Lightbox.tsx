@@ -82,7 +82,7 @@ imgRef = useRef<HTMLImageElement | null>(null)
               }}
             >
               <div
-                data-test-id="lightbox"
+                data-testid="lightbox"
                 className="fixed inset-0 z-[999] flex items-center justify-center"
               >
                 {/* Backdrop */}
@@ -129,7 +129,7 @@ imgRef = useRef<HTMLImageElement | null>(null)
 
                 {/* Controls */}
                 <button
-                  data-test-id="lightbox-close"
+                  data-testid="lightbox-close"
                   onClick={() => onOpenChange(false)}
                   aria-label="Close"
                   className="absolute top-4 right-4 z-20 rounded-full bg-black/50 p-2 text-white/80 hover:text-white transition-colors"
@@ -140,7 +140,7 @@ imgRef = useRef<HTMLImageElement | null>(null)
                 {items.length > 1 && (
                   <>
                     <button
-                      data-test-id="lightbox-prev"
+                      data-testid="lightbox-prev"
                       onClick={prev}
                       aria-label="Previous"
                       className="absolute left-4 top-1/2 -translate-y-1/2 z-20 rounded-full bg-black/50 p-2 text-white/80 hover:text-white transition-colors"
@@ -148,7 +148,7 @@ imgRef = useRef<HTMLImageElement | null>(null)
                       <ChevronLeft className="h-8 w-8" />
                     </button>
                     <button
-                      data-test-id="lightbox-next"
+                      data-testid="lightbox-next"
                       onClick={next}
                       aria-label="Next"
                       className="absolute right-4 top-1/2 -translate-y-1/2 z-20 rounded-full bg-black/50 p-2 text-white/80 hover:text-white transition-colors"

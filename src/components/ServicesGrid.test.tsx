@@ -60,8 +60,8 @@ describe('ServicesGrid', () => {
     const { container } = render(<ServicesGrid />)
 
     await waitFor(() => {
-      // Check for the rendered cards by a unique attribute, like data-test-id
-      const renderedCards = container.querySelectorAll('[data-test-id^="services-card-"]')
+      // Check for the rendered cards by a unique attribute, like data-testid
+      const renderedCards = container.querySelectorAll('[data-testid^="services-card-"]')
       expect(renderedCards.length).toBe(12)
     })
   })

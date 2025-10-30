@@ -81,7 +81,7 @@ const Portfolio = () => {
   );
 
   const renderEmptyState = () => (
-    <div className="col-span-full text-center py-16" data-test-id="portfolio-empty">
+    <div className="col-span-full text-center py-16" data-testid="portfolio-empty">
       <h3 className="text-2xl font-semibold text-foreground mb-2">No Items Found</h3>
       <p className="text-muted-foreground">
         {error ? "We're having trouble loading our portfolio. Please try again later." : "This category is empty. Try another one!"}
@@ -126,7 +126,7 @@ const Portfolio = () => {
             {categories.map((category) => (
               <motion.button
                 key={category}
-                data-test-id={`filter-${category.toLowerCase().replace(/\s+/g, '-')}`}
+                data-testid={`filter-${category.toLowerCase().replace(/\s+/g, '-')}`}
                 role="tab"
                 aria-selected={activeFilter === category}
                 aria-controls="portfolio-grid"
@@ -160,7 +160,7 @@ const Portfolio = () => {
               {pageItems.map((p) => (
                 <motion.article
                   key={p._id}
-                  data-test-id={`portfolio-item-${p._id}`}
+                  data-testid={`portfolio-item-${p._id}`}
                   layout
                   className="group relative overflow-hidden rounded-xl bg-card shadow-lg hover:shadow-xl transition-shadow duration-300 cursor-pointer"
                   variants={itemVariants}

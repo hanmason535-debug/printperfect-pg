@@ -98,7 +98,7 @@ const FileUploadModal = ({ isOpen, onClose }: { isOpen: boolean; onClose: () => 
 
   return (
     <Dialog open={isOpen} onOpenChange={(open) => { if (!open) resetAndClose(); }}>
-      <DialogContent className="sm:max-w-lg" data-test-id="upload-modal">
+      <DialogContent className="sm:max-w-lg" data-testid="upload-modal">
         <DialogHeader>
           <DialogTitle className="text-2xl font-heading font-bold text-center">
             {allSuccess ? 'Files Sent' : 'Upload Your Files'}
@@ -109,7 +109,7 @@ const FileUploadModal = ({ isOpen, onClose }: { isOpen: boolean; onClose: () => 
             <motion.div key="upload-view" className="space-y-4">
               <div
                 {...getRootProps()}
-                data-test-id="upload-dropzone"
+                data-testid="upload-dropzone"
                 className={`border-2 border-dashed rounded-xl p-6 text-center cursor-pointer transition-colors ${
                   isDragActive ? 'border-primary bg-primary/5' : 'border-border hover:border-primary/50'
                 }`}
@@ -122,7 +122,7 @@ const FileUploadModal = ({ isOpen, onClose }: { isOpen: boolean; onClose: () => 
                 <p className="text-sm text-muted-foreground">Max 5 files, 15MB each</p>
               </div>
 
-              {globalError && <p data-test-id="upload-error" className="text-destructive text-sm font-medium text-center">{globalError}</p>}
+              {globalError && <p data-testid="upload-error" className="text-destructive text-sm font-medium text-center">{globalError}</p>}
 
               {files.length > 0 && (
                 <div className="space-y-3 max-h-48 overflow-y-auto pr-2">

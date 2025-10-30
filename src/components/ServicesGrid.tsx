@@ -91,7 +91,7 @@ const ServicesGrid = () => {
               return (
                 <motion.div
                   key={service._id ?? index}
-                  data-test-id={`services-card-${service._id}`}
+                  data-testid={`services-card-${service._id}`}
                   variants={itemVariants}
                   whileHover={{
                     y: -10,

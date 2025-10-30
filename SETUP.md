@@ -18,14 +18,24 @@ Set-ExecutionPolicy -Scope Process -ExecutionPolicy Bypass
 .\setup.ps1
 ```
 
-Environment variables required (examples):
+Environment variables required:
 
 - `VITE_SANITY_PROJECT_ID` — your Sanity project ID (from manage.sanity.io)
 - `VITE_SANITY_DATASET` — dataset name (this project uses `production`)
+- `NODE_ENV` — optional (`development` or `production`)
+
+Optional (only if using Supabase):
+
 - `VITE_SUPABASE_URL` — Supabase project URL (from Supabase dashboard)
 - `VITE_SUPABASE_PUBLISHABLE_KEY` — Supabase anon/public key (client)
-- `NODE_ENV` — optional (`development` or `production`)
 
 Notes:
 - Do NOT commit tokens or service role keys. Use environment or CI secret stores.
 - The `seed/seed.ts` script will only run if present; it may require a Sanity token or Supabase keys depending on its behavior.
+
+Quick start with .env template:
+
+```bash
+cp .env.example .env.local
+# then edit .env.local to set VITE_SANITY_PROJECT_ID, etc.
+```

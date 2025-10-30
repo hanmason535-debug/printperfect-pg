@@ -9,54 +9,39 @@ import {
   PaginationNext,
   PaginationPrevious
 } from '@/components/ui/pagination'
+import { Skeleton } from '@/components/ui/skeleton'
 import { urlFor } from '@/lib/image'
 import { useState, useMemo, useEffect, useCallback } from 'react'
 import Lightbox from '@/components/Lightbox'
 
-type FilterValue = 'All' | 'Business Cards' | 'Brochures' | 'Banners' | 'Packaging' | 'Stationery'
-
-const FILTERS: FilterValue[] = ['All', 'Business Cards', 'Brochures', 'Banners', 'Packaging', 'Stationery']
 const PER_PAGE = 9
 
 const Portfolio = () => {
-  const allItems = usePortfolio()
-  const [activeFilter, setActiveFilter] = useState<FilterValue>('All')
+  const { data: allItems, loading, error } = usePortfolio()
+  const [activeFilter, setActiveFilter] = useState<string>('All')
   const [page, setPage] = useState(1)
   
-  // Lightbox state
   const [lightboxOpen, setLightboxOpen] = useState(false)
   const [lightboxStart, setLightboxStart] = useState(0)
 
-  const normalizedItems = useMemo(
-    () =>
-      allItems.map((item) => ({
-        ...item,
-        category: item.category ?? '',
-        categorySlugs: item.categorySlugs ?? []
-      })),
-    [allItems]
-  )
+  const categories = useMemo(() => {
+    if (loading || !allItems.length) return []
+    const allCategories = allItems.map(item => item.category).filter(Boolean) as string[]
+    return ['All', ...Array.from(new Set(allCategories))]
+  }, [allItems, loading])
 
   const filteredItems = useMemo(() => {
     if (activeFilter === 'All') {
-      return normalizedItems
+      return allItems
     }
+    return allItems.filter(item => item.category === activeFilter)
+  }, [activeFilter, allItems])
 
-    const targetLabel = activeFilter.toLowerCase()
-    const targetSlug = activeFilter.toLowerCase().replace(/\s+/g, '-')
-
-    return normalizedItems.filter((item) => {
-      const categoryName = item.category?.toLowerCase() ?? ''
-      const slugs = item.categorySlugs.map((slug) => slug.toLowerCase())
-      return categoryName === targetLabel || slugs.includes(targetSlug)
-    })
-  }, [activeFilter, normalizedItems])
+  const totalPages = Math.max(1, Math.ceil(filteredItems.length / PER_PAGE))
 
   useEffect(() => {
     setPage(1)
   }, [activeFilter])
-
-  const totalPages = Math.max(1, Math.ceil(filteredItems.length / PER_PAGE))
 
   useEffect(() => {
     if (page > totalPages) {
@@ -78,7 +63,8 @@ const Portfolio = () => {
     visible: {
       opacity: 1,
       transition: {
-        staggerChildren: 0.1
+        staggerChildren: 0.1,
+        delayChildren: 0.2,
       }
     }
   }
@@ -87,6 +73,21 @@ const Portfolio = () => {
     hidden: { opacity: 0, y: 30 },
     visible: { opacity: 1, y: 0 }
   }
+
+  const renderSkeletons = () => (
+    Array.from({ length: 6 }).map((_, i) => (
+      <Skeleton key={i} className="aspect-square rounded-xl" />
+    ))
+  );
+
+  const renderEmptyState = () => (
+    <div className="col-span-full text-center py-16" data-test-id="portfolio-empty">
+      <h3 className="text-2xl font-semibold text-foreground mb-2">No Items Found</h3>
+      <p className="text-muted-foreground">
+        {error ? "We're having trouble loading our portfolio. Please try again later." : "This category is empty. Try another one!"}
+      </p>
+    </div>
+  );
 
   return (
     <section id="portfolio" className="py-20 bg-background">
@@ -112,73 +113,83 @@ const Portfolio = () => {
         </motion.div>
 
         {/* Filter Tabs */}
-        <motion.div
-          className="flex flex-wrap justify-center gap-4 mb-12"
-          role="tablist"
-          aria-label="Portfolio filter"
-          initial={{ opacity: 0, y: 20 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.6 }}
-          viewport={{ once: true }}
-        >
-          {FILTERS.map((category) => (
-            <motion.button
-              key={category}
-              role="tab"
-              aria-selected={activeFilter === category}
-              aria-controls="portfolio-grid"
-              onClick={() => setActiveFilter(category)}
-              className={`px-6 py-2 rounded-full text-sm font-medium transition-all duration-300 ${
-                activeFilter === category
-                  ? 'bg-primary text-primary-foreground shadow-lg'
-                  : 'bg-secondary text-secondary-foreground hover:bg-secondary/80'
-              }`}
-              whileHover={{ scale: 1.05 }}
-              whileTap={{ scale: 0.95 }}
-            >
-              {category}
-            </motion.button>
-          ))}
-        </motion.div>
+        {categories.length > 0 && (
+          <motion.div
+            className="flex flex-wrap justify-center gap-4 mb-12"
+            role="tablist"
+            aria-label="Portfolio filter"
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6 }}
+            viewport={{ once: true }}
+          >
+            {categories.map((category) => (
+              <motion.button
+                key={category}
+                data-test-id={`filter-${category.toLowerCase().replace(/\s+/g, '-')}`}
+                role="tab"
+                aria-selected={activeFilter === category}
+                aria-controls="portfolio-grid"
+                onClick={() => setActiveFilter(category)}
+                className={`px-6 py-2 rounded-full text-sm font-medium transition-all duration-300 ${
+                  activeFilter === category
+                    ? 'bg-primary text-primary-foreground shadow-lg'
+                    : 'bg-secondary text-secondary-foreground hover:bg-secondary/80'
+                }`}
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
+              >
+                {category}
+              </motion.button>
+            ))}
+          </motion.div>
+        )}
 
         {/* Portfolio Grid */}
         <motion.div
+          id="portfolio-grid"
           className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8"
           variants={containerVariants}
           initial="hidden"
-          whileInView="visible"
-          viewport={{ once: true }}
+          animate="visible"
         >
-          <AnimatePresence>
-            {pageItems.map((p) => (
-              <motion.article
-                key={p._id}
-                className="group relative overflow-hidden rounded-xl bg-card shadow-lg hover:shadow-xl transition-shadow duration-300"
-                variants={itemVariants}
-                whileHover={{ y: -10 }}
-                onClick={() => handleImageClick(p._id)}
-              >
-                <div className="aspect-square overflow-hidden">
-                  {p.image && (
-                    <motion.img
-                      src={urlFor(p.image).width(600).height(600).fit('crop').url()}
-                      alt={p.title || 'Portfolio item'}
-                      className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
-                      whileHover={{ scale: 1.1 }}
-                      initial={{ opacity: 0 }}
-                      animate={{ opacity: 1 }}
-                      transition={{ duration: 0.5 }}
-                    />
-                  )}
-                </div>
-                <div className="absolute inset-0 bg-gradient-to-t from-black/70 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
-                <div className="absolute bottom-0 left-0 right-0 p-6 text-white opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-                  <h3 className="text-xl font-bold mb-1">{p.title}</h3>
-                  <p className="text-sm opacity-90">{p.category}</p>
-                </div>
-              </motion.article>
-            ))}
-          </AnimatePresence>
+          {loading ? (
+            renderSkeletons()
+          ) : pageItems.length > 0 ? (
+            <AnimatePresence>
+              {pageItems.map((p) => (
+                <motion.article
+                  key={p._id}
+                  data-test-id={`portfolio-item-${p._id}`}
+                  layout
+                  className="group relative overflow-hidden rounded-xl bg-card shadow-lg hover:shadow-xl transition-shadow duration-300 cursor-pointer"
+                  variants={itemVariants}
+                  initial="hidden"
+                  animate="visible"
+                  exit="hidden"
+                  whileHover={{ y: -10 }}
+                  onClick={() => handleImageClick(p._id)}
+                >
+                  <div className="aspect-square overflow-hidden">
+                    {p.image && (
+                      <motion.img
+                        src={urlFor(p.image).width(600).height(600).fit('crop').url()}
+                        alt={p.title || 'Portfolio item'}
+                        className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
+                      />
+                    )}
+                  </div>
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/70 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+                  <div className="absolute bottom-0 left-0 right-0 p-6 text-white translate-y-4 opacity-0 group-hover:opacity-100 group-hover:translate-y-0 transition-all duration-300">
+                    <h3 className="text-xl font-bold mb-1">{p.title}</h3>
+                    <p className="text-sm opacity-90">{p.category}</p>
+                  </div>
+                </motion.article>
+              ))}
+            </AnimatePresence>
+          ) : (
+            renderEmptyState()
+          )}
         </motion.div>
 
         {/* Pagination */}
@@ -186,9 +197,8 @@ const Portfolio = () => {
           <motion.div
             className="mt-16 flex justify-center"
             initial={{ opacity: 0 }}
-            whileInView={{ opacity: 1 }}
-            transition={{ duration: 0.5 }}
-            viewport={{ once: true }}
+            animate={{ opacity: 1 }}
+            transition={{ duration: 0.5, delay: 0.5 }}
           >
             <Pagination>
               <PaginationContent>
@@ -197,7 +207,7 @@ const Portfolio = () => {
                     href="#"
                     onClick={(e) => {
                       e.preventDefault()
-                      if (page > 1) setPage((prev) => prev - 1)
+                      setPage((p) => Math.max(1, p - 1))
                     }}
                     aria-disabled={page === 1}
                     className={page === 1 ? 'pointer-events-none opacity-50' : ''}
@@ -222,7 +232,7 @@ const Portfolio = () => {
                     href="#"
                     onClick={(e) => {
                       e.preventDefault()
-                      if (page < totalPages) setPage((prev) => prev + 1)
+                      setPage((p) => Math.min(totalPages, p + 1))
                     }}
                     aria-disabled={page === totalPages}
                     className={page === totalPages ? 'pointer-events-none opacity-50' : ''}

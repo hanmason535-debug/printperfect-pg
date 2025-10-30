@@ -1,90 +1,97 @@
-import React from 'react'
-import { render } from '@testing-library/react'
+import { render, screen, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
-import { vi } from 'vitest'
+import { vi, describe, it, expect } from 'vitest'
 import Portfolio from './Portfolio'
+import { usePortfolio } from '@/hooks/usePortfolio'
 
-const { usePortfolioMock, urlForMock } = vi.hoisted(() => {
-  const builderFactory = () => {
-    const builder: any = {}
-    builder.width = vi.fn(() => builder)
-    builder.height = vi.fn(() => builder)
-    builder.fit = vi.fn(() => builder)
-    builder.format = vi.fn(() => builder)
-    builder.blur = vi.fn(() => builder)
-    builder.url = vi.fn(() => 'https://example.com/image.webp')
-    return builder
-  }
-
-  return {
-    usePortfolioMock: vi.fn(),
-    urlForMock: vi.fn(() => builderFactory())
-  }
-})
-
-vi.mock('@/hooks/usePortfolio', () => ({
-  usePortfolio: () => usePortfolioMock()
-}))
-
+vi.mock('@/hooks/usePortfolio')
 vi.mock('@/lib/image', () => ({
-  urlFor: urlForMock
+  urlFor: vi.fn().mockReturnValue({
+    width: vi.fn().mockReturnThis(),
+    height: vi.fn().mockReturnThis(),
+    fit: vi.fn().mockReturnThis(),
+    format: vi.fn().mockReturnThis(),
+    url: vi.fn().mockReturnValue('https://example.com/image.jpg'),
+  }),
 }))
 
-vi.mock('@/lib/sanity', () => ({
-  urlFor: urlForMock
-}))
+const mockUsePortfolio = usePortfolio as jest.Mock
 
-function makePortfolioItems(count: number) {
-  const categories = ['Business Cards', 'Banners', 'Apparel', 'Stickers'] as const
-  return Array.from({ length: count }, (_, index) => {
-    const category = categories[index % categories.length]
-    const slug = category.toLowerCase().replace(/\s+/g, '-')
-    return {
-      _id: `portfolio-${index + 1}`,
-      title: `Item ${index + 1}`,
-      description: `Description ${index + 1}`,
-      image: { asset: { _ref: `image-${index + 1}` } },
-      link: null,
-      category,
-      priority: index + 1,
-      categorySlugs: [slug],
-      hoverId: null
-    }
-  })
-}
+const makePortfolioItems = (categories: { [key: string]: number }) =>
+  Object.entries(categories).flatMap(([category, count]) =>
+    Array.from({ length: count }, (_, i) => ({
+      _id: `${category}-id-${i}`,
+      title: `${category} Item ${i + 1}`,
+      category: category,
+      image: { asset: { _ref: `image-ref-${i}` } },
+    }))
+  )
 
 describe('Portfolio', () => {
-  beforeEach(() => {
-    usePortfolioMock.mockReset()
-    urlForMock.mockClear()
+  it('renders skeletons while loading', () => {
+    mockUsePortfolio.mockReturnValue({ data: [], loading: true, error: null })
+    const { container } = render(<Portfolio />)
+    expect(container.querySelectorAll('.aspect-square.rounded-xl').length).toBe(6)
   })
 
-  it('shows nine items on the first page and paginates through the rest', async () => {
-    usePortfolioMock.mockReturnValue(makePortfolioItems(11))
-    const user = userEvent.setup()
+  it('generates filter tabs dynamically from portfolio items', async () => {
+    const items = makePortfolioItems({ 'Category A': 2, 'Category B': 3 })
+    mockUsePortfolio.mockReturnValue({ data: items, loading: false, error: null })
+    render(<Portfolio />)
 
-    const { container, getByRole, queryByText, findByText } = render(<Portfolio />)
-
-    expect(container.querySelectorAll('h3').length).toBe(9)
-    expect(queryByText('Item 10')).not.toBeInTheDocument()
-
-    await user.click(getByRole('link', { name: /Next/i }))
-
-    expect(await findByText('Item 10')).toBeInTheDocument()
+    await waitFor(() => {
+      expect(screen.getByTestId('filter-all')).toBeInTheDocument()
+      expect(screen.getByTestId('filter-category-a')).toBeInTheDocument()
+      expect(screen.getByTestId('filter-category-b')).toBeInTheDocument()
+    })
   })
 
-  it('filters by category and resets pagination', async () => {
-    usePortfolioMock.mockReturnValue(makePortfolioItems(12))
-    const user = userEvent.setup()
+  it('filters items when a category tab is clicked and resets pagination', async () => {
+    const items = makePortfolioItems({ 'Category A': 10, 'Category B': 5 })
+    mockUsePortfolio.mockReturnValue({ data: items, loading: false, error: null })
+    render(<Portfolio />)
 
-    const { getByRole, queryByText, findByText } = render(<Portfolio />)
+    // Go to page 2
+    await userEvent.click(await screen.findByText('2'))
+    expect(await screen.findByText('Category A Item 10')).toBeInTheDocument()
 
-    await user.click(getByRole('link', { name: /Next/i }))
-    expect(await findByText('Item 10')).toBeInTheDocument()
+    // Click filter
+    await userEvent.click(await screen.findByTestId('filter-category-b'))
 
-    await user.click(getByRole('tab', { name: /Business Cards/i }))
+    await waitFor(() => {
+      expect(screen.queryByText('Category A Item 1')).not.toBeInTheDocument()
+      expect(screen.getByText('Category B Item 1')).toBeInTheDocument()
+      // Check if pagination is reset to page 1
+      expect(screen.getByText('1').closest('a')).toHaveAttribute('data-active', 'true')
+    })
+  })
 
-    expect(await findByText('Item 1')).toBeInTheDocument()
-    expect(queryByText('Item 10')).not.toBeInTheDocument()
+  it('displays an empty state when a filter results in no items', async () => {
+    const items = makePortfolioItems({ 'Category A': 2, 'Empty Category': 0 })
+    mockUsePortfolio.mockReturnValue({ data: items, loading: false, error: null })
+    render(<Portfolio />)
+
+    await userEvent.click(await screen.findByTestId('filter-empty-category'))
+
+    await waitFor(() => {
+      expect(screen.getByTestId('portfolio-empty')).toBeInTheDocument()
+    })
+  })
+
+  it('clamps the page number if it goes out of bounds after filtering', async () => {
+    const items = makePortfolioItems({ 'Category A': 12, 'Category B': 2 })
+    mockUsePortfolio.mockReturnValue({ data: items, loading: false, error: null })
+    render(<Portfolio />)
+
+    // Go to page 2
+    await userEvent.click(await screen.findByText('2'))
+    expect(await screen.findByText('Category A Item 12')).toBeInTheDocument()
+
+    // Click filter with only 2 items
+    await userEvent.click(await screen.findByTestId('filter-category-b'))
+
+    await waitFor(() => {
+      expect(screen.getByText('1').closest('a')).toHaveAttribute('data-active', 'true')
+    })
   })
 })

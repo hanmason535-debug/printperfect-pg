@@ -1,182 +1,200 @@
-import React, { useState } from 'react';
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import React, { useState, useCallback } from 'react';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogClose } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Upload, CheckCircle, AlertCircle, Loader2 } from 'lucide-react';
+import { Progress } from '@/components/ui/progress';
+import { Upload, CheckCircle, AlertCircle, Loader2, FileIcon, X } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { useDropzone } from 'react-dropzone';
+import { useDropzone, FileRejection } from 'react-dropzone';
 import emailjs from '@emailjs/browser';
 
-// --- Securely read all API keys ---
 const EMAILJS_SERVICE_ID = import.meta.env.VITE_EMAILJS_SERVICE_ID;
 const EMAILJS_TEMPLATE_ID = import.meta.env.VITE_EMAILJS_TEMPLATE_ID;
 const EMAILJS_PUBLIC_KEY = import.meta.env.VITE_EMAILJS_PUBLIC_KEY;
 
-interface FileUploadModalProps {
-  isOpen: boolean;
-  onClose: () => void;
-}
+type UploadStatus = "pending" | "uploading" | "success" | "error";
 
 interface UploadFile {
+  id: string;
   file: File;
-  preview: string;
+  status: UploadStatus;
+  progress: number;
+  error?: string;
 }
 
-const FileUploadModal = ({ isOpen, onClose }: FileUploadModalProps) => {
-  const [step, setStep] = useState<'upload' | 'success' | 'failure'>('upload');
+const FileUploadModal = ({ isOpen, onClose }: { isOpen: boolean; onClose: () => void; }) => {
   const [files, setFiles] = useState<UploadFile[]>([]);
   const [phoneNumber, setPhoneNumber] = useState('');
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState('');
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [globalError, setGlobalError] = useState('');
 
-  const allowedTypes = { 'application/pdf': ['.pdf'], 'image/jpeg': ['.jpg', '.jpeg'], 'image/png': ['.png'] };
+  const onDrop = useCallback((acceptedFiles: File[], rejectedFiles: FileRejection[]) => {
+    setGlobalError('');
+    const newFiles: UploadFile[] = acceptedFiles.map(file => ({
+      id: `${file.name}-${file.size}-${Date.now()}`,
+      file,
+      status: 'pending',
+      progress: 0,
+    }));
+    setFiles(prev => [...prev, ...newFiles].slice(0, 5)); // Limit to 5 files
+
+    if (rejectedFiles.length > 0) {
+      const firstRejection = rejectedFiles[0];
+      const message = firstRejection.errors[0]?.code === 'file-too-large'
+        ? 'File is larger than 15MB'
+        : firstRejection.errors[0]?.message;
+      setGlobalError(message || 'Some files were rejected.');
+    }
+  }, []);
 
   const { getRootProps, getInputProps, isDragActive } = useDropzone({
-    accept: allowedTypes,
+    accept: { 'application/pdf': ['.pdf'], 'image/jpeg': [], 'image/png': [] },
+    maxSize: 15 * 1024 * 1024, // 15MB
     maxFiles: 5,
-    maxSize: 15 * 1024 * 1024,
-    onDrop: (acceptedFiles, rejectedFiles) => {
-      if (rejectedFiles.length > 0) {
-        setError(rejectedFiles[0].errors[0]?.message || 'File not allowed');
-        return;
-      }
-      const newFiles = acceptedFiles.map(file => ({ file, preview: URL.createObjectURL(file) }));
-      setFiles(prev => [...prev, ...newFiles]);
-      setError('');
-    },
+    onDrop,
   });
 
-  const removeFile = (index: number) => setFiles(prev => prev.filter((_, i) => i !== index));
+  const removeFile = (id: string) => setFiles(prev => prev.filter(f => f.id !== id));
 
-  const handleSendNotification = async () => {
+  const handleSend = async () => {
     if (files.length === 0) {
-      setError('Please upload at least one file.');
+      setGlobalError('Please upload at least one file.');
       return;
     }
-    setLoading(true);
-    setError('');
+
+    setIsSubmitting(true);
+    setGlobalError('');
+
+    const fileList = files.map(f => `${f.file.name} (${(f.file.size / 1024 / 1024).toFixed(2)} MB)`).join('\n');
+    const templateParams = {
+      phoneNumber: phoneNumber || 'Not provided',
+      fileList
+    };
+
+    // Simulate progress for the notification
+    setFiles(prev => prev.map(f => ({ ...f, status: 'uploading', progress: 50 })));
+
     try {
-      const fileList = files
-        .map(f => `${f.file.name} (${(f.file.size / 1024 / 1024).toFixed(1)} MB)`) 
-        .join('\n');
-      const templateParams = { phoneNumber: phoneNumber || 'Not provided', fileList };
       await emailjs.send(EMAILJS_SERVICE_ID, EMAILJS_TEMPLATE_ID, templateParams, EMAILJS_PUBLIC_KEY);
-      setStep('success');
-    } catch (emailError) {
-      setError('Could not send notification.');
-      setStep('failure');
+      setFiles(prev => prev.map(f => ({ ...f, status: 'success', progress: 100 })));
+    } catch (error) {
+      setFiles(prev => prev.map(f => ({ ...f, status: 'error', error: 'Notification failed' })));
+      setGlobalError('Failed to send notification. Please try again.');
     } finally {
-      setLoading(false);
+      setIsSubmitting(false);
     }
   };
 
-  const resetModal = () => {
-    setStep('upload');
+  const resetAndClose = () => {
     setFiles([]);
     setPhoneNumber('');
-    setError('');
-    setLoading(false);
+    setIsSubmitting(false);
+    setGlobalError('');
     onClose();
   };
 
-  const getFileIcon = (file: File) => (file.type.includes('pdf') ? 'PDF' : 'IMG');
+  const allSuccess = files.length > 0 && files.every(f => f.status === 'success');
 
   return (
-    <Dialog open={isOpen} onOpenChange={(open) => { if (!open) resetModal(); }}>
-      <DialogContent className="sm:max-w-md">
+    <Dialog open={isOpen} onOpenChange={(open) => { if (!open) resetAndClose(); }}>
+      <DialogContent className="sm:max-w-lg" data-test-id="upload-modal">
         <DialogHeader>
           <DialogTitle className="text-2xl font-heading font-bold text-center">
-            Upload Your Files
+            {allSuccess ? 'Files Sent' : 'Upload Your Files'}
           </DialogTitle>
         </DialogHeader>
         <AnimatePresence mode="wait">
-          {step === 'upload' && (
-            <motion.div key="upload" className="space-y-6">
+          {!allSuccess ? (
+            <motion.div key="upload-view" className="space-y-4">
               <div
                 {...getRootProps()}
-                className={`border-2 border-dashed rounded-xl p-8 text-center cursor-pointer ${
-                  isDragActive ? 'border-cyan bg-cyan/5' : 'border-border hover:border-cyan hover:bg-cyan/5'
+                data-test-id="upload-dropzone"
+                className={`border-2 border-dashed rounded-xl p-6 text-center cursor-pointer transition-colors ${
+                  isDragActive ? 'border-primary bg-primary/5' : 'border-border hover:border-primary/50'
                 }`}
               >
                 <input {...getInputProps()} />
-                <Upload className="w-12 h-12 mx-auto mb-4 text-muted-foreground" />
-                <p className="text-lg font-medium">
-                  {isDragActive ? 'Drop files here' : 'Drag & drop files'}
+                <Upload className="w-10 h-10 mx-auto mb-3 text-muted-foreground" />
+                <p className="font-semibold">
+                  {isDragActive ? 'Drop files here' : 'Drag & drop or click to browse'}
                 </p>
-                <p className="text-sm text-muted-foreground">or click to browse — Max 15MB each</p>
+                <p className="text-sm text-muted-foreground">Max 5 files, 15MB each</p>
               </div>
+
+              {globalError && <p data-test-id="upload-error" className="text-destructive text-sm font-medium text-center">{globalError}</p>}
+
               {files.length > 0 && (
-                <div className="space-y-2">
-                  <Label>Selected Files:</Label>
-                  {files.map((f, i) => (
-                    <div key={i} className="flex items-center justify-between p-3 bg-muted rounded-lg">
-                      <div className="flex items-center space-x-3">
-                        <span>{getFileIcon(f.file)}</span>
-                        <div>
-                          <p className="text-sm font-medium truncate max-w-[200px]">{f.file.name}</p>
-                          <p className="text-xs text-muted-foreground">{(f.file.size / 1024 / 1024).toFixed(1)} MB</p>
-                        </div>
-                      </div>
-                      <Button variant="ghost" size="sm" onClick={() => removeFile(i)}>
-                        Remove
-                      </Button>
-                    </div>
+                <div className="space-y-3 max-h-48 overflow-y-auto pr-2">
+                  {files.map((f) => (
+                    <FileProgressItem key={f.id} file={f} onRemove={() => removeFile(f.id)} />
                   ))}
                 </div>
               )}
+
               <div className="space-y-2">
-                <Label htmlFor="phone">Phone Number (Optional)</Label>
+                <Label htmlFor="phone" className="font-semibold">Phone Number (Optional)</Label>
                 <Input
                   id="phone"
                   type="tel"
-                  placeholder="Enter your phone number"
+                  placeholder="For faster communication"
                   value={phoneNumber}
-                  onChange={e => setPhoneNumber(e.target.value.replace(/\D/g, '').slice(0, 10))}
+                  onChange={e => setPhoneNumber(e.target.value.replace(/\D/g, '').slice(0, 15))}
                 />
               </div>
-              {error && <p className="text-destructive text-sm">{error}</p>}
-              <Button
-                variant="cyan"
-                className="w-full"
-                onClick={handleSendNotification}
-                disabled={files.length === 0 || loading}
-              >
-                {loading ? (
-                  <>
-                    <Loader2 className="mr-2 h-4 w-4 animate-spin" /> Sending...
-                  </>
-                ) : (
-                  'Send Notification'
-                )}
-              </Button>
             </motion.div>
-          )}
-          {step === 'success' && (
-            <motion.div key="success" className="text-center space-y-6">
+          ) : (
+            <motion.div key="success-view" className="text-center space-y-4 py-8">
               <CheckCircle className="w-16 h-16 mx-auto text-green-500" />
-              <h3>Notification Sent!</h3>
-              <p>We've received your request. We will contact you shortly to arrange the file transfer.</p>
-              <Button variant="cyan" onClick={resetModal} className="w-full">
-                Done
-              </Button>
-            </motion.div>
-          )}
-          {step === 'failure' && (
-            <motion.div key="failure" className="text-center space-y-6">
-              <AlertCircle className="w-16 h-16 mx-auto text-destructive" />
-              <h3>Something Went Wrong</h3>
-              <p>{error || 'An unknown error occurred.'}</p>
-              <Button variant="outline" onClick={() => setStep('upload')} className="w-full">
-                Try Again
-              </Button>
+              <h3 className="text-xl font-bold">Notification Sent!</h3>
+              <p className="text-muted-foreground">We have received your file list and will contact you shortly.</p>
             </motion.div>
           )}
         </AnimatePresence>
+        <DialogFooter className="mt-4">
+          {allSuccess ? (
+            <Button onClick={resetAndClose} className="w-full" variant="cyan">Done</Button>
+          ) : (
+            <>
+              <Button variant="outline" onClick={resetAndClose} disabled={isSubmitting}>Cancel</Button>
+              <Button
+                variant="cyan"
+                onClick={handleSend}
+                disabled={isSubmitting || files.length === 0}
+                className="w-full sm:w-auto"
+              >
+                {isSubmitting ? <><Loader2 className="mr-2 h-4 w-4 animate-spin" /> Sending...</> : 'Send Notification'}
+              </Button>
+            </>
+          )}
+        </DialogFooter>
       </DialogContent>
     </Dialog>
   );
 };
+
+const FileProgressItem = ({ file, onRemove }: { file: UploadFile, onRemove: () => void }) => {
+  return (
+    <div className="flex items-center justify-between p-3 bg-muted/50 rounded-lg">
+      <div className="flex items-center gap-4 flex-1 min-w-0">
+        <FileIcon className="h-6 w-6 text-muted-foreground" />
+        <div className="flex-1 min-w-0">
+          <p className="text-sm font-medium truncate">{file.file.name}</p>
+          <div className="flex items-center gap-2">
+            <p className="text-xs text-muted-foreground">{(file.file.size / 1024 / 1024).toFixed(2)} MB</p>
+            {file.status === 'error' && <p className="text-xs text-destructive font-semibold">{file.error}</p>}
+          </div>
+        </div>
+      </div>
+      <div className="flex items-center gap-2">
+        {file.status === 'pending' && <button onClick={onRemove}><X className="h-5 w-5 text-muted-foreground hover:text-foreground"/></button>}
+        {file.status === 'uploading' && <Loader2 className="h-5 w-5 animate-spin text-primary" />}
+        {file.status === 'success' && <CheckCircle className="h-5 w-5 text-green-500" />}
+        {file.status === 'error' && <AlertCircle className="h-5 w-5 text-destructive" />}
+      </div>
+    </div>
+  )
+}
 
 export default FileUploadModal;
 

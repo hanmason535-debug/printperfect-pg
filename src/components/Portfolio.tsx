@@ -1,25 +1,20 @@
 
 import { usePortfolio } from '@/hooks/usePortfolio'
 import { motion, AnimatePresence } from 'framer-motion'
-import {
-  Pagination,
-  PaginationContent,
-  PaginationItem,
-  PaginationLink,
-  PaginationNext,
-  PaginationPrevious
-} from '@/components/ui/pagination'
+import { Button } from '@/components/ui/button'
 import { Skeleton } from '@/components/ui/skeleton'
 import { urlFor } from '@/lib/image'
-import { useState, useMemo, useEffect, useCallback } from 'react'
+import { useState, useMemo, useCallback } from 'react'
 import Lightbox from '@/components/Lightbox'
+import { ChevronRight } from 'lucide-react'
 
-const PER_PAGE = 9
+const INITIAL_DISPLAY = 12  // 4x3 grid
+const MAX_PORTFOLIO = 50
 
 const Portfolio = () => {
   const { data: allItems, loading, error } = usePortfolio()
   const [activeFilter, setActiveFilter] = useState<string>('All')
-  const [page, setPage] = useState(1)
+  const [showAll, setShowAll] = useState(false)
   
   const [lightboxOpen, setLightboxOpen] = useState(false)
   const [lightboxStart, setLightboxStart] = useState(0)
@@ -31,26 +26,19 @@ const Portfolio = () => {
   }, [allItems, loading])
 
   const filteredItems = useMemo(() => {
-    if (activeFilter === 'All') {
-      return allItems
-    }
-    return allItems.filter(item => item.category === activeFilter)
+    const filtered = activeFilter === 'All' 
+      ? allItems 
+      : allItems.filter(item => item.category === activeFilter)
+    
+    // Limit to max 50 items
+    return filtered.slice(0, MAX_PORTFOLIO)
   }, [activeFilter, allItems])
 
-  const totalPages = Math.max(1, Math.ceil(filteredItems.length / PER_PAGE))
+  const displayedItems = useMemo(() => {
+    return showAll ? filteredItems : filteredItems.slice(0, INITIAL_DISPLAY)
+  }, [showAll, filteredItems])
 
-  useEffect(() => {
-    setPage(1)
-  }, [activeFilter])
-
-  useEffect(() => {
-    if (page > totalPages) {
-      setPage(totalPages)
-    }
-  }, [page, totalPages])
-
-  const startIndex = (page - 1) * PER_PAGE
-  const pageItems = filteredItems.slice(startIndex, startIndex + PER_PAGE)
+  const hasMore = filteredItems.length > INITIAL_DISPLAY
 
   const handleImageClick = useCallback((itemId: string) => {
     const idx = filteredItems.findIndex((x) => x._id === itemId)
@@ -155,9 +143,9 @@ const Portfolio = () => {
         >
           {loading ? (
             renderSkeletons()
-          ) : pageItems.length > 0 ? (
-            <AnimatePresence>
-              {pageItems.map((p) => (
+          ) : displayedItems.length > 0 ? (
+            <AnimatePresence mode="popLayout">
+              {displayedItems.map((p) => (
                 <motion.article
                   key={p._id}
                   data-testid={`portfolio-item-${p._id}`}
@@ -192,54 +180,33 @@ const Portfolio = () => {
           )}
         </motion.div>
 
-        {/* Pagination */}
-        {totalPages > 1 && (
+        {/* Load More / Load Less Button */}
+        {!loading && hasMore && (
           <motion.div
-            className="mt-16 flex justify-center"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ duration: 0.5, delay: 0.5 }}
+            className="text-center mt-12"
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.5, delay: 0.2 }}
+            viewport={{ once: true }}
           >
-            <Pagination>
-              <PaginationContent>
-                <PaginationItem>
-                  <PaginationPrevious
-                    href="#"
-                    onClick={(e) => {
-                      e.preventDefault()
-                      setPage((p) => Math.max(1, p - 1))
-                    }}
-                    aria-disabled={page === 1}
-                    className={page === 1 ? 'pointer-events-none opacity-50' : ''}
-                  />
-                </PaginationItem>
-                {Array.from({ length: totalPages }, (_, i) => i + 1).map((pageNum) => (
-                  <PaginationItem key={pageNum}>
-                    <PaginationLink
-                      href="#"
-                      onClick={(e) => {
-                        e.preventDefault()
-                        setPage(pageNum)
-                      }}
-                      isActive={page === pageNum}
-                    >
-                      {pageNum}
-                    </PaginationLink>
-                  </PaginationItem>
-                ))}
-                <PaginationItem>
-                  <PaginationNext
-                    href="#"
-                    onClick={(e) => {
-                      e.preventDefault()
-                      setPage((p) => Math.min(totalPages, p + 1))
-                    }}
-                    aria-disabled={page === totalPages}
-                    className={page === totalPages ? 'pointer-events-none opacity-50' : ''}
-                  />
-                </PaginationItem>
-              </PaginationContent>
-            </Pagination>
+            <Button
+              onClick={() => {
+                setShowAll(!showAll)
+                // Reset filter when collapsing to avoid confusion
+                if (showAll) setActiveFilter('All')
+              }}
+              variant="outline"
+              size="lg"
+              className="group border-cyan/30 hover:border-cyan hover:bg-cyan/10 transition-all duration-300"
+            >
+              {showAll ? 'Show Less' : `Load More (${filteredItems.length} items)`}
+              <motion.div
+                animate={{ rotate: showAll ? 180 : 0 }}
+                transition={{ duration: 0.3 }}
+              >
+                <ChevronRight className="w-5 h-5 ml-2 rotate-90" />
+              </motion.div>
+            </Button>
           </motion.div>
         )}
 

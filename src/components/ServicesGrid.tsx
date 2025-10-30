@@ -10,7 +10,7 @@ const INITIAL_DISPLAY = 9  // 3x3 grid
 const MAX_SERVICES = 25
 
 const ServicesGrid = () => {
-  const { data: services, loading, error } = useServices()
+  const services = useServices()
   const [showAll, setShowAll] = useState(false)
 
   const limitedServices = services.slice(0, MAX_SERVICES)
@@ -67,7 +67,7 @@ const ServicesGrid = () => {
     <div className="col-span-full text-center py-16">
       <h3 className="text-2xl font-semibold text-foreground mb-2">No Services Available</h3>
       <p className="text-muted-foreground">
-        {error ? "We're having trouble loading our services. Please try again later." : "Please check back soon to see what we offer."}
+        Please check back soon to see what we offer.
       </p>
     </div>
   )
@@ -103,9 +103,7 @@ const ServicesGrid = () => {
           whileInView="visible"
           viewport={{ once: true, margin: "-100px" }}
         >
-          {loading ? (
-            renderSkeletons()
-          ) : displayedServices.length > 0 ? (
+          {displayedServices.length > 0 ? (
             <AnimatePresence mode="popLayout">
               {displayedServices.map((service, index) => {
                 const imageUrl = service.image ? urlFor(service.image).width(800).url() : ''
@@ -176,7 +174,7 @@ const ServicesGrid = () => {
         </motion.div>
 
         {/* View More / View Less Button */}
-        {!loading && hasMore && (
+        {hasMore && (
           <motion.div
             className="text-center"
             initial={{ opacity: 0, y: 20 }}

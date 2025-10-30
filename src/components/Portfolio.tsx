@@ -12,7 +12,7 @@ const INITIAL_DISPLAY = 12  // 4x3 grid
 const MAX_PORTFOLIO = 50
 
 const Portfolio = () => {
-  const { data: allItems, loading, error } = usePortfolio()
+  const allItems = usePortfolio()
   const [activeFilter, setActiveFilter] = useState<string>('All')
   const [showAll, setShowAll] = useState(false)
   
@@ -20,10 +20,10 @@ const Portfolio = () => {
   const [lightboxStart, setLightboxStart] = useState(0)
 
   const categories = useMemo(() => {
-    if (loading || !allItems.length) return []
+    if (!allItems.length) return []
     const allCategories = allItems.map(item => item.category).filter(Boolean) as string[]
     return ['All', ...Array.from(new Set(allCategories))]
-  }, [allItems, loading])
+  }, [allItems])
 
   const filteredItems = useMemo(() => {
     const filtered = activeFilter === 'All' 
@@ -72,7 +72,7 @@ const Portfolio = () => {
     <div className="col-span-full text-center py-16" data-testid="portfolio-empty">
       <h3 className="text-2xl font-semibold text-foreground mb-2">No Items Found</h3>
       <p className="text-muted-foreground">
-        {error ? "We're having trouble loading our portfolio. Please try again later." : "This category is empty. Try another one!"}
+        This category is empty. Try another one!
       </p>
     </div>
   );
@@ -141,10 +141,8 @@ const Portfolio = () => {
           initial="hidden"
           animate="visible"
         >
-          {loading ? (
-            renderSkeletons()
-          ) : displayedItems.length > 0 ? (
-            <AnimatePresence mode="popLayout">
+          {displayedItems.length > 0 ? (
+            <AnimatePresence>
               {displayedItems.map((p) => (
                 <motion.article
                   key={p._id}
@@ -181,7 +179,7 @@ const Portfolio = () => {
         </motion.div>
 
         {/* Load More / Load Less Button */}
-        {!loading && hasMore && (
+        {hasMore && (
           <motion.div
             className="text-center mt-12"
             initial={{ opacity: 0, y: 20 }}

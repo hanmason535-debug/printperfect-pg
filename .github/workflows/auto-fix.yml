@@ -94,4 +94,5 @@ jobs:
             echo "${{ steps.compose.outputs.advisory }}" >> $GITHUB_STEP_SUMMARY
           else
             echo "No advisory messages (nothing relevant changed)." >> $GITHUB_STEP_SUMMARY
+          fi
 

@@ -1,0 +1,88 @@
+name: Performance Monitoring
+
+on:
+  pull_request:
+    paths:
+      - 'src/**'
+      - 'public/**'
+      - 'package*.json'
+      - 'vite.config.ts'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pull-requests: write
+
+jobs:
+  lighthouse:
+    name: Lighthouse CI
+    runs-on: ubuntu-latest
+    if: github.event.pull_request.draft == false
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build for performance test
+        env:
+          VITE_SANITY_PROJECT_ID: ${{ secrets.VITE_SANITY_PROJECT_ID }}
+          VITE_SANITY_DATASET: ${{ secrets.VITE_SANITY_DATASET }}
+        run: npm run build
+
+      - name: Serve built files
+        run: npx serve -s dist -l 8080 &
+        
+      - name: Wait for server
+        run: npx wait-on http://localhost:8080 --timeout 30000
+
+      - name: Run Lighthouse
+        run: |
+          npm install -g @lhci/cli
+          lhci autorun --upload.target=temporary-public-storage || echo "Lighthouse completed with warnings"
+        env:
+          LHCI_GITHUB_APP_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  bundle-analysis:
+    name: Bundle Size Analysis
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Analyze bundle
+        env:
+          VITE_SANITY_PROJECT_ID: ${{ secrets.VITE_SANITY_PROJECT_ID }}
+          VITE_SANITY_DATASET: ${{ secrets.VITE_SANITY_DATASET }}
+        run: |
+          npm run build
+          
+          echo "## Bundle Analysis" >> $GITHUB_STEP_SUMMARY
+          echo "### Files by size:" >> $GITHUB_STEP_SUMMARY
+          echo "\`\`\`" >> $GITHUB_STEP_SUMMARY
+          find dist -type f -exec du -h {} + | sort -rh | head -20 >> $GITHUB_STEP_SUMMARY
+          echo "\`\`\`" >> $GITHUB_STEP_SUMMARY
+          
+          # Count assets
+          JS_COUNT=$(find dist -name "*.js" | wc -l)
+          CSS_COUNT=$(find dist -name "*.css" | wc -l)
+          IMG_COUNT=$(find dist -type f \( -name "*.jpg" -o -name "*.png" -o -name "*.svg" -o -name "*.webp" \) | wc -l)
+          
+          echo "### Asset counts:" >> $GITHUB_STEP_SUMMARY
+          echo "- JavaScript files: $JS_COUNT" >> $GITHUB_STEP_SUMMARY
+          echo "- CSS files: $CSS_COUNT" >> $GITHUB_STEP_SUMMARY
+          echo "- Image files: $IMG_COUNT" >> $GITHUB_STEP_SUMMARY

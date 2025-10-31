@@ -37,8 +37,8 @@ jobs:
 
       - name: Build
         env:
-          VITE_SANITY_PROJECT_ID: ${{ secrets.VITE_SANITY_PROJECT_ID }}
-          VITE_SANITY_DATASET: ${{ secrets.VITE_SANITY_DATASET }}
+          VITE_SANITY_PROJECT_ID: ${{ secrets.VITE_SANITY_PROJECT_ID || '' }}
+          VITE_SANITY_DATASET: ${{ secrets.VITE_SANITY_DATASET || 'production' }}
         run: npm run build
       
       - name: Upload build artifacts

@@ -135,7 +135,7 @@ const Portfolio = () => {
           <motion.div
             className="flex flex-wrap justify-center gap-4 mb-12"
             role="tablist"
-            aria-label="Portfolio filter"
+            aria-label="Filter portfolio by category"
             initial={{ opacity: 0, y: 20 }}
             whileInView={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6 }}
@@ -148,8 +148,9 @@ const Portfolio = () => {
                 role="tab"
                 aria-selected={activeFilter === category}
                 aria-controls="portfolio-grid"
+                aria-label={`Filter portfolio by ${category}`}
                 onClick={() => setActiveFilter(category)}
-                className={`px-6 py-2 rounded-full text-sm font-medium transition-all duration-300 ${
+                className={`px-6 py-2 rounded-full text-sm font-medium transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-cyan focus:ring-offset-2 ${
                   activeFilter === category
                     ? 'bg-primary text-primary-foreground shadow-lg'
                     : 'bg-secondary text-secondary-foreground hover:bg-secondary/80'
@@ -185,19 +186,28 @@ const Portfolio = () => {
                   key={p._id}
                   data-testid={`portfolio-item-${p._id}`}
                   layout
-                  className="group relative overflow-hidden rounded-xl bg-card shadow-lg hover:shadow-xl transition-shadow duration-300 cursor-pointer"
+                  className="group relative overflow-hidden rounded-xl bg-card shadow-lg hover:shadow-xl transition-shadow duration-300 cursor-pointer focus-within:ring-2 focus-within:ring-cyan focus-within:ring-offset-2"
                   variants={itemVariants}
                   initial="hidden"
                   animate="visible"
                   exit="hidden"
                   whileHover={{ y: -10 }}
                   onClick={() => handleImageClick(p._id)}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter' || e.key === ' ') {
+                      e.preventDefault();
+                      handleImageClick(p._id);
+                    }
+                  }}
+                  role="button"
+                  tabIndex={0}
+                  aria-label={`View ${p.title} - ${p.category} in lightbox`}
                 >
                   <div className="aspect-square overflow-hidden bg-gradient-to-br from-slate-700 to-slate-900">
                     {p.image ? (
                       <motion.img
                         src={urlFor(p.image).width(600).height(600).fit('crop').url()}
-                        alt={p.title || 'Portfolio item'}
+                        alt={`${p.title} - ${p.category} portfolio sample`}
                         className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
                         onError={(e) => {
                           e.currentTarget.style.display = 'none'
@@ -205,14 +215,14 @@ const Portfolio = () => {
                       />
                     ) : null}
                     {/* Fallback gradient if no image */}
-                    <div className="absolute inset-0 bg-gradient-to-br from-cyan/20 to-purple/20 flex items-center justify-center">
+                    <div className="absolute inset-0 bg-gradient-to-br from-cyan/20 to-purple/20 flex items-center justify-center" aria-hidden="true">
                       <div className="text-center text-white/40">
-                        <div className="text-4xl mb-2">📷</div>
+                        <div className="text-4xl mb-2" aria-hidden="true">📷</div>
                         <div className="text-xs">Image unavailable</div>
                       </div>
                     </div>
                   </div>
-                  <div className="absolute inset-0 bg-gradient-to-t from-black/70 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/70 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" aria-hidden="true" />
                   <div className="absolute bottom-0 left-0 right-0 p-6 text-white translate-y-4 opacity-0 group-hover:opacity-100 group-hover:translate-y-0 transition-all duration-300">
                     <h3 className="text-xl font-bold mb-1">{p.title}</h3>
                     <p className="text-sm opacity-90">{p.category}</p>

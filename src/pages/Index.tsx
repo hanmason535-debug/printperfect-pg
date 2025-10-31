@@ -26,29 +26,43 @@ const Index = () => {
 
   return (
     <div className="min-h-screen bg-background">
+      {/* Skip to main content link for keyboard navigation */}
+      <a
+        href="#main-content"
+        className="sr-only focus:not-sr-only focus:absolute focus:top-4 focus:left-4 focus:z-[100] focus:px-4 focus:py-2 focus:bg-cyan-600 focus:text-white focus:rounded focus:shadow-lg"
+      >
+        Skip to main content
+      </a>
+      
       {/* Header component, always loaded */}
       <Header />
       
-      {/* Hero Section component, always loaded */}
-      <section id="home">
-        <HeroSection onUploadClick={() => setIsUploadModalOpen(true)} />
-      </section>
-      
-      {/* Services Grid component, always loaded */}
-      <ServicesGrid />
+      {/* Main content starts here */}
+      <main id="main-content">
+        {/* Hero Section component, always loaded */}
+        <section id="home" aria-label="Welcome and hero section">
+          <HeroSection onUploadClick={() => setIsUploadModalOpen(true)} />
+        </section>
+        
+        {/* Services Grid component, always loaded */}
+        <ServicesGrid />
       
       {/* Why Choose Us component, always loaded */}
-      <WhyChooseUs />
+        <WhyChooseUs />
 
-      {/* Suspense boundary for lazy-loaded components below the fold */}
-      {/* A simple loading message is displayed while these components are being fetched. */}
-      <Suspense fallback={<div className="text-center p-10">Loading...</div>}>
-        {/* Portfolio section, lazy-loaded */}
-        <Portfolio />
-        
-        {/* Contact and Footer section, lazy-loaded */}
-        <Contact />
-        
+        {/* Suspense boundary for lazy-loaded components below the fold */}
+        {/* A simple loading message is displayed while these components are being fetched. */}
+        <Suspense fallback={<div className="text-center p-10" role="status" aria-live="polite">Loading...</div>}>
+          {/* Portfolio section, lazy-loaded */}
+          <Portfolio />
+          
+          {/* Contact and Footer section, lazy-loaded */}
+          <Contact />
+        </Suspense>
+      </main>
+      
+      {/* Suspense for floating components */}
+      <Suspense fallback={null}>
         {/* Floating WhatsApp button, lazy-loaded */}
         <FloatingWhatsApp />
       </Suspense>

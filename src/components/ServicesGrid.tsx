@@ -4,13 +4,14 @@ import { urlFor } from '@/lib/image'
 import { Skeleton } from '@/components/ui/skeleton'
 import { Button } from '@/components/ui/button'
 import { useState } from 'react'
-import { ChevronRight } from 'lucide-react'
+import { ChevronRight, AlertCircle } from 'lucide-react'
+import { ServicesSkeleton } from '@/components/SkeletonLoader'
 
 const INITIAL_DISPLAY = 9  // 3x3 grid
 const MAX_SERVICES = 25
 
 const ServicesGrid = () => {
-  const services = useServices()
+  const { data: services, loading, error } = useServices()
   const [showAll, setShowAll] = useState(false)
 
   const limitedServices = services.slice(0, MAX_SERVICES)
@@ -72,6 +73,27 @@ const ServicesGrid = () => {
     </div>
   )
 
+  const renderErrorState = () => (
+    <div className="col-span-full text-center py-16">
+      <div className="flex justify-center mb-4">
+        <div className="p-3 bg-red-500/10 rounded-full">
+          <AlertCircle className="w-12 h-12 text-red-500" />
+        </div>
+      </div>
+      <h3 className="text-2xl font-semibold text-foreground mb-2">Failed to Load Services</h3>
+      <p className="text-muted-foreground mb-4">
+        {error?.message || 'An error occurred while loading services.'}
+      </p>
+      <Button
+        onClick={() => window.location.reload()}
+        variant="outline"
+        className="border-cyan/30 hover:border-cyan hover:bg-cyan/10"
+      >
+        Try Again
+      </Button>
+    </div>
+  )
+
   return (
     <section id="services" className="py-20 bg-gradient-subtle">
       <div className="container mx-auto px-4 lg:px-8">
@@ -96,15 +118,22 @@ const ServicesGrid = () => {
         </motion.div>
 
         {/* Services Grid - 3x3 layout */}
-        <motion.div
-          className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8"
-          variants={containerVariants}
-          initial="hidden"
-          whileInView="visible"
-          viewport={{ once: true, margin: "-100px" }}
-        >
-          {displayedServices.length > 0 ? (
-            <AnimatePresence mode="popLayout">
+        <>
+          {loading ? (
+            <ServicesSkeleton count={INITIAL_DISPLAY} />
+          ) : error ? (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
+              {renderErrorState()}
+            </div>
+          ) : displayedServices.length > 0 ? (
+            <motion.div
+              className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8"
+              variants={containerVariants}
+              initial="hidden"
+              whileInView="visible"
+              viewport={{ once: true, margin: "-100px" }}
+            >
+              <AnimatePresence mode="popLayout">
               {displayedServices.map((service, index) => {
                 const imageUrl = service.image ? urlFor(service.image).width(800).url() : ''
                 const description = service.description ?? ''
@@ -182,11 +211,14 @@ const ServicesGrid = () => {
                   </motion.div>
                 )
               })}
-            </AnimatePresence>
+              </AnimatePresence>
+            </motion.div>
           ) : (
-            renderEmptyState()
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
+              {renderEmptyState()}
+            </div>
           )}
-        </motion.div>
+        </>
 
         {/* View More / View Less Button */}
         {hasMore && (

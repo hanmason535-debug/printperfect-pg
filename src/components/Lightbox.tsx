@@ -8,26 +8,26 @@ import type { PortfolioItem } from "@/types/cms"
 type Props = {
   open: boolean
   onOpenChange: (v: boolean) => void
-  items: PortfolioItem[]           // filtered set (in display order)
-  startIndex: number               // index of clicked card within filtered set
+  items: PortfolioItem[]
+  startIndex: number
 }
 
 export default function Lightbox({ open, onOpenChange, items, startIndex }: Props) {
-  const [index, setIndex] = useState(startIndex)
+  const [index, setIndex] = useState(() => {
+    if (!items.length) return 0
+    return Math.max(0, Math.min(startIndex, items.length - 1))
+  })
   const [hoverNext, setHoverNext] = useState(false)
   const [nudgeTick, setNudgeTick] = useState(0)
   const reduceMotion = useReducedMotion()
   const imgRef = useRef<HTMLImageElement | null>(null)
 
-  // keep index valid if items change while open
   useEffect(() => {
-    if (open) setIndex((i) => Math.min(Math.max(0, i), Math.max(0, items.length - 1)))
-  }, [items.length, open])
-
-  // reset to the clicked item when opening
-  useEffect(() => {
-    if (open) setIndex(startIndex)
-  }, [open, startIndex])
+    if (open && items.length) {
+      const validIndex = Math.max(0, Math.min(startIndex, items.length - 1))
+      setIndex(validIndex)
+    }
+  }, [items.length, open, startIndex])
 
   const prev = useCallback(() => {
     if (!items.length) return
@@ -39,7 +39,6 @@ export default function Lightbox({ open, onOpenChange, items, startIndex }: Prop
     setIndex((i) => (i + 1) % items.length)
   }, [items.length])
 
-  // keyboard: esc closes; arrows navigate
   useEffect(() => {
     if (!open) return
     const onKey = (e: KeyboardEvent) => {
@@ -51,7 +50,6 @@ export default function Lightbox({ open, onOpenChange, items, startIndex }: Prop
     return () => window.removeEventListener("keydown", onKey)
   }, [open, onOpenChange, next, prev])
 
-  // preload neighbors
   useEffect(() => {
     if (!items.length) return
     const preload = (idx: number) => {
@@ -65,12 +63,6 @@ export default function Lightbox({ open, onOpenChange, items, startIndex }: Prop
     preload((index - 1 + items.length) % items.length)
   }, [index, items])
 
-  const current = items[index]
-  const imgSrc = useMemo(() => {
-    if (!current?.image) return ""
-    return urlFor(current.image).width(1600).format("webp").url()
-  }, [current])
-
   // gentle nudge on the Next button every 4s (disabled on hover / reduce-motion)
   useEffect(() => {
     if (!open || reduceMotion) return
@@ -80,13 +72,18 @@ export default function Lightbox({ open, onOpenChange, items, startIndex }: Prop
     return () => clearInterval(id)
   }, [open, hoverNext, reduceMotion])
 
-  if (!open || !current) return null
+  const current = items[index]
+  const imgSrc = useMemo(() => {
+    if (!current?.image) return ""
+    return urlFor(current.image).width(1600).format("webp").url()
+  }, [current])
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <AnimatePresence>
         {open && current && (
           <DialogContent
+            data-testid="lightbox"
             className="p-0 border-0 bg-transparent shadow-none max-w-none w-full h-full"
             onOpenAutoFocus={(e) => e.preventDefault()}
           >
@@ -96,6 +93,8 @@ export default function Lightbox({ open, onOpenChange, items, startIndex }: Prop
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
+              transition={{ duration: reduceMotion ? 0 : 0.2 }}
+              onClick={() => onOpenChange(false)}
             />
 
             {/* Stage (image + caption) */}
@@ -103,10 +102,10 @@ export default function Lightbox({ open, onOpenChange, items, startIndex }: Prop
               role="dialog"
               aria-label={current?.title ?? "Image viewer"}
               className="fixed inset-0 z-[95] flex items-center justify-center"
-              initial={{ opacity: 0, scale: 0.98 }}
+              initial={reduceMotion ? { opacity: 1, scale: 1 } : { opacity: 0, scale: 0.98 }}
               animate={{ opacity: 1, scale: 1 }}
-              exit={{ opacity: 0, scale: 0.98 }}
-              transition={{ duration: 0.18, ease: "easeOut" }}
+              exit={reduceMotion ? { opacity: 1, scale: 1 } : { opacity: 0, scale: 0.98 }}
+              transition={{ duration: reduceMotion ? 0 : 0.18, ease: "easeOut" }}
             >
               <div className="relative mx-4 my-8 max-h-[90vh] max-w-[92vw]">
                 {imgSrc && (
@@ -120,8 +119,10 @@ export default function Lightbox({ open, onOpenChange, items, startIndex }: Prop
                 )}
 
                 {(current?.title || current?.description) && (
-                  <div className="mt-3 rounded-md bg-black/60 px-3 py-2 text-white">
-                    {current?.title && <h3 className="text-sm font-medium">{current.title}</h3>}
+                  <div className="mt-3 rounded-md bg-black/60 px-3 py-2 text-white text-center">
+                    {current?.title && (
+                      <h3 className="text-sm font-medium">{current.title}</h3>
+                    )}
                     {current?.description && (
                       <p className="mt-1 text-xs opacity-90">{current.description}</p>
                     )}
@@ -130,9 +131,9 @@ export default function Lightbox({ open, onOpenChange, items, startIndex }: Prop
               </div>
             </motion.div>
 
-            {/* OUTSIDE controls (always above) */}
             {/* Close (top-right) */}
             <button
+              data-testid="lightbox-close"
               onClick={() => onOpenChange(false)}
               aria-label="Close"
               className="fixed right-5 top-5 z-[100] rounded-full bg-black/55 hover:bg-black/65 backdrop-blur px-3 py-3 text-white ring-1 ring-white/20 shadow-lg transition"
@@ -143,6 +144,7 @@ export default function Lightbox({ open, onOpenChange, items, startIndex }: Prop
             {/* Prev (left outside) */}
             {items.length > 1 && (
               <button
+                data-testid="lightbox-prev"
                 onClick={prev}
                 aria-label="Previous"
                 className="fixed left-6 top-1/2 z-[100] -translate-y-1/2 rounded-full bg-black/55 hover:bg-black/65 backdrop-blur px-3.5 py-3.5 text-white ring-1 ring-white/20 shadow-lg transition"
@@ -154,7 +156,8 @@ export default function Lightbox({ open, onOpenChange, items, startIndex }: Prop
             {/* Next (right outside) with gentle nudge */}
             {items.length > 1 && (
               <motion.button
-                key={nudgeTick} // re-triggers nudge animation
+                data-testid="lightbox-next"
+                key={nudgeTick}
                 onMouseEnter={() => setHoverNext(true)}
                 onMouseLeave={() => setHoverNext(false)}
                 onClick={next}

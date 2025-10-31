@@ -23,20 +23,28 @@ jobs:
           node-version: ${{ matrix['node-version'] }}
           cache: npm
 
-      - name: Install
+      - name: Install dependencies
         run: npm ci
 
-      - name: Lint (non-block if you haven’t configured ESLint yet)
-        run: npm run lint || echo "lint skipped"
+      - name: Lint
+        run: npm run lint
 
-      - name: Typecheck (non-block if no tsc script yet)
-        run: npm run typecheck || echo "typecheck skipped"
+      - name: Type check
+        run: npm run typecheck
 
-      - name: Test (Vitest) – non-block if tests absent
-        run: npm run test -- --run || echo "tests skipped"
+      - name: Run tests
+        run: npm run test -- --run
 
       - name: Build
         env:
           VITE_SANITY_PROJECT_ID: ${{ secrets.VITE_SANITY_PROJECT_ID }}
           VITE_SANITY_DATASET: ${{ secrets.VITE_SANITY_DATASET }}
         run: npm run build
+      
+      - name: Upload build artifacts
+        if: success()
+        uses: actions/upload-artifact@v4
+        with:
+          name: dist-${{ matrix.node-version }}
+          path: dist/
+          retention-days: 7

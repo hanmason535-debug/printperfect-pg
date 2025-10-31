@@ -1,9 +1,59 @@
 version: 2
 updates:
+  # NPM dependencies
   - package-ecosystem: npm
     directory: "/"
-    schedule: { interval: weekly }
+    schedule:
+      interval: weekly
+      day: "monday"
+      time: "09:00"
     open-pull-requests-limit: 5
+    labels:
+      - "dependencies"
+      - "automated"
+    commit-message:
+      prefix: "chore(deps)"
+      include: "scope"
+    groups:
+      # Group React-related updates
+      react:
+        patterns:
+          - "react*"
+          - "@types/react*"
+      # Group Radix UI updates
+      radix-ui:
+        patterns:
+          - "@radix-ui/*"
+      # Group testing libraries
+      testing:
+        patterns:
+          - "@testing-library/*"
+          - "vitest*"
+          - "jsdom"
+      # Group build tools
+      build-tools:
+        patterns:
+          - "vite*"
+          - "@vitejs/*"
+          - "typescript"
+          - "tailwindcss"
+    ignore:
+      # Ignore major version updates for stable packages
+      - dependency-name: "react"
+        update-types: ["version-update:semver-major"]
+      - dependency-name: "react-dom"
+        update-types: ["version-update:semver-major"]
+
+  # GitHub Actions
   - package-ecosystem: "github-actions"
     directory: "/"
-    schedule: { interval: weekly }
+    schedule:
+      interval: weekly
+      day: "monday"
+      time: "09:00"
+    open-pull-requests-limit: 3
+    labels:
+      - "dependencies"
+      - "github-actions"
+    commit-message:
+      prefix: "chore(actions)"

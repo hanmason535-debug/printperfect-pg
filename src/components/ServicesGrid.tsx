@@ -133,11 +133,14 @@ const ServicesGrid = () => {
                           className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-110"
                           onError={(e) => {
                             e.currentTarget.style.display = 'none'
+                            // Show fallback when image fails
+                            const fallback = e.currentTarget.nextElementSibling
+                            if (fallback) (fallback as HTMLElement).style.display = 'flex'
                           }}
                         />
                       ) : null}
                       {/* Fallback gradient if no image */}
-                      <div className="absolute inset-0 bg-gradient-to-br from-cyan/20 to-purple/20 flex items-center justify-center">
+                      <div className="absolute inset-0 bg-gradient-to-br from-cyan/20 to-purple/20 flex items-center justify-center" style={imageUrl ? { display: 'none' } : {}}>
                         <div className="text-center text-white/40">
                           <div className="text-4xl mb-2">📷</div>
                           <div className="text-xs">Image unavailable</div>

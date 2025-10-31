@@ -41,9 +41,17 @@ const Portfolio = () => {
   const hasMore = filteredItems.length > INITIAL_DISPLAY
 
   const handleImageClick = useCallback((itemId: string) => {
-    const idx = filteredItems.findIndex((x) => x._id === itemId)
-    setLightboxStart(Math.max(0, idx))
-    setLightboxOpen(true)
+    try {
+      const idx = filteredItems.findIndex((x) => x._id === itemId)
+      if (idx !== -1) {
+        setLightboxStart(idx)
+        setLightboxOpen(true)
+      } else {
+        console.warn('[Portfolio] Item not found:', itemId)
+      }
+    } catch (err) {
+      console.error('[Portfolio] Error clicking item:', err)
+    }
   }, [filteredItems])
 
   const containerVariants = {
@@ -156,14 +164,24 @@ const Portfolio = () => {
                   whileHover={{ y: -10 }}
                   onClick={() => handleImageClick(p._id)}
                 >
-                  <div className="aspect-square overflow-hidden">
-                    {p.image && (
+                  <div className="aspect-square overflow-hidden bg-gradient-to-br from-slate-700 to-slate-900">
+                    {p.image ? (
                       <motion.img
                         src={urlFor(p.image).width(600).height(600).fit('crop').url()}
                         alt={p.title || 'Portfolio item'}
                         className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
+                        onError={(e) => {
+                          e.currentTarget.style.display = 'none'
+                        }}
                       />
-                    )}
+                    ) : null}
+                    {/* Fallback gradient if no image */}
+                    <div className="absolute inset-0 bg-gradient-to-br from-cyan/20 to-purple/20 flex items-center justify-center">
+                      <div className="text-center text-white/40">
+                        <div className="text-4xl mb-2">📷</div>
+                        <div className="text-xs">Image unavailable</div>
+                      </div>
+                    </div>
                   </div>
                   <div className="absolute inset-0 bg-gradient-to-t from-black/70 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
                   <div className="absolute bottom-0 left-0 right-0 p-6 text-white translate-y-4 opacity-0 group-hover:opacity-100 group-hover:translate-y-0 transition-all duration-300">

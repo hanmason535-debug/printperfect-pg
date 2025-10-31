@@ -14,19 +14,19 @@ type Props = {
 }
 
 export default function Lightbox({ open, onOpenChange, items, startIndex }: Props) {
-  const [index, setIndex] = useState(startIndex)
+  const [index, setIndex] = useState(() => {
+    if (!items.length) return 0
+    return Math.max(0, Math.min(startIndex, items.length - 1))
+  })
   const reduceMotion = useReducedMotion()
-  const
-
-imgRef = useRef<HTMLImageElement | null>(null)
+  const imgRef = useRef<HTMLImageElement | null>(null)
 
   useEffect(() => {
-    if (open) setIndex((i) => Math.min(Math.max(0, i), Math.max(0, items.length - 1)))
-  }, [items.length, open])
-
-  useEffect(() => {
-    if (open) setIndex(startIndex)
-  }, [open, startIndex])
+    if (open && items.length) {
+      const validIndex = Math.max(0, Math.min(startIndex, items.length - 1))
+      setIndex(validIndex)
+    }
+  }, [items.length, open, startIndex])
 
   const prev = useCallback(() => {
     if (!items.length) return

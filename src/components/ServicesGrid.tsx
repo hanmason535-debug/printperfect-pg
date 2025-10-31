@@ -125,12 +125,24 @@ const ServicesGrid = () => {
                     title={`Click to WhatsApp us about ${service.title}`}
                   >
                     {/* Service Image */}
-                    <div className="relative h-48 overflow-hidden">
-                      <img
-                        src={imageUrl}
-                        alt={service.title}
-                        className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-110"
-                      />
+                    <div className="relative h-48 overflow-hidden bg-gradient-to-br from-slate-700 to-slate-900">
+                      {imageUrl ? (
+                        <img
+                          src={imageUrl}
+                          alt={service.title}
+                          className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-110"
+                          onError={(e) => {
+                            e.currentTarget.style.display = 'none'
+                          }}
+                        />
+                      ) : null}
+                      {/* Fallback gradient if no image */}
+                      <div className="absolute inset-0 bg-gradient-to-br from-cyan/20 to-purple/20 flex items-center justify-center">
+                        <div className="text-center text-white/40">
+                          <div className="text-4xl mb-2">📷</div>
+                          <div className="text-xs">Image unavailable</div>
+                        </div>
+                      </div>
                       {/* CMYK Border Glow on Hover */}
                       <div className="absolute inset-0 border-2 border-transparent group-hover:border-cyan group-hover:shadow-cyan-glow transition-all duration-300 rounded-xl"></div>
                       {/* Gradient Overlay */}

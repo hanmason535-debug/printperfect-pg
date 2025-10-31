@@ -20,6 +20,7 @@ export default function Lightbox({ open, onOpenChange, items, startIndex }: Prop
   })
   const reduceMotion = useReducedMotion()
   const imgRef = useRef<HTMLImageElement | null>(null)
+  const containerRef = useRef<HTMLDivElement | null>(null)
 
   useEffect(() => {
     if (open && items.length) {
@@ -76,12 +77,15 @@ export default function Lightbox({ open, onOpenChange, items, startIndex }: Prop
             <FocusTrap
               active
               focusTrapOptions={{
-                initialFocus: false,
+                initialFocus: () => containerRef.current ?? false,
+                fallbackFocus: () => containerRef.current ?? undefined,
                 allowOutsideClick: true,
-                preventScroll: true
+                preventScroll: true,
+                escapeDeactivates: true
               }}
             >
               <div
+                ref={containerRef}
                 data-testid="lightbox"
                 className="fixed inset-0 z-[999] flex items-center justify-center"
               >
@@ -91,6 +95,7 @@ export default function Lightbox({ open, onOpenChange, items, startIndex }: Prop
                   initial={{ opacity: 0 }}
                   animate={{ opacity: 1 }}
                   exit={{ opacity: 0 }}
+                  transition={{ duration: reduceMotion ? 0 : 0.2 }}
                   onClick={() => onOpenChange(false)}
                 />
 
@@ -99,10 +104,10 @@ export default function Lightbox({ open, onOpenChange, items, startIndex }: Prop
                   role="dialog"
                   aria-label={current?.title ?? "Image viewer"}
                   className="relative z-10 w-full h-full flex items-center justify-center"
-                  initial={{ opacity: 0, scale: 0.95 }}
+                  initial={reduceMotion ? { opacity: 1, scale: 1 } : { opacity: 0, scale: 0.95 }}
                   animate={{ opacity: 1, scale: 1 }}
-                  exit={{ opacity: 0, scale: 0.95 }}
-                  transition={{ duration: 0.2, ease: "easeOut" }}
+                  exit={reduceMotion ? { opacity: 1, scale: 1 } : { opacity: 0, scale: 0.95 }}
+                  transition={{ duration: reduceMotion ? 0 : 0.2, ease: "easeOut" }}
                 >
                   <div className="relative mx-auto my-8 max-h-[90vh] max-w-[92vw]">
                     {imgSrc && (

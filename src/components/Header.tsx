@@ -101,12 +101,17 @@ const Header = () => {
           </motion.div>
 
           {/* Desktop Navigation */}
-          <nav className="hidden lg:flex items-center space-x-8">
+          <nav 
+            className="hidden lg:flex items-center space-x-8"
+            aria-label="Main navigation"
+            role="navigation"
+          >
             {MENU_ITEMS.map((item) => (
               <button
                 key={item.label}
                 onClick={() => handleNavClick(item.href)}
-                className="text-white hover:text-cyan-accent transition-colors duration-300 font-medium"
+                className="text-white hover:text-cyan-accent transition-colors duration-300 font-medium focus:outline-none focus:ring-2 focus:ring-cyan-accent focus:ring-offset-2 focus:ring-offset-black rounded px-2 py-1"
+                aria-label={`Navigate to ${item.label} section`}
               >
                 {item.label}
               </button>
@@ -114,24 +119,26 @@ const Header = () => {
           </nav>
 
           {/* CTA Buttons */}
-          <div className="flex items-center space-x-3">
+          <div className="flex items-center space-x-3" role="group" aria-label="Contact actions">
             <Button
               variant="whatsapp"
               size="sm"
-              className="hidden sm:flex"
+              className="hidden sm:flex focus:ring-2 focus:ring-green-500 focus:ring-offset-2 focus:ring-offset-black"
               onClick={handleWhatsAppClick}
+              aria-label="Contact us on WhatsApp"
             >
-              <MessageCircle className="w-4 h-4" />
+              <MessageCircle className="w-4 h-4" aria-hidden="true" />
               WhatsApp
             </Button>
             
             <Button
               variant="cyan"
               size="sm"
-              className="hidden sm:flex"
+              className="hidden sm:flex focus:ring-2 focus:ring-cyan-accent focus:ring-offset-2 focus:ring-offset-black"
               onClick={handlePhoneClick}
+              aria-label={`Call us at ${CONTACT.phone}`}
             >
-              <Phone className="w-4 h-4" />
+              <Phone className="w-4 h-4" aria-hidden="true" />
               Call
             </Button>
 
@@ -139,13 +146,14 @@ const Header = () => {
             <Button
               variant="ghost"
               size="icon"
-              className="hidden md:flex h-10 w-10 p-1.5 hover:bg-white/10 transition-colors"
+              className="hidden md:flex h-10 w-10 p-1.5 hover:bg-white/10 transition-colors focus:ring-2 focus:ring-cyan-accent focus:ring-offset-2 focus:ring-offset-black"
               onClick={handleMapsClick}
-              title="Find us on Google Maps"
+              aria-label="Find us on Google Maps"
             >
               <img
                 src={googleMapsIcon}
-                alt="Find us on Google Maps"
+                alt=""
+                aria-hidden="true"
                 className="h-full w-full transition-transform hover:scale-110"
               />
             </Button>
@@ -158,10 +166,12 @@ const Header = () => {
               variant="ghost"
               size="icon"
               onClick={handleMenuToggle}
-              aria-label={isMenuOpen ? 'Close menu' : 'Open menu'}
-              className="text-white"
+              aria-label={isMenuOpen ? 'Close navigation menu' : 'Open navigation menu'}
+              aria-expanded={isMenuOpen}
+              aria-controls="mobile-menu"
+              className="text-white focus:ring-2 focus:ring-cyan-accent focus:ring-offset-2 focus:ring-offset-black"
             >
-              {isMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
+              {isMenuOpen ? <X className="w-6 h-6" aria-hidden="true" /> : <Menu className="w-6 h-6" aria-hidden="true" />}
             </Button>
           </div>
         </div>
@@ -169,6 +179,9 @@ const Header = () => {
         {/* Mobile Menu */}
         {isMenuOpen && (
           <motion.div
+            id="mobile-menu"
+            role="navigation"
+            aria-label="Mobile navigation"
             className="lg:hidden absolute top-full left-0 right-0 bg-black/90 backdrop-blur-md shadow-elevation border-t border-white/20"
             initial={{ opacity: 0, y: -20 }}
             animate={{ opacity: 1, y: 0 }}
@@ -180,28 +193,31 @@ const Header = () => {
                 <button
                   key={item.label}
                   onClick={() => handleNavClick(item.href)}
-                  className="text-white hover:text-cyan-accent transition-colors duration-300 font-medium py-2 text-left w-full"
+                  className="text-white hover:text-cyan-accent transition-colors duration-300 font-medium py-2 text-left w-full focus:outline-none focus:ring-2 focus:ring-cyan-accent focus:ring-offset-2 focus:ring-offset-black/90 rounded px-2"
+                  aria-label={`Navigate to ${item.label} section`}
                 >
                   {item.label}
                 </button>
               ))}
-              <div className="flex space-x-3 pt-2">
+              <div className="flex space-x-3 pt-2" role="group" aria-label="Contact actions">
                 <Button
                   variant="whatsapp"
                   size="sm"
-                  className="flex-1"
+                  className="flex-1 focus:ring-2 focus:ring-green-500 focus:ring-offset-2 focus:ring-offset-black/90"
                   onClick={handleWhatsAppClick}
+                  aria-label="Contact us on WhatsApp"
                 >
-                  <MessageCircle className="w-4 h-4" />
+                  <MessageCircle className="w-4 h-4" aria-hidden="true" />
                   WhatsApp
                 </Button>
                 <Button
                   variant="cyan"
                   size="sm"
-                  className="flex-1"
+                  className="flex-1 focus:ring-2 focus:ring-cyan-accent focus:ring-offset-2 focus:ring-offset-black/90"
                   onClick={handlePhoneClick}
+                  aria-label={`Call us at ${CONTACT.phone}`}
                 >
-                  <Phone className="w-4 h-4" />
+                  <Phone className="w-4 h-4" aria-hidden="true" />
                   Call
                 </Button>
               </div>

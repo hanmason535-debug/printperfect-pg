@@ -4,13 +4,15 @@ import { urlFor } from '@/lib/image'
 import { Skeleton } from '@/components/ui/skeleton'
 import { Button } from '@/components/ui/button'
 import { useState } from 'react'
-import { ChevronRight } from 'lucide-react'
+import { ChevronRight, AlertCircle } from 'lucide-react'
+import { ServicesSkeleton } from '@/components/SkeletonLoader'
+import { OptimizedImage } from '@/components/OptimizedImage'
 
 const INITIAL_DISPLAY = 9  // 3x3 grid
 const MAX_SERVICES = 25
 
 const ServicesGrid = () => {
-  const services = useServices()
+  const { data: services, loading, error } = useServices()
   const [showAll, setShowAll] = useState(false)
 
   const limitedServices = services.slice(0, MAX_SERVICES)
@@ -72,6 +74,27 @@ const ServicesGrid = () => {
     </div>
   )
 
+  const renderErrorState = () => (
+    <div className="col-span-full text-center py-16">
+      <div className="flex justify-center mb-4">
+        <div className="p-3 bg-red-500/10 rounded-full">
+          <AlertCircle className="w-12 h-12 text-red-500" />
+        </div>
+      </div>
+      <h3 className="text-2xl font-semibold text-foreground mb-2">Failed to Load Services</h3>
+      <p className="text-muted-foreground mb-4">
+        {error?.message || 'An error occurred while loading services.'}
+      </p>
+      <Button
+        onClick={() => window.location.reload()}
+        variant="outline"
+        className="border-cyan/30 hover:border-cyan hover:bg-cyan/10"
+      >
+        Try Again
+      </Button>
+    </div>
+  )
+
   return (
     <section id="services" className="py-20 bg-gradient-subtle">
       <div className="container mx-auto px-4 lg:px-8">
@@ -96,21 +119,36 @@ const ServicesGrid = () => {
         </motion.div>
 
         {/* Services Grid - 3x3 layout */}
-        <motion.div
-          className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8"
-          variants={containerVariants}
-          initial="hidden"
-          whileInView="visible"
-          viewport={{ once: true, margin: "-100px" }}
-        >
-          {displayedServices.length > 0 ? (
-            <AnimatePresence mode="popLayout">
+        <>
+          {loading ? (
+            <ServicesSkeleton count={INITIAL_DISPLAY} />
+          ) : error ? (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
+              {renderErrorState()}
+            </div>
+          ) : displayedServices.length > 0 ? (
+            <motion.div
+              className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8"
+              variants={containerVariants}
+              initial="hidden"
+              whileInView="visible"
+              viewport={{ once: true, margin: "-100px" }}
+            >
+              <AnimatePresence mode="popLayout">
               {displayedServices.map((service, index) => {
-                const imageUrl = service.image ? urlFor(service.image).width(800).url() : ''
+                // Generate optimized WebP image URL
+                const imageUrl = service.image 
+                  ? urlFor(service.image)
+                      .width(800)
+                      .height(600)
+                      .format('webp')
+                      .quality(85)
+                      .url()
+                  : '';
                 const description = service.description ?? ''
 
                 return (
-                  <motion.div
+                  <motion.article
                     key={service._id ?? index}
                     data-testid={`services-card-${service._id}`}
                     variants={itemVariants}
@@ -120,36 +158,32 @@ const ServicesGrid = () => {
                       boxShadow: '0 20px 40px rgba(0, 191, 255, 0.3)',
                       transition: { duration: 0.3 }
                     }}
-                    className="group relative overflow-hidden rounded-xl bg-card shadow-elevation hover:shadow-premium transition-all duration-300 cursor-pointer"
+                    className="group relative overflow-hidden rounded-xl bg-card shadow-elevation hover:shadow-premium transition-all duration-300 cursor-pointer focus-within:ring-2 focus-within:ring-cyan focus-within:ring-offset-2"
+                    role="button"
+                    tabIndex={0}
                     onClick={() => handleServiceClick(service.title)}
-                    title={`Click to WhatsApp us about ${service.title}`}
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter' || e.key === ' ') {
+                        e.preventDefault();
+                        handleServiceClick(service.title);
+                      }
+                    }}
+                    aria-label={`${service.title} - Click to contact us via WhatsApp about this service`}
                   >
-                    {/* Service Image */}
-                    <div className="relative h-48 overflow-hidden bg-gradient-to-br from-slate-700 to-slate-900">
-                      {imageUrl ? (
-                        <img
-                          src={imageUrl}
-                          alt={service.title}
-                          className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-110"
-                          onError={(e) => {
-                            e.currentTarget.style.display = 'none'
-                            // Show fallback when image fails
-                            const fallback = e.currentTarget.nextElementSibling
-                            if (fallback) (fallback as HTMLElement).style.display = 'flex'
-                          }}
-                        />
-                      ) : null}
-                      {/* Fallback gradient if no image */}
-                      <div className="absolute inset-0 bg-gradient-to-br from-cyan/20 to-purple/20 flex items-center justify-center" style={imageUrl ? { display: 'none' } : {}}>
-                        <div className="text-center text-white/40">
-                          <div className="text-4xl mb-2">📷</div>
-                          <div className="text-xs">Image unavailable</div>
-                        </div>
-                      </div>
-                      {/* CMYK Border Glow on Hover */}
-                      <div className="absolute inset-0 border-2 border-transparent group-hover:border-cyan group-hover:shadow-cyan-glow transition-all duration-300 rounded-xl"></div>
-                      {/* Gradient Overlay */}
+                    {/* Service Image with Gradient Overlay */}
+                    <div className="relative h-48 overflow-hidden">
+                      <OptimizedImage
+                        src={imageUrl}
+                        alt={`${service.title} printing service`}
+                        className="h-48 transition-transform duration-300 group-hover:scale-110"
+                        priority={index < 3} // Prioritize first 3 images (above the fold)
+                      />
+                      
+                      {/* Gradient Overlay on Image */}
                       <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent"></div>
+                      
+                      {/* CMYK Border Glow on Hover */}
+                      <div className="absolute inset-0 border-2 border-transparent group-hover:border-cyan group-hover:shadow-cyan-glow transition-all duration-300 rounded-t-xl" aria-hidden="true"></div>
                     </div>
 
                     {/* Service Content */}
@@ -170,23 +204,27 @@ const ServicesGrid = () => {
                             portfolioSection.scrollIntoView({ behavior: 'smooth' })
                           }
                         }}
-                        className="opacity-0 group-hover:opacity-100 text-cyan hover:text-cyan-glow font-medium text-sm transition-all duration-300 flex items-center"
+                        className="opacity-0 group-hover:opacity-100 text-cyan hover:text-cyan-glow font-medium text-sm transition-all duration-300 flex items-center focus:opacity-100 focus:outline-none focus:ring-2 focus:ring-cyan focus:ring-offset-2 rounded"
+                        aria-label={`View portfolio samples for ${service.title}`}
                       >
                         View Portfolio Samples
-                        <ChevronRight className="w-4 h-4 ml-1" />
+                        <ChevronRight className="w-4 h-4 ml-1" aria-hidden="true" />
                       </button>
                     </div>
 
                     {/* Hover Effect Overlay */}
-                    <div className="absolute inset-0 bg-gradient-cyan opacity-0 group-hover:opacity-10 transition-opacity duration-300"></div>
-                  </motion.div>
+                    <div className="absolute inset-0 bg-gradient-cyan opacity-0 group-hover:opacity-10 transition-opacity duration-300" aria-hidden="true"></div>
+                  </motion.article>
                 )
               })}
-            </AnimatePresence>
+              </AnimatePresence>
+            </motion.div>
           ) : (
-            renderEmptyState()
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
+              {renderEmptyState()}
+            </div>
           )}
-        </motion.div>
+        </>
 
         {/* View More / View Less Button */}
         {hasMore && (

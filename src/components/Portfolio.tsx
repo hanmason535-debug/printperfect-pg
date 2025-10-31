@@ -6,13 +6,15 @@ import { Skeleton } from '@/components/ui/skeleton'
 import { urlFor } from '@/lib/image'
 import { useState, useMemo, useCallback } from 'react'
 import Lightbox from '@/components/Lightbox'
-import { ChevronRight } from 'lucide-react'
+import { ChevronRight, AlertCircle } from 'lucide-react'
+import { PortfolioSkeleton } from '@/components/SkeletonLoader'
+import { OptimizedImage } from '@/components/OptimizedImage'
 
 const INITIAL_DISPLAY = 12  // 4x3 grid
 const MAX_PORTFOLIO = 50
 
 const Portfolio = () => {
-  const allItems = usePortfolio()
+  const { data: allItems, loading, error } = usePortfolio()
   const [activeFilter, setActiveFilter] = useState<string>('All')
   const [showAll, setShowAll] = useState(false)
   
@@ -85,6 +87,27 @@ const Portfolio = () => {
     </div>
   );
 
+  const renderErrorState = () => (
+    <div className="col-span-full text-center py-16">
+      <div className="flex justify-center mb-4">
+        <div className="p-3 bg-red-500/10 rounded-full">
+          <AlertCircle className="w-12 h-12 text-red-500" />
+        </div>
+      </div>
+      <h3 className="text-2xl font-semibold text-foreground mb-2">Failed to Load Portfolio</h3>
+      <p className="text-muted-foreground mb-4">
+        {error?.message || 'An error occurred while loading portfolio items.'}
+      </p>
+      <Button
+        onClick={() => window.location.reload()}
+        variant="outline"
+        className="border-cyan/30 hover:border-cyan hover:bg-cyan/10"
+      >
+        Try Again
+      </Button>
+    </div>
+  );
+
   return (
     <section id="portfolio" className="py-20 bg-background">
       <div className="container mx-auto px-4 lg:px-8">
@@ -113,7 +136,7 @@ const Portfolio = () => {
           <motion.div
             className="flex flex-wrap justify-center gap-4 mb-12"
             role="tablist"
-            aria-label="Portfolio filter"
+            aria-label="Filter portfolio by category"
             initial={{ opacity: 0, y: 20 }}
             whileInView={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6 }}
@@ -126,8 +149,9 @@ const Portfolio = () => {
                 role="tab"
                 aria-selected={activeFilter === category}
                 aria-controls="portfolio-grid"
+                aria-label={`Filter portfolio by ${category}`}
                 onClick={() => setActiveFilter(category)}
-                className={`px-6 py-2 rounded-full text-sm font-medium transition-all duration-300 ${
+                className={`px-6 py-2 rounded-full text-sm font-medium transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-cyan focus:ring-offset-2 ${
                   activeFilter === category
                     ? 'bg-primary text-primary-foreground shadow-lg'
                     : 'bg-secondary text-secondary-foreground hover:bg-secondary/80'
@@ -142,59 +166,76 @@ const Portfolio = () => {
         )}
 
         {/* Portfolio Grid */}
-        <motion.div
-          id="portfolio-grid"
-          className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8"
-          variants={containerVariants}
-          initial="hidden"
-          animate="visible"
-        >
-          {displayedItems.length > 0 ? (
-            <AnimatePresence>
-              {displayedItems.map((p) => (
+        <>
+          {loading ? (
+            <PortfolioSkeleton count={INITIAL_DISPLAY} />
+          ) : error ? (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+              {renderErrorState()}
+            </div>
+          ) : displayedItems.length > 0 ? (
+            <motion.div
+              id="portfolio-grid"
+              className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8"
+              variants={containerVariants}
+              initial="hidden"
+              animate="visible"
+            >
+              <AnimatePresence>
+              {displayedItems.map((p, index) => (
                 <motion.article
                   key={p._id}
                   data-testid={`portfolio-item-${p._id}`}
                   layout
-                  className="group relative overflow-hidden rounded-xl bg-card shadow-lg hover:shadow-xl transition-shadow duration-300 cursor-pointer"
+                  className="group relative overflow-hidden rounded-xl bg-card shadow-lg hover:shadow-xl transition-shadow duration-300 cursor-pointer focus-within:ring-2 focus-within:ring-cyan focus-within:ring-offset-2"
                   variants={itemVariants}
                   initial="hidden"
                   animate="visible"
                   exit="hidden"
                   whileHover={{ y: -10 }}
                   onClick={() => handleImageClick(p._id)}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter' || e.key === ' ') {
+                      e.preventDefault();
+                      handleImageClick(p._id);
+                    }
+                  }}
+                  role="button"
+                  tabIndex={0}
+                  aria-label={`View ${p.title} - ${p.category} in lightbox`}
                 >
                   <div className="aspect-square overflow-hidden bg-gradient-to-br from-slate-700 to-slate-900">
                     {p.image ? (
-                      <motion.img
-                        src={urlFor(p.image).width(600).height(600).fit('crop').url()}
-                        alt={p.title || 'Portfolio item'}
-                        className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
-                        onError={(e) => {
-                          e.currentTarget.style.display = 'none'
-                        }}
+                      <OptimizedImage
+                        src={urlFor(p.image).width(600).height(600).fit('crop').format('webp').quality(85).url()}
+                        alt={`${p.title} - ${p.category} portfolio sample`}
+                        className="transition-transform duration-500 group-hover:scale-110"
+                        priority={index < 6} // Prioritize first 6 images (2 rows)
                       />
-                    ) : null}
-                    {/* Fallback gradient if no image */}
-                    <div className="absolute inset-0 bg-gradient-to-br from-cyan/20 to-purple/20 flex items-center justify-center">
-                      <div className="text-center text-white/40">
-                        <div className="text-4xl mb-2">📷</div>
-                        <div className="text-xs">Image unavailable</div>
+                    ) : (
+                      <div className="w-full h-full bg-gradient-to-br from-cyan/20 to-purple/20 flex items-center justify-center" aria-hidden="true">
+                        <div className="text-center text-white/40">
+                          <div className="text-4xl mb-2" aria-hidden="true">📷</div>
+                          <div className="text-xs">Image unavailable</div>
+                        </div>
                       </div>
-                    </div>
+                    )}
                   </div>
-                  <div className="absolute inset-0 bg-gradient-to-t from-black/70 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/70 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" aria-hidden="true" />
                   <div className="absolute bottom-0 left-0 right-0 p-6 text-white translate-y-4 opacity-0 group-hover:opacity-100 group-hover:translate-y-0 transition-all duration-300">
                     <h3 className="text-xl font-bold mb-1">{p.title}</h3>
                     <p className="text-sm opacity-90">{p.category}</p>
                   </div>
                 </motion.article>
               ))}
-            </AnimatePresence>
+              </AnimatePresence>
+            </motion.div>
           ) : (
-            renderEmptyState()
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+              {renderEmptyState()}
+            </div>
           )}
-        </motion.div>
+        </>
 
         {/* Load More / Load Less Button */}
         {hasMore && (

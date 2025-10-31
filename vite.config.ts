@@ -18,4 +18,25 @@ export default defineConfig(({ mode }) => ({
       "@": path.resolve(__dirname, "./src"),
     },
   },
+  build: {
+    // Optimize bundle size
+    rollupOptions: {
+      output: {
+        manualChunks: {
+          // Vendor chunk for React and related libraries
+          'react-vendor': ['react', 'react-dom', 'react-router-dom'],
+          // UI components chunk
+          'ui-vendor': ['framer-motion', '@radix-ui/react-dialog', '@radix-ui/react-dropdown-menu'],
+          // Sanity CMS chunk
+          'sanity-vendor': ['@sanity/client', '@sanity/image-url'],
+        },
+      },
+    },
+    // Increase chunk size warning limit (default is 500kb)
+    chunkSizeWarningLimit: 1000,
+    // Enable source maps for production debugging
+    sourcemap: mode === 'production' ? 'hidden' : true,
+    // Minify for production
+    minify: mode === 'production' ? 'terser' : false,
+  },
 }));

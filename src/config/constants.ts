@@ -33,3 +33,56 @@ export const COMPANY = {
   description: 'Your trusted print partner in Ahmedabad for premium quality and fast turnarounds.',
 } as const;
 
+/**
+ * Performance Configuration
+ */
+export const PERFORMANCE = {
+  // Lazy loading thresholds
+  lazyLoadThreshold: '50px', // Distance before lazy loading triggers
+  
+  // Animation settings
+  reducedMotion: window.matchMedia('(prefers-reduced-motion: reduce)').matches,
+  
+  // Debounce/Throttle timings
+  scrollDebounce: 100, // ms
+  resizeDebounce: 200, // ms
+  searchDebounce: 300, // ms
+} as const;
+
+/**
+ * UI Configuration
+ */
+export const UI = {
+  // Display limits
+  initialServicesDisplay: 9, // 3x3 grid
+  initialPortfolioDisplay: 12, // 4x3 grid
+  maxPortfolioItems: 50,
+  
+  // Animation durations
+  transitionDuration: 300, // ms
+  toastDuration: 4000, // ms
+  
+  // Breakpoints (matching Tailwind)
+  breakpoints: {
+    sm: 640,
+    md: 768,
+    lg: 1024,
+    xl: 1280,
+    '2xl': 1536,
+  },
+} as const;
+
+/**
+ * API Configuration
+ */
+export const API = {
+  // Sanity CMS
+  sanityProjectId: import.meta.env.VITE_SANITY_PROJECT_ID || '',
+  sanityDataset: import.meta.env.VITE_SANITY_DATASET || 'production',
+  sanityApiVersion: '2024-01-01',
+  
+  // Cache settings
+  cacheTime: 1000 * 60 * 10, // 10 minutes
+  staleTime: 1000 * 60 * 5, // 5 minutes
+} as const;
+

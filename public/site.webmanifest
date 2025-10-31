@@ -1,0 +1,22 @@
+{
+  "name": "Print Perfect PG",
+  "short_name": "PrintPerfect",
+  "description": "Professional printing services for business cards, banners, custom apparel, and more",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#020617",
+  "theme_color": "#0891b2",
+  "orientation": "portrait-primary",
+  "icons": [
+    {
+      "src": "/favicon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ],
+  "categories": ["business", "productivity", "shopping"],
+  "lang": "en-US",
+  "dir": "ltr",
+  "screenshots": []
+}

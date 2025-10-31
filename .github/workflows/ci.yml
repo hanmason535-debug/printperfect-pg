@@ -33,6 +33,9 @@ jobs:
         run: npm run typecheck
 
       - name: Run tests
+        env:
+          VITE_SANITY_PROJECT_ID: ${{ secrets.VITE_SANITY_PROJECT_ID || 'test-project-id' }}
+          VITE_SANITY_DATASET: ${{ secrets.VITE_SANITY_DATASET || 'production' }}
         run: npm run test -- --run
 
       - name: Build

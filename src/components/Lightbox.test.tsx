@@ -3,13 +3,19 @@ import userEvent from '@testing-library/user-event'
 import Lightbox from './Lightbox'
 import { vi, describe, it, expect, beforeEach } from 'vitest'
 
-vi.mock('@/lib/image', () => ({
-  urlFor: vi.fn().mockReturnValue({
-    width: vi.fn().mockReturnThis(),
-    format: vi.fn().mockReturnThis(),
-    url: vi.fn().mockReturnValue('https://example.com/image.jpg'),
-  }),
-}))
+vi.mock('@/lib/image', () => {
+  class MockBuilder {
+    width() { return this }
+    height() { return this }
+    fit() { return this }
+    format() { return this }
+    quality() { return this }
+    url() { return 'https://example.com/image.jpg' }
+  }
+  return {
+    urlFor: vi.fn(() => new MockBuilder()),
+  }
+})
 
 // Mock useReducedMotion to test both paths
 vi.mock('framer-motion', async () => {

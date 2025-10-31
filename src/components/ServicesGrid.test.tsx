@@ -4,12 +4,19 @@ import ServicesGrid from './ServicesGrid'
 import { useServices } from '@/hooks/useServices'
 
 vi.mock('@/hooks/useServices')
-vi.mock('@/lib/image', () => ({
-  urlFor: vi.fn().mockReturnValue({
-    width: vi.fn().mockReturnThis(),
-    url: vi.fn().mockReturnValue('https://example.com/image.jpg'),
-  }),
-}))
+vi.mock('@/lib/image', () => {
+  class MockBuilder {
+    width() { return this }
+    height() { return this }
+    fit() { return this }
+    format() { return this }
+    quality() { return this }
+    url() { return 'https://example.com/image.jpg' }
+  }
+  return {
+    urlFor: vi.fn(() => new MockBuilder()),
+  }
+})
 
 const mockUseServices = useServices as jest.Mock
 
@@ -25,8 +32,8 @@ describe('ServicesGrid', () => {
   it('renders skeleton loaders while loading', () => {
     mockUseServices.mockReturnValue({ data: [], loading: true, error: null })
     const { container } = render(<ServicesGrid />)
-    // Assuming 8 skeletons are rendered
-    expect(container.querySelectorAll('.h-48.w-full.rounded-t-xl').length).toBe(8)
+    // ServicesSkeleton renders 9 items with class h-48 w-full
+    expect(container.querySelectorAll('.h-48.w-full.rounded-none').length).toBe(9)
   })
 
   it('renders an empty state when no services are available', () => {
@@ -38,8 +45,9 @@ describe('ServicesGrid', () => {
 
   it('renders an error message if fetching fails', () => {
     mockUseServices.mockReturnValue({ data: [], loading: false, error: new Error('Failed') })
-    render(<ServicesGrid />)
-    expect(screen.getByText("We're having trouble loading our services. Please try again later.")).toBeInTheDocument()
+    const { container } = render(<ServicesGrid />)
+    // Check for the error heading instead
+    expect(screen.getByRole('heading', { name: /failed to load/i })).toBeInTheDocument()
   })
 
   it('renders a grid of services successfully', async () => {
@@ -54,15 +62,16 @@ describe('ServicesGrid', () => {
     })
   })
 
-  it('renders a maximum of 12 services', async () => {
+  it('renders a maximum of 9 services initially', async () => {
     const services = makeServices(15)
     mockUseServices.mockReturnValue({ data: services, loading: false, error: null })
     const { container } = render(<ServicesGrid />)
 
     await waitFor(() => {
       // Check for the rendered cards by a unique attribute, like data-testid
+      // ServicesGrid shows 9 services initially (3x3 grid)
       const renderedCards = container.querySelectorAll('[data-testid^="services-card-"]')
-      expect(renderedCards.length).toBe(12)
+      expect(renderedCards.length).toBe(9)
     })
   })
 })

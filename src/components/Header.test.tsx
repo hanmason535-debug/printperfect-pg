@@ -14,10 +14,11 @@ describe('Header Component', () => {
   it('renders header with navigation items', () => {
     render(<Header />);
 
-    expect(screen.getByText(/home/i)).toBeInTheDocument();
-    expect(screen.getByText(/services/i)).toBeInTheDocument();
-    expect(screen.getByText(/portfolio/i)).toBeInTheDocument();
-    expect(screen.getByText(/contact/i)).toBeInTheDocument();
+    const homeLinks = screen.getAllByText(/home/i);
+    expect(homeLinks.length).toBeGreaterThan(0);
+    expect(screen.getAllByText(/services/i).length).toBeGreaterThan(0);
+    expect(screen.getAllByText(/portfolio/i).length).toBeGreaterThan(0);
+    expect(screen.getAllByText(/contact/i).length).toBeGreaterThan(0);
   });
 
   it('renders contact action buttons', () => {
@@ -80,7 +81,8 @@ describe('Header Component', () => {
     render(<Header />);
     
     // Component should render without errors
-    expect(screen.getByText(/home/i)).toBeInTheDocument();
+    const homeLinks = screen.getAllByText(/home/i);
+    expect(homeLinks.length).toBeGreaterThan(0);
   });
 
   it('closes mobile menu when navigation link is clicked', async () => {
@@ -90,9 +92,10 @@ describe('Header Component', () => {
     const menuButton = screen.getByRole('button', { name: /menu|hamburger/i });
     await user.click(menuButton);
 
-    // Find and click a nav link
-    const homeLink = screen.getByText(/home/i);
-    await user.click(homeLink);
+    // Find and click the first nav link (using getAllByText to get the mobile one)
+    const homeLinks = screen.getAllByText(/home/i);
+    // The mobile link should be the last one after clicking menu
+    await user.click(homeLinks[homeLinks.length - 1]);
 
     // Menu should close after click (verify by checking if menu button is still there)
     expect(menuButton).toBeInTheDocument();

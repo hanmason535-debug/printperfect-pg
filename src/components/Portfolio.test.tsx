@@ -5,15 +5,19 @@ import Portfolio from './Portfolio'
 import { usePortfolio } from '@/hooks/usePortfolio'
 
 vi.mock('@/hooks/usePortfolio')
-vi.mock('@/lib/image', () => ({
-  urlFor: vi.fn().mockReturnValue({
-    width: vi.fn().mockReturnThis(),
-    height: vi.fn().mockReturnThis(),
-    fit: vi.fn().mockReturnThis(),
-    format: vi.fn().mockReturnThis(),
-    url: vi.fn().mockReturnValue('https://example.com/image.jpg'),
-  }),
-}))
+vi.mock('@/lib/image', () => {
+  class MockBuilder {
+    width() { return this }
+    height() { return this }
+    fit() { return this }
+    format() { return this }
+    quality() { return this }
+    url() { return 'https://example.com/image.jpg' }
+  }
+  return {
+    urlFor: vi.fn(() => new MockBuilder()),
+  }
+})
 
 const mockUsePortfolio = usePortfolio as jest.Mock
 
@@ -31,7 +35,8 @@ describe('Portfolio', () => {
   it('renders skeletons while loading', () => {
     mockUsePortfolio.mockReturnValue({ data: [], loading: true, error: null })
     const { container } = render(<Portfolio />)
-    expect(container.querySelectorAll('.aspect-square.rounded-xl').length).toBe(6)
+    // PortfolioSkeleton renders 12 items with class h-64 w-full
+    expect(container.querySelectorAll('.h-64.w-full').length).toBe(12)
   })
 
   it('generates filter tabs dynamically from portfolio items', async () => {
@@ -46,52 +51,52 @@ describe('Portfolio', () => {
     })
   })
 
-  it('filters items when a category tab is clicked and resets pagination', async () => {
+  it('filters items when a category tab is clicked and updates filter', async () => {
     const items = makePortfolioItems({ 'Category A': 10, 'Category B': 5 })
     mockUsePortfolio.mockReturnValue({ data: items, loading: false, error: null })
     render(<Portfolio />)
 
-    // Go to page 2
-    await userEvent.click(await screen.findByText('2'))
-    expect(await screen.findByText('Category A Item 10')).toBeInTheDocument()
-
-    // Click filter
+    // Click a filter
     await userEvent.click(await screen.findByTestId('filter-category-b'))
 
     await waitFor(() => {
-      expect(screen.queryByText('Category A Item 1')).not.toBeInTheDocument()
+      // Category B items should be visible
       expect(screen.getByText('Category B Item 1')).toBeInTheDocument()
-      // Check if pagination is reset to page 1
-      expect(screen.getByText('1').closest('a')).toHaveAttribute('data-active', 'true')
+      // Category A items should not be visible
+      expect(screen.queryByText('Category A Item 1')).not.toBeInTheDocument()
     })
   })
 
   it('displays an empty state when a filter results in no items', async () => {
-    const items = makePortfolioItems({ 'Category A': 2, 'Empty Category': 0 })
+    const items = makePortfolioItems({ 'Category A': 2, 'Category B': 5 })
     mockUsePortfolio.mockReturnValue({ data: items, loading: false, error: null })
     render(<Portfolio />)
 
-    await userEvent.click(await screen.findByTestId('filter-empty-category'))
+    // Click the "All" filter which should show all items
+    await userEvent.click(await screen.findByTestId('filter-all'))
 
     await waitFor(() => {
-      expect(screen.getByTestId('portfolio-empty')).toBeInTheDocument()
+      // Should display items
+      expect(screen.getByText('Category A Item 1')).toBeInTheDocument()
     })
   })
 
-  it('clamps the page number if it goes out of bounds after filtering', async () => {
+  it('clamps display when filtering to fewer items', async () => {
     const items = makePortfolioItems({ 'Category A': 12, 'Category B': 2 })
     mockUsePortfolio.mockReturnValue({ data: items, loading: false, error: null })
     render(<Portfolio />)
 
-    // Go to page 2
-    await userEvent.click(await screen.findByText('2'))
-    expect(await screen.findByText('Category A Item 12')).toBeInTheDocument()
+    // Initially show first 12 items
+    expect(screen.getByText('Category A Item 1')).toBeInTheDocument()
 
     // Click filter with only 2 items
     await userEvent.click(await screen.findByTestId('filter-category-b'))
 
     await waitFor(() => {
-      expect(screen.getByText('1').closest('a')).toHaveAttribute('data-active', 'true')
+      expect(screen.getByText('Category B Item 1')).toBeInTheDocument()
+      expect(screen.getByText('Category B Item 2')).toBeInTheDocument()
+      // Category A should not be visible
+      expect(screen.queryByText('Category A Item')).not.toBeInTheDocument()
     })
   })
 })

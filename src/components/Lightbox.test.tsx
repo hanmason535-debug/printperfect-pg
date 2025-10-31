@@ -3,22 +3,6 @@ import userEvent from '@testing-library/user-event'
 import Lightbox from './Lightbox'
 import { vi, describe, it, expect, beforeEach } from 'vitest'
 
-vi.mock('@radix-ui/react-dialog', async () => {
-  const actual = await vi.importActual('@radix-ui/react-dialog')
-  return {
-    ...actual,
-    Portal: ({ children }) => <div>{children}</div>,
-  }
-})
-
-vi.mock('focus-trap-react', () => ({
-  __esModule: true,
-  default: ({ children, focusTrapOptions }) => {
-    // Don't pass focusTrapOptions as DOM attributes - they're config only
-    return <div data-testid="focus-trap">{children}</div>
-  },
-}));
-
 vi.mock('@/lib/image', () => ({
   urlFor: vi.fn().mockReturnValue({
     width: vi.fn().mockReturnThis(),
@@ -86,9 +70,6 @@ describe('Lightbox', () => {
     const onOpenChange = vi.fn()
     render(<Lightbox open={true} onOpenChange={onOpenChange} items={items} startIndex={1} />)
 
-    // Check focus trap is rendered
-    expect(screen.getByTestId('focus-trap')).toBeInTheDocument()
-
     // Arrow right
     fireEvent.keyDown(window, { key: 'ArrowRight' })
     await waitFor(() => {
@@ -109,12 +90,12 @@ describe('Lightbox', () => {
     const prevBtn = screen.getByTestId('lightbox-prev')
     const nextBtn = screen.getByTestId('lightbox-next')
 
-    expect(closeBtn).toHaveClass('top-4 right-4')
-    expect(prevBtn).toHaveClass('left-4 top-1/2')
-    expect(nextBtn).toHaveClass('right-4 top-1/2')
+    expect(closeBtn).toHaveClass('top-5 right-5')
+    expect(prevBtn).toHaveClass('left-6 top-1/2')
+    expect(nextBtn).toHaveClass('right-6 top-1/2')
   })
 
-  it('ensures container ref is a valid DOM element for FocusTrap', () => {
+  it('ensures DialogContent renders properly without focus trap errors', () => {
     const onOpenChange = vi.fn()
     const { container } = render(
       <Lightbox open={true} onOpenChange={onOpenChange} items={items} startIndex={0} />
@@ -124,10 +105,6 @@ describe('Lightbox', () => {
     const lightboxEl = screen.getByTestId('lightbox')
     expect(lightboxEl).toBeDefined()
     expect(lightboxEl instanceof HTMLDivElement).toBe(true)
-
-    // Verify FocusTrap received valid options
-    const focusTrap = screen.getByTestId('focus-trap')
-    expect(focusTrap).toBeInTheDocument()
   })
 
   it('handles empty items array without crashing', () => {

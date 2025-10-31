@@ -140,3 +140,92 @@ export const Q_SERVICES = `*[_type=="service"]|order(priority asc){
 export const Q_PORTFOLIO = `*[_type=="portfolioItem"]|order(priority asc){
   _id, title, description, image, link, category, priority, categorySlugs, hoverId
 }`;
+
+// ─── Advanced Queries ─────────────────────────────────────────────────────
+
+/**
+ * Fetch single service by slug
+ *
+ * @constant {string} Q_SERVICE_BY_SLUG
+ *
+ * @example
+ * ```typescript
+ * const service = await sanity.fetch(Q_SERVICE_BY_SLUG, { slug: 'banner-printing' })
+ * ```
+ */
+export const Q_SERVICE_BY_SLUG = `*[_type=="service" && slug.current==$slug][0]{
+  _id, title, slug, description, image, priority, filters, hoverId, seo
+}`;
+
+/**
+ * Fetch single portfolio item by slug
+ *
+ * @constant {string} Q_PORTFOLIO_BY_SLUG
+ *
+ * @example
+ * ```typescript
+ * const item = await sanity.fetch(Q_PORTFOLIO_BY_SLUG, { slug: 'wedding-banners' })
+ * ```
+ */
+export const Q_PORTFOLIO_BY_SLUG = `*[_type=="portfolioItem" && slug.current==$slug][0]{
+  _id, title, slug, description, image, link, category, priority, categorySlugs, hoverId, seo
+}`;
+
+/**
+ * Fetch portfolio items by category
+ *
+ * @constant {string} Q_PORTFOLIO_BY_CATEGORY
+ *
+ * @example
+ * ```typescript
+ * const banners = await sanity.fetch(Q_PORTFOLIO_BY_CATEGORY, { category: 'Banners' })
+ * ```
+ */
+export const Q_PORTFOLIO_BY_CATEGORY = `*[_type=="portfolioItem" && category==$category]|order(priority asc){
+  _id, title, slug, description, image, link, category, priority, categorySlugs, hoverId
+}`;
+
+/**
+ * Search across services and portfolio items
+ *
+ * @constant {string} Q_SEARCH
+ *
+ * @description
+ * Performs full-text search across titles and descriptions
+ *
+ * @example
+ * ```typescript
+ * const results = await sanity.fetch(Q_SEARCH, { searchTerm: 'banner*' })
+ * ```
+ */
+export const Q_SEARCH = `*[_type in ["service", "portfolioItem"] && 
+  (title match $searchTerm || description match $searchTerm)]|order(priority asc){
+  _id, _type, title, slug, description, image, priority
+}`;
+
+/**
+ * Fetch all unique portfolio categories
+ *
+ * @constant {string} Q_PORTFOLIO_CATEGORIES
+ *
+ * @example
+ * ```typescript
+ * const categories = await sanity.fetch<string[]>(Q_PORTFOLIO_CATEGORIES)
+ * // ['Banners', 'Business Cards', 'Flyers', ...]
+ * ```
+ */
+export const Q_PORTFOLIO_CATEGORIES = `array::unique(*[_type=="portfolioItem"].category)`;
+
+/**
+ * Fetch featured/priority items (priority <= 3)
+ *
+ * @constant {string} Q_FEATURED_PORTFOLIO
+ *
+ * @example
+ * ```typescript
+ * const featured = await sanity.fetch(Q_FEATURED_PORTFOLIO)
+ * ```
+ */
+export const Q_FEATURED_PORTFOLIO = `*[_type=="portfolioItem" && priority <= 3]|order(priority asc){
+  _id, title, slug, description, image, link, category, priority
+}`;

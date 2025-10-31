@@ -55,7 +55,7 @@ const INITIAL_DISPLAY = 9; // 3x3 grid
 const MAX_SERVICES = 25;
 
 const ServicesGrid = () => {
-  const { data: services, loading, error } = useServices();
+  const { data: services = [], isLoading, error } = useServices();
   const [showAll, setShowAll] = useState(false);
 
   const limitedServices = services.slice(0, MAX_SERVICES);
@@ -160,7 +160,7 @@ const ServicesGrid = () => {
 
         {/* Services Grid - 3x3 layout */}
         <>
-          {loading ? (
+          {isLoading ? (
             <ServicesSkeleton count={INITIAL_DISPLAY} />
           ) : error ? (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">

@@ -91,10 +91,10 @@ const Portfolio = () => {
   // ─── Data Fetching ────────────────────────────────────────────────────────
 
   /**
-   * Fetch portfolio items from Sanity CMS
+   * Fetch portfolio data from Sanity CMS
    * React Query handles caching, refetching, and background updates
    */
-  const { data: allItems, loading, error } = usePortfolio();
+  const { data: allItems = [], isLoading, error } = usePortfolio();
 
   // ─── State Management ─────────────────────────────────────────────────────
 
@@ -356,7 +356,7 @@ const Portfolio = () => {
          * - Empty state when filtered category has no items
          */}
         <>
-          {loading ? (
+          {isLoading ? (
             <PortfolioSkeleton count={INITIAL_DISPLAY} />
           ) : error ? (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">

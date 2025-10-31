@@ -134,7 +134,7 @@ jobs:
 
       - name: Post advisory comment
         if: "${{ steps.compose.outputs.msg && steps.compose.outputs.msg != '' }}"
-        uses: actions/github-script@v7
+        uses: actions/github-script@v8
         env:
           BODY: "${{ steps.compose.outputs.msg }}"
         with:

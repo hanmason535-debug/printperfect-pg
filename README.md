@@ -1,73 +1,292 @@
-# Welcome to your Lovable project
+# Print Perfect (Paras Graphics)
 
-## Project info
+Premium printing solutions website built with modern web technologies.
 
-**URL**: https://lovable.dev/projects/559c7554-7731-4a6a-9e83-233f271f77dc
+**Website**: https://parasgraphics.com (or your deployment URL)
 
-## How can I edit this code?
+## 📋 Table of Contents
 
-There are several ways of editing your application.
+- [Features](#-features)
+- [Tech Stack](#-tech-stack)
+- [Quick Start](#-quick-start)
+- [Development](#-development)
+- [Testing](#-testing)
+- [Building](#-building)
+- [Deployment](#-deployment)
+- [Contributing](#-contributing)
+- [Documentation](#-documentation)
 
-**Use Lovable**
+## ✨ Features
 
-Simply visit the [Lovable Project](https://lovable.dev/projects/559c7554-7731-4a6a-9e83-233f271f77dc) and start prompting.
+- ✅ **Responsive Design** - Mobile-first, works on all devices
+- ✅ **High Performance** - Lazy loading, code splitting, optimized images
+- ✅ **Accessible** - WCAG 2.1 AA compliant
+- ✅ **SEO Optimized** - Structured data, meta tags, sitemap
+- ✅ **CMS Integration** - Sanity CMS for content management
+- ✅ **Beautiful UI** - Tailwind CSS + shadcn/ui components
+- ✅ **Dark Mode** - Built-in dark theme support
+- ✅ **Contact Forms** - Secure form handling with validation
+- ✅ **Portfolio Showcase** - Filterable portfolio items
+- ✅ **Service Listings** - Categorized services display
 
-Changes made via Lovable will be committed automatically to this repo.
+## 🛠️ Tech Stack
 
-**Use your preferred IDE**
+### Frontend
+- **React** 18.3 - UI library
+- **TypeScript** 5.4 - Type safety
+- **Vite** 7.1 - Build tool and dev server
+- **Tailwind CSS** 3.4 - Utility-first styling
+- **Framer Motion** - Smooth animations
 
-If you want to work locally using your own IDE, you can clone this repo and push changes. Pushed changes will also be reflected in Lovable.
+### CMS & Data
+- **Sanity CMS** 4.10 - Content management
+- **React Query** 5.90 - Data fetching and caching
 
-The only requirement is having Node.js & npm installed - [install with nvm](https://github.com/nvm-sh/nvm#installing-and-updating)
+### UI Components
+- **shadcn/ui** - Accessible component library
+- **Radix UI** - Unstyled, accessible components
+- **Lucide Icons** - Beautiful icons
 
-Follow these steps:
+### Testing & Quality
+- **Vitest** 3.2 - Unit testing
+- **React Testing Library** - Component testing
+- **ESLint** - Code quality
+- **Prettier** - Code formatting
 
-```sh
-# Step 1: Clone the repository using the project's Git URL.
-git clone <YOUR_GIT_URL>
+### DevOps
+- **GitHub Actions** - CI/CD pipeline
+- **GitHub Pages** - Hosting
 
-# Step 2: Navigate to the project directory.
-cd <YOUR_PROJECT_NAME>
+## 🚀 Quick Start
 
-# Step 3: Install the necessary dependencies.
-npm i
+### Prerequisites
+- Node.js v20 or higher
+- npm v10 or higher
+- Git
 
-# Step 4: Start the development server with auto-reloading and an instant preview.
+### Installation
+
+```bash
+# Clone the repository
+git clone <repository-url>
+cd printperfect-pg
+
+# Install dependencies
+npm install
+
+# Setup environment variables
+cp .env.example .env.local
+# Edit .env.local with your Sanity credentials
+
+# Start development server
 npm run dev
 ```
 
-**Edit a file directly in GitHub**
+Open [http://localhost:8080](http://localhost:8080) in your browser.
 
-- Navigate to the desired file(s).
-- Click the "Edit" button (pencil icon) at the top right of the file view.
-- Make your changes and commit the changes.
+## 📚 Development
 
-**Use GitHub Codespaces**
+### Available Scripts
 
-- Navigate to the main page of your repository.
-- Click on the "Code" button (green button) near the top right.
-- Select the "Codespaces" tab.
-- Click on "New codespace" to launch a new Codespace environment.
-- Edit files directly within the Codespace and commit and push your changes once you're done.
+```bash
+# Development server
+npm run dev
 
-## What technologies are used for this project?
+# Type checking
+npm run typecheck
 
-This project is built with:
+# Linting
+npm run lint
 
-- Vite
-- TypeScript
-- React
-- shadcn-ui
-- Tailwind CSS
+# Testing
+npm run test          # Watch mode
+npm run test -- --run # Single run
+npm run test:coverage # With coverage report
 
-## How can I deploy this project?
+# Building
+npm run build
 
-Simply open [Lovable](https://lovable.dev/projects/559c7554-7731-4a6a-9e83-233f271f77dc) and click on Share -> Publish.
+# Preview production build
+npm run preview
 
-## Can I connect a custom domain to my Lovable project?
+# Sanity CMS dev
+npm run sanity:dev
+```
 
-Yes, you can!
+### Project Structure
 
-To connect a domain, navigate to Project > Settings > Domains and click Connect Domain.
+```
+src/
+├── components/       # React components
+│   ├── ui/          # shadcn/ui components
+│   └── magicui/     # Custom UI components
+├── pages/           # Page components
+├── hooks/           # Custom React hooks
+├── lib/             # Utility functions
+├── config/          # Configuration
+├── types/           # TypeScript definitions
+├── assets/          # Images and static files
+├── cms/             # Sanity queries
+└── integrations/    # Third-party integrations
+```
 
-Read more here: [Setting up a custom domain](https://docs.lovable.dev/features/custom-domain#custom-domain)
+### Code Quality
+
+This project includes:
+- ✅ ESLint configuration for code quality
+- ✅ Prettier configuration for consistent formatting
+- ✅ Pre-commit hooks with Husky
+- ✅ TypeScript strict mode
+- ✅ Accessibility checks
+
+```bash
+# Format code
+npx prettier --write 'src/**/*.{ts,tsx,css,js}'
+
+# Check formatting
+npm run format:check
+```
+
+## ✅ Testing
+
+```bash
+# Run all tests
+npm run test
+
+# Run specific test file
+npm run test -- Contact.test.tsx
+
+# Watch mode
+npm run test
+
+# Coverage report
+npm run test:coverage
+```
+
+### Test Structure
+- **Portfolio.test.tsx** - Portfolio component tests
+- **Lightbox.test.tsx** - Lightbox component tests
+- **ServicesGrid.test.tsx** - Services grid tests
+- **Contact.test.tsx** - Contact form tests
+- **Header.test.tsx** - Header navigation tests
+
+## 🏗️ Building
+
+```bash
+# Production build
+npm run build
+
+# Preview build output
+npm run preview
+
+# Check bundle size
+npm run build
+# Review dist/ folder
+```
+
+Build output is in the `dist/` directory, optimized for production.
+
+## 🚀 Deployment
+
+### Quick Deploy to GitHub Pages
+
+```bash
+git push origin main
+# Deployment runs automatically via GitHub Actions
+```
+
+For detailed deployment instructions, see [DEPLOYMENT.md](./DEPLOYMENT.md)
+
+### Supported Platforms
+- GitHub Pages (included)
+- Vercel
+- Netlify
+- Docker/Self-hosted
+
+## 📖 Documentation
+
+- **[DEVELOPMENT.md](./DEVELOPMENT.md)** - Development setup and workflow
+- **[DEPLOYMENT.md](./DEPLOYMENT.md)** - Deployment procedures
+- **[PROJECT_AUDIT_REPORT.md](./PROJECT_AUDIT_REPORT.md)** - Comprehensive project analysis
+
+## 🤝 Contributing
+
+1. Create a feature branch: `git checkout -b feature/your-feature`
+2. Make your changes
+3. Run tests: `npm run test -- --run`
+4. Run linting: `npm run lint`
+5. Commit with clear message: `git commit -m 'feat: add your feature'`
+6. Push and create a Pull Request
+
+### Commit Message Format
+
+```
+type(scope): subject
+
+feat: add new feature
+fix: fix a bug
+docs: update documentation
+test: add tests
+chore: update dependencies
+```
+
+## 📊 Performance
+
+- **Lighthouse Score**: 90+
+- **Bundle Size**: ~280KB uncompressed (~80KB gzipped)
+- **Lazy Loading**: Images and components
+- **Code Splitting**: Automatic route-based splitting
+- **Caching**: QueryClient optimized
+
+## ♿ Accessibility
+
+- WCAG 2.1 AA compliant
+- Keyboard navigation
+- Screen reader support
+- Color contrast verified
+- Semantic HTML
+
+## 🔒 Security
+
+- Content Security Policy headers
+- No hardcoded secrets
+- Environment variable isolation
+- Form validation and sanitization
+- Honeypot bot protection
+
+## 🎨 Design System
+
+### Colors (CMYK Brand)
+- **Cyan**: Primary accent
+- **Magenta**: Secondary accent
+- **Yellow**: Tertiary accent
+- **Charcoal**: Dark neutral
+
+### Typography
+- **Headings**: Montserrat
+- **Body**: Inter, Poppins
+
+### Spacing & Layout
+- Tailwind CSS default spacing scale
+- Responsive breakpoints (sm, md, lg, xl, 2xl)
+- Flexible grid system
+
+## 📞 Support & Feedback
+
+- Report issues on GitHub Issues
+- Check existing issues before creating new ones
+- Include reproduction steps for bugs
+
+## 📄 License
+
+This project is licensed under the MIT License - see [LICENSE.md](./LICENSE.md)
+
+## 👨‍💻 Author
+
+**Paras Graphics**  
+Ahmedabad, India
+
+---
+
+**Last Updated**: October 2024  
+**Project Status**: Active Development

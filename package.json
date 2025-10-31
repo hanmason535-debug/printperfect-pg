@@ -13,6 +13,7 @@
     "depcheck": "depcheck",
     "test": "vitest",
     "test:watch": "vitest",
+    "test:coverage": "vitest --coverage --run",
     "typecheck": "tsc -p tsconfig.json --noEmit",
     "sanity:dev": "sanity dev"
   },

@@ -4,6 +4,7 @@ import { MapPin, Mail, Phone, Clock, Facebook, Instagram, Linkedin } from 'lucid
 import { Button } from '@/components/ui/button';
 import { useToast } from '@/hooks/use-toast';
 import { CONTACT, SOCIAL_MEDIA, COMPANY } from '@/config/constants';
+import { BorderBeam } from '@/components/magicui/border-beam';
 
 const Contact = () => {
   const { toast } = useToast();
@@ -96,7 +97,7 @@ Message: ${formData.message}`;
           <div className="text-center mb-12">
             <h2 className="text-3xl md:text-4xl lg:text-5xl font-heading font-bold text-foreground mb-4">
               Contact 
-              <span className="bg-gradient-cmyk bg-clip-text text-transparent ml-3">
+               <span className="bg-gradient-cmyk bg-clip-text text-transparent ml-3">
                 Us
               </span>
             </h2>
@@ -109,15 +110,16 @@ Message: ${formData.message}`;
           <div className="grid lg:grid-cols-2 gap-12">
             {/* Contact Form */}
             <motion.div
-              className="bg-card rounded-2xl p-8 shadow-elevation"
+              className="relative bg-card rounded-2xl p-8 shadow-elevation"
               initial={{ opacity: 0, x: -30 }}
               whileInView={{ opacity: 1, x: 0 }}
               transition={{ duration: 0.8, delay: 0.2 }}
               viewport={{ once: true }}
             >
-              <h3 className="text-2xl font-heading font-semibold text-foreground mb-6">
-                Send us a Message
-              </h3>
+              <div className="relative z-10">
+                <h3 className="text-2xl font-heading font-semibold text-foreground mb-6">
+                  Send us a Message
+                </h3>
               
               <form onSubmit={handleSubmit} className="space-y-6">
                 {/* Security: Honeypot field - hidden from users */}
@@ -210,6 +212,16 @@ Message: ${formData.message}`;
                   {isSubmitting ? 'Sending...' : 'Send Message via WhatsApp'}
                 </motion.button>
               </form>
+              </div>
+              
+              {/* Animated Border Beam Effect */}
+              <BorderBeam 
+                size={250} 
+                duration={12} 
+                delay={9}
+                colorFrom="#00bfff" 
+                colorTo="#ff00ff"
+              />
             </motion.div>
 
             {/* Contact Information */}

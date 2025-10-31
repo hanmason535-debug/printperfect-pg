@@ -17,6 +17,7 @@ import { MessageCircle, Phone, Menu, X } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { CONTACT } from '@/config/constants';
 import googleMapsIcon from '@/assets/google-maps.png';
+import { BorderBeam } from '@/components/magicui/border-beam';
 
 // Static menu items defined outside component to prevent recreation on each render
 const MENU_ITEMS = [
@@ -146,7 +147,7 @@ const Header = () => {
             <Button
               variant="ghost"
               size="icon"
-              className="hidden md:flex h-10 w-10 p-1.5 hover:bg-white/10 transition-colors focus:ring-2 focus:ring-cyan-accent focus:ring-offset-2 focus:ring-offset-black"
+              className="relative hidden md:flex h-10 w-10 p-1.5 hover:bg-white/10 transition-colors focus:ring-2 focus:ring-cyan-accent focus:ring-offset-2 focus:ring-offset-black rounded-lg"
               onClick={handleMapsClick}
               aria-label="Find us on Google Maps"
             >
@@ -154,7 +155,14 @@ const Header = () => {
                 src={googleMapsIcon}
                 alt=""
                 aria-hidden="true"
-                className="h-full w-full transition-transform hover:scale-110"
+                className="h-full w-full transition-transform hover:scale-110 relative z-10"
+              />
+              <BorderBeam 
+                size={80} 
+                duration={8} 
+                delay={3}
+                colorFrom="#00bfff" 
+                colorTo="#ff00ff"
               />
             </Button>
 

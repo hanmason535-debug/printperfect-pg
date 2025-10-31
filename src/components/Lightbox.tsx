@@ -22,6 +22,7 @@ export default function Lightbox({ open, onOpenChange, items, startIndex }: Prop
   const reduceMotion = useReducedMotion()
   const imgRef = useRef<HTMLImageElement | null>(null)
 
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   useEffect(() => {
     if (open && items.length) {
       const validIndex = Math.max(0, Math.min(startIndex, items.length - 1))

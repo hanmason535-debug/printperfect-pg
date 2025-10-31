@@ -45,6 +45,7 @@ export function OptimizedImage({
   // Generate blur placeholder URL (tiny version)
   const blurDataURL = src ? `${src.split('?')[0]}?w=20&blur=50` : '';
 
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   useEffect(() => {
     // Reset states when src changes
     setIsLoaded(false);

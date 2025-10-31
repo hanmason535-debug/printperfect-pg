@@ -6,6 +6,7 @@ import { Button } from '@/components/ui/button'
 import { useState } from 'react'
 import { ChevronRight, AlertCircle } from 'lucide-react'
 import { ServicesSkeleton } from '@/components/SkeletonLoader'
+import { OptimizedImage } from '@/components/OptimizedImage'
 
 const INITIAL_DISPLAY = 9  // 3x3 grid
 const MAX_SERVICES = 25
@@ -135,7 +136,15 @@ const ServicesGrid = () => {
             >
               <AnimatePresence mode="popLayout">
               {displayedServices.map((service, index) => {
-                const imageUrl = service.image ? urlFor(service.image).width(800).url() : ''
+                // Generate optimized WebP image URL
+                const imageUrl = service.image 
+                  ? urlFor(service.image)
+                      .width(800)
+                      .height(600)
+                      .format('webp')
+                      .quality(85)
+                      .url()
+                  : '';
                 const description = service.description ?? ''
 
                 return (
@@ -161,32 +170,20 @@ const ServicesGrid = () => {
                     }}
                     aria-label={`${service.title} - Click to contact us via WhatsApp about this service`}
                   >
-                    {/* Service Image */}
-                    <div className="relative h-48 overflow-hidden bg-gradient-to-br from-slate-700 to-slate-900">
-                      {imageUrl ? (
-                        <img
-                          src={imageUrl}
-                          alt={`${service.title} printing service`}
-                          className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-110"
-                          onError={(e) => {
-                            e.currentTarget.style.display = 'none'
-                            // Show fallback when image fails
-                            const fallback = e.currentTarget.nextElementSibling
-                            if (fallback) (fallback as HTMLElement).style.display = 'flex'
-                          }}
-                        />
-                      ) : null}
-                      {/* Fallback gradient if no image */}
-                      <div className="absolute inset-0 bg-gradient-to-br from-cyan/20 to-purple/20 flex items-center justify-center" style={imageUrl ? { display: 'none' } : {}} aria-hidden="true">
-                        <div className="text-center text-white/40">
-                          <div className="text-4xl mb-2" aria-hidden="true">📷</div>
-                          <div className="text-xs">Image unavailable</div>
-                        </div>
-                      </div>
-                      {/* CMYK Border Glow on Hover */}
-                      <div className="absolute inset-0 border-2 border-transparent group-hover:border-cyan group-hover:shadow-cyan-glow transition-all duration-300 rounded-xl" aria-hidden="true"></div>
-                      {/* Gradient Overlay */}
+                    {/* Service Image with Gradient Overlay */}
+                    <div className="relative h-48 overflow-hidden">
+                      <OptimizedImage
+                        src={imageUrl}
+                        alt={`${service.title} printing service`}
+                        className="h-48 transition-transform duration-300 group-hover:scale-110"
+                        priority={index < 3} // Prioritize first 3 images (above the fold)
+                      />
+                      
+                      {/* Gradient Overlay on Image */}
                       <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent"></div>
+                      
+                      {/* CMYK Border Glow on Hover */}
+                      <div className="absolute inset-0 border-2 border-transparent group-hover:border-cyan group-hover:shadow-cyan-glow transition-all duration-300 rounded-t-xl" aria-hidden="true"></div>
                     </div>
 
                     {/* Service Content */}

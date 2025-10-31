@@ -8,6 +8,7 @@ import { useState, useMemo, useCallback } from 'react'
 import Lightbox from '@/components/Lightbox'
 import { ChevronRight, AlertCircle } from 'lucide-react'
 import { PortfolioSkeleton } from '@/components/SkeletonLoader'
+import { OptimizedImage } from '@/components/OptimizedImage'
 
 const INITIAL_DISPLAY = 12  // 4x3 grid
 const MAX_PORTFOLIO = 50
@@ -181,7 +182,7 @@ const Portfolio = () => {
               animate="visible"
             >
               <AnimatePresence>
-              {displayedItems.map((p) => (
+              {displayedItems.map((p, index) => (
                 <motion.article
                   key={p._id}
                   data-testid={`portfolio-item-${p._id}`}
@@ -205,22 +206,20 @@ const Portfolio = () => {
                 >
                   <div className="aspect-square overflow-hidden bg-gradient-to-br from-slate-700 to-slate-900">
                     {p.image ? (
-                      <motion.img
-                        src={urlFor(p.image).width(600).height(600).fit('crop').url()}
+                      <OptimizedImage
+                        src={urlFor(p.image).width(600).height(600).fit('crop').format('webp').quality(85).url()}
                         alt={`${p.title} - ${p.category} portfolio sample`}
-                        className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
-                        onError={(e) => {
-                          e.currentTarget.style.display = 'none'
-                        }}
+                        className="transition-transform duration-500 group-hover:scale-110"
+                        priority={index < 6} // Prioritize first 6 images (2 rows)
                       />
-                    ) : null}
-                    {/* Fallback gradient if no image */}
-                    <div className="absolute inset-0 bg-gradient-to-br from-cyan/20 to-purple/20 flex items-center justify-center" aria-hidden="true">
-                      <div className="text-center text-white/40">
-                        <div className="text-4xl mb-2" aria-hidden="true">📷</div>
-                        <div className="text-xs">Image unavailable</div>
+                    ) : (
+                      <div className="w-full h-full bg-gradient-to-br from-cyan/20 to-purple/20 flex items-center justify-center" aria-hidden="true">
+                        <div className="text-center text-white/40">
+                          <div className="text-4xl mb-2" aria-hidden="true">📷</div>
+                          <div className="text-xs">Image unavailable</div>
+                        </div>
                       </div>
-                    </div>
+                    )}
                   </div>
                   <div className="absolute inset-0 bg-gradient-to-t from-black/70 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" aria-hidden="true" />
                   <div className="absolute bottom-0 left-0 right-0 p-6 text-white translate-y-4 opacity-0 group-hover:opacity-100 group-hover:translate-y-0 transition-all duration-300">

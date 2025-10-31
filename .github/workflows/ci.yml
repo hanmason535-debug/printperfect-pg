@@ -1,3 +1,37 @@
+# ═══════════════════════════════════════════════════════════════════════════
+# CI Workflow - Continuous Integration Pipeline
+# ═══════════════════════════════════════════════════════════════════════════
+#
+# Purpose: Validate code quality on every push and pull request
+#
+# Triggers:
+#   - Every pull request (from any branch)
+#   - Every push to main branch
+#
+# Jobs:
+#   1. Lint - Check code style (ESLint)
+#   2. Type check - Verify TypeScript types
+#   3. Test - Run unit tests with Vitest
+#   4. Build - Compile production bundle
+#   5. Upload artifacts - Store build output for 7 days
+#
+# Environment Variables:
+#   - VITE_SANITY_PROJECT_ID: Sanity CMS project ID (from secrets)
+#   - VITE_SANITY_DATASET: Sanity dataset name (defaults to 'production')
+#
+# Success Criteria:
+#   - All linting rules pass
+#   - No TypeScript errors
+#   - All tests pass
+#   - Production build completes successfully
+#
+# Artifacts:
+#   - dist/ folder uploaded for inspection
+#   - Retained for 7 days
+#   - Named: dist-{node-version}
+#
+# ═══════════════════════════════════════════════════════════════════════════
+
 name: CI (build, lint, typecheck, test)
 
 on:

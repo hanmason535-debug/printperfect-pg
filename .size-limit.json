@@ -1,0 +1,32 @@
+[
+  {
+    "name": "Main Bundle",
+    "path": "dist/assets/index-*.js",
+    "limit": "120 KB",
+    "gzip": true
+  },
+  {
+    "name": "React Vendor",
+    "path": "dist/assets/react-vendor-*.js",
+    "limit": "180 KB",
+    "gzip": true
+  },
+  {
+    "name": "UI Vendor",
+    "path": "dist/assets/ui-vendor-*.js",
+    "limit": "190 KB",
+    "gzip": true
+  },
+  {
+    "name": "Sanity Vendor",
+    "path": "dist/assets/sanity-vendor-*.js",
+    "limit": "100 KB",
+    "gzip": true
+  },
+  {
+    "name": "Total CSS",
+    "path": "dist/assets/*.css",
+    "limit": "85 KB",
+    "gzip": true
+  }
+]

@@ -1,3 +1,53 @@
+# ═══════════════════════════════════════════════════════════════════════════
+# Performance Monitoring Workflow - Lighthouse CI & Bundle Analysis
+# ═══════════════════════════════════════════════════════════════════════════
+#
+# Purpose: Monitor web performance metrics and bundle size
+#
+# Triggers:
+#   - Pull requests that change source code, assets, or build config
+#   - Manual trigger via GitHub UI (workflow_dispatch)
+#
+# Path Filters (only runs if these change):
+#   - src/** (components, hooks, styles)
+#   - public/** (static assets)
+#   - package*.json (dependencies)
+#   - vite.config.ts (build configuration)
+#
+# Jobs:
+#   1. Lighthouse CI - Web performance audits
+#   2. Bundle Analysis - Asset size and composition tracking
+#
+# Lighthouse Metrics:
+#   - Performance score
+#   - Accessibility score
+#   - Best Practices score
+#   - SEO score
+#   - First Contentful Paint (FCP)
+#   - Largest Contentful Paint (LCP)
+#   - Time to Interactive (TTI)
+#   - Cumulative Layout Shift (CLS)
+#
+# Bundle Analysis:
+#   - Top 20 largest files by size
+#   - Asset count breakdown (JS, CSS, images)
+#   - Total bundle size
+#   - Posted to GitHub Step Summary
+#
+# Permissions:
+#   - contents: read (checkout code)
+#   - pull-requests: write (post comments)
+#
+# Conditions:
+#   - Skips draft pull requests
+#   - Only runs on non-draft PRs with relevant changes
+#
+# Lighthouse Storage:
+#   - Reports uploaded to temporary public storage
+#   - Accessible via GitHub Actions summary
+#
+# ═══════════════════════════════════════════════════════════════════════════
+
 name: Performance Monitoring
 
 on:

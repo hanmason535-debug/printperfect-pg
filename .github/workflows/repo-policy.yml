@@ -1,3 +1,56 @@
+# ═══════════════════════════════════════════════════════════════════════════
+# Repository Policy Workflow - Advisory Checks (Non-Blocking)
+# ═══════════════════════════════════════════════════════════════════════════
+#
+# Purpose: Provide advisory guidance on repository best practices
+#
+# Triggers:
+#   - Pull request opened, updated, or reopened
+#
+# Non-Blocking:
+#   - All checks are advisory only
+#   - Will not fail your PR
+#   - Provides helpful reminders
+#
+# Advisory Checks:
+#
+#   1. CHANGELOG.md Updates
+#      - Reminds to update CHANGELOG when code changes
+#      - Watches: src/, sanity/, seed/, config files, public/
+#
+#   2. GROQ Import Style
+#      - Suggests plain-string GROQ (no `import 'groq'`)
+#      - Scans .ts/.tsx files for groq imports
+#
+#   3. Protected File Changes
+#      - Alerts when critical UI/schema files modified
+#      - Protected files:
+#        * ServicesGrid.tsx, Portfolio.tsx, Contact.tsx
+#        * Header.tsx, HeroSection.tsx
+#        * sanity/schemaTypes/, sanity/schema.ts
+#      - Asks for approval confirmation in PR body
+#
+#   4. Agent Field
+#      - Reminds to add Agent field in PR body
+#      - Accepted values: Lovable | Codex | Gemini | Human
+#      - Helps track contribution sources
+#
+# Comment Behavior:
+#   - Posts advisory comment with all applicable suggestions
+#   - Updates/replaces existing comment (no spam)
+#   - Only posts if there are actionable items
+#
+# Permissions:
+#   - contents: read (checkout and file scanning)
+#   - pull-requests: write (post advisory comments)
+#
+# Detection Strategy:
+#   - Compares changed files against base branch
+#   - Scans file content for specific patterns
+#   - Checks PR body for required fields
+#
+# ═══════════════════════════════════════════════════════════════════════════
+
 name: Advisory Policy (non-blocking)
 
 on:

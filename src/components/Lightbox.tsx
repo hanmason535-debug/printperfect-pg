@@ -1,83 +1,140 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from "react"
-import { AnimatePresence, motion, useReducedMotion } from "framer-motion"
-import { Dialog, DialogContent } from "@/components/ui/dialog"
-import { X, ChevronLeft, ChevronRight } from "lucide-react"
-import { urlFor } from "@/lib/image"
-import type { PortfolioItem } from "@/types/cms"
+/**
+ * ═══════════════════════════════════════════════════════════════════════════
+ * Lightbox Component - Fullscreen Image Viewer with Navigation
+ * ═══════════════════════════════════════════════════════════════════════════
+ *
+ * @fileoverview Accessible fullscreen image viewer with keyboard navigation,
+ * image preloading, and smooth animations.
+ *
+ * @description
+ * The Lightbox component provides an immersive image viewing experience:
+ *
+ * **Navigation**:
+ * - Previous/Next buttons for cycling through images
+ * - Keyboard shortcuts: Arrow Left/Right (navigate), ESC (close)
+ * - Touch-friendly button sizing for mobile devices
+ * - Wraps around: last → first, first → last
+ *
+ * **Image Optimization**:
+ * - Loads high-res images (1600px width) for clarity
+ * - WebP format for smaller file sizes
+ * - Preloads adjacent images (previous and next) for instant transitions
+ * - Lazy loads only visible image, not entire collection
+ *
+ * **Animations**:
+ * - Smooth fade-in/scale transitions using Framer Motion
+ * - Backdrop blur effect for depth
+ * - Respects user's reduced motion preference
+ * - Gentle "nudge" animation on Next button every 4 seconds (hints navigation)
+ *
+ * **Accessibility**:
+ * - ARIA dialog role with proper labeling
+ * - Focus management (prevents auto-focus on open)
+ * - Keyboard navigation support
+ * - Descriptive alt text for images
+ *
+ * **UX Features**:
+ * - Click backdrop to close
+ * - Close button in top-right corner
+ * - Displays image title and description below image
+ * - Hover state on Next button pauses nudge animation
+ *
+ * @component
+ * @param {Props} props - Component props
+ * @param {boolean} props.open - Controls lightbox visibility
+ * @param {Function} props.onOpenChange - Callback when open state changes
+ * @param {PortfolioItem[]} props.items - Array of portfolio items to display
+ * @param {number} props.startIndex - Index of initial image to show
+ *
+ * @example
+ * <Lightbox
+ *   open={isOpen}
+ *   onOpenChange={setIsOpen}
+ *   items={portfolioItems}
+ *   startIndex={3}
+ * />
+ */
+
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { AnimatePresence, motion, useReducedMotion } from 'framer-motion';
+import { Dialog, DialogContent } from '@/components/ui/dialog';
+import { X, ChevronLeft, ChevronRight } from 'lucide-react';
+import { urlFor } from '@/lib/image';
+import type { PortfolioItem } from '@/types/cms';
 
 type Props = {
-  open: boolean
-  onOpenChange: (v: boolean) => void
-  items: PortfolioItem[]
-  startIndex: number
-}
+  open: boolean;
+  onOpenChange: (v: boolean) => void;
+  items: PortfolioItem[];
+  startIndex: number;
+};
 
 export default function Lightbox({ open, onOpenChange, items, startIndex }: Props) {
   const [index, setIndex] = useState(() => {
-    if (!items.length) return 0
-    return Math.max(0, Math.min(startIndex, items.length - 1))
-  })
-  const [hoverNext, setHoverNext] = useState(false)
-  const [nudgeTick, setNudgeTick] = useState(0)
-  const reduceMotion = useReducedMotion()
-  const imgRef = useRef<HTMLImageElement | null>(null)
+    if (!items.length) return 0;
+    return Math.max(0, Math.min(startIndex, items.length - 1));
+  });
+  const [hoverNext, setHoverNext] = useState(false);
+  const [nudgeTick, setNudgeTick] = useState(0);
+  const reduceMotion = useReducedMotion();
+  const imgRef = useRef<HTMLImageElement | null>(null);
 
   // eslint-disable-next-line react-hooks/exhaustive-deps
   useEffect(() => {
     if (open && items.length) {
-      const validIndex = Math.max(0, Math.min(startIndex, items.length - 1))
-      setIndex(validIndex)
+      const validIndex = Math.max(0, Math.min(startIndex, items.length - 1));
+      setIndex(validIndex);
     }
-  }, [items.length, open, startIndex])
+  }, [items.length, open, startIndex]);
 
   const prev = useCallback(() => {
-    if (!items.length) return
-    setIndex((i) => (i - 1 + items.length) % items.length)
-  }, [items.length])
+    if (!items.length) return;
+    setIndex((i) => (i - 1 + items.length) % items.length);
+  }, [items.length]);
 
   const next = useCallback(() => {
-    if (!items.length) return
-    setIndex((i) => (i + 1) % items.length)
-  }, [items.length])
+    if (!items.length) return;
+    setIndex((i) => (i + 1) % items.length);
+  }, [items.length]);
 
   useEffect(() => {
-    if (!open) return
+    if (!open) return;
     const onKey = (e: KeyboardEvent) => {
-      if (e.key === "Escape") onOpenChange(false)
-      else if (e.key === "ArrowRight") next()
-      else if (e.key === "ArrowLeft") prev()
-    }
-    window.addEventListener("keydown", onKey)
-    return () => window.removeEventListener("keydown", onKey)
-  }, [open, onOpenChange, next, prev])
+      if (e.key === 'Escape') onOpenChange(false);
+      else if (e.key === 'ArrowRight') next();
+      else if (e.key === 'ArrowLeft') prev();
+    };
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  }, [open, onOpenChange, next, prev]);
 
   useEffect(() => {
-    if (!items.length) return
+    if (!items.length) return;
     const preload = (idx: number) => {
-      const it = items[idx]
-      if (!it?.image) return
-      const src = urlFor(it.image).width(1600).format("webp").url()
-      const im = new Image()
-      im.src = src
-    }
-    preload((index + 1) % items.length)
-    preload((index - 1 + items.length) % items.length)
-  }, [index, items])
+      const it = items[idx];
+      if (!it?.image) return;
+      const src = urlFor(it.image).width(1600).format('webp').url();
+      const im = new Image();
+      im.src = src;
+    };
+    preload((index + 1) % items.length);
+    preload((index - 1 + items.length) % items.length);
+  }, [index, items]);
 
   // gentle nudge on the Next button every 4s (disabled on hover / reduce-motion)
   useEffect(() => {
-    if (!open || reduceMotion) return
+    if (!open || reduceMotion) return;
     const id = setInterval(() => {
-      if (!hoverNext) setNudgeTick((t) => t + 1)
-    }, 4000)
-    return () => clearInterval(id)
-  }, [open, hoverNext, reduceMotion])
+      if (!hoverNext) setNudgeTick((t) => t + 1);
+    }, 4000);
+    return () => clearInterval(id);
+  }, [open, hoverNext, reduceMotion]);
 
-  const current = items[index]
+  const current = items[index];
   const imgSrc = useMemo(() => {
-    if (!current?.image) return ""
-    return urlFor(current.image).width(1600).format("webp").url()
-  }, [current])
+    if (!current?.image) return '';
+    return urlFor(current.image).width(1600).format('webp').url();
+  }, [current]);
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -101,19 +158,19 @@ export default function Lightbox({ open, onOpenChange, items, startIndex }: Prop
             {/* Stage (image + caption) */}
             <motion.div
               role="dialog"
-              aria-label={current?.title ?? "Image viewer"}
+              aria-label={current?.title ?? 'Image viewer'}
               className="fixed inset-0 z-[95] flex items-center justify-center"
               initial={reduceMotion ? { opacity: 1, scale: 1 } : { opacity: 0, scale: 0.98 }}
               animate={{ opacity: 1, scale: 1 }}
               exit={reduceMotion ? { opacity: 1, scale: 1 } : { opacity: 0, scale: 0.98 }}
-              transition={{ duration: reduceMotion ? 0 : 0.18, ease: "easeOut" }}
+              transition={{ duration: reduceMotion ? 0 : 0.18, ease: 'easeOut' }}
             >
               <div className="relative mx-4 my-8 max-h-[90vh] max-w-[92vw]">
                 {imgSrc && (
                   <img
                     ref={imgRef}
                     src={imgSrc}
-                    alt={current?.title || "Portfolio image"}
+                    alt={current?.title || 'Portfolio image'}
                     className="max-h-[80vh] max-w-[92vw] object-contain select-none rounded-2xl"
                     draggable={false}
                   />
@@ -121,9 +178,7 @@ export default function Lightbox({ open, onOpenChange, items, startIndex }: Prop
 
                 {(current?.title || current?.description) && (
                   <div className="mt-3 rounded-md bg-black/60 px-3 py-2 text-white text-center">
-                    {current?.title && (
-                      <h3 className="text-sm font-medium">{current.title}</h3>
-                    )}
+                    {current?.title && <h3 className="text-sm font-medium">{current.title}</h3>}
                     {current?.description && (
                       <p className="mt-1 text-xs opacity-90">{current.description}</p>
                     )}
@@ -167,7 +222,11 @@ export default function Lightbox({ open, onOpenChange, items, startIndex }: Prop
                 animate={
                   reduceMotion || hoverNext
                     ? { x: 0, scale: 1 }
-                    : { x: [0, 6, 0], scale: [1, 1.02, 1], transition: { duration: 0.6, ease: "easeInOut" } }
+                    : {
+                        x: [0, 6, 0],
+                        scale: [1, 1.02, 1],
+                        transition: { duration: 0.6, ease: 'easeInOut' },
+                      }
                 }
               >
                 <ChevronRight className="h-8 w-8" />
@@ -177,5 +236,5 @@ export default function Lightbox({ open, onOpenChange, items, startIndex }: Prop
         )}
       </AnimatePresence>
     </Dialog>
-  )
+  );
 }

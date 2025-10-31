@@ -3,7 +3,7 @@
  * Main navigation component of the application.
  * Implements a responsive header with desktop and mobile navigation,
  * contact buttons, and scroll-based styling.
- * 
+ *
  * Performance Optimizations:
  * - Component is memoized to prevent unnecessary re-renders
  * - Event handlers are memoized using useCallback
@@ -47,7 +47,7 @@ const Header = () => {
   }, []);
 
   const handleMenuToggle = useCallback(() => {
-    setIsMenuOpen(prev => !prev);
+    setIsMenuOpen((prev) => !prev);
   }, []);
 
   // Memoize scroll handler to prevent recreation on each render
@@ -72,8 +72,8 @@ const Header = () => {
   return (
     <motion.header
       className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${
-        isScrolled 
-          ? 'bg-black/80 backdrop-blur-md shadow-elevation' 
+        isScrolled
+          ? 'bg-black/80 backdrop-blur-md shadow-elevation'
           : 'bg-black/60 backdrop-blur-sm'
       }`}
       initial={{ y: -100 }}
@@ -83,26 +83,22 @@ const Header = () => {
       <div className="container mx-auto px-4 lg:px-8">
         <div className="flex items-center justify-between h-16 lg:h-20">
           {/* Logo */}
-          <motion.div 
+          <motion.div
             className="flex items-center space-x-2"
             whileHover={{ scale: 1.05 }}
-            transition={{ type: "spring", stiffness: 400, damping: 17 }}
+            transition={{ type: 'spring', stiffness: 400, damping: 17 }}
           >
             <div className="w-10 h-10 bg-gradient-cyan rounded-lg flex items-center justify-center text-white font-heading font-bold text-lg">
               PG
             </div>
             <div className="hidden sm:block">
-              <h1 className="text-xl font-heading font-bold text-white">
-                Paras Graphics
-              </h1>
-              <p className="text-xs text-gray-300 -mt-1">
-                Premium Printing
-              </p>
+              <h1 className="text-xl font-heading font-bold text-white">Paras Graphics</h1>
+              <p className="text-xs text-gray-300 -mt-1">Premium Printing</p>
             </div>
           </motion.div>
 
           {/* Desktop Navigation */}
-          <nav 
+          <nav
             className="hidden lg:flex items-center space-x-8"
             aria-label="Main navigation"
             role="navigation"
@@ -131,7 +127,7 @@ const Header = () => {
               <MessageCircle className="w-4 h-4" aria-hidden="true" />
               WhatsApp
             </Button>
-            
+
             <Button
               variant="cyan"
               size="sm"
@@ -157,15 +153,8 @@ const Header = () => {
                 aria-hidden="true"
                 className="h-full w-full transition-transform hover:scale-110 relative z-10"
               />
-              <BorderBeam 
-                size={80} 
-                duration={8} 
-                delay={3}
-                colorFrom="#00bfff" 
-                colorTo="#ff00ff"
-              />
+              <BorderBeam size={80} duration={8} delay={3} colorFrom="#00bfff" colorTo="#ff00ff" />
             </Button>
-
           </div>
 
           {/* Mobile Menu Toggle */}
@@ -179,7 +168,11 @@ const Header = () => {
               aria-controls="mobile-menu"
               className="text-white focus:ring-2 focus:ring-cyan-accent focus:ring-offset-2 focus:ring-offset-black"
             >
-              {isMenuOpen ? <X className="w-6 h-6" aria-hidden="true" /> : <Menu className="w-6 h-6" aria-hidden="true" />}
+              {isMenuOpen ? (
+                <X className="w-6 h-6" aria-hidden="true" />
+              ) : (
+                <Menu className="w-6 h-6" aria-hidden="true" />
+              )}
             </Button>
           </div>
         </div>

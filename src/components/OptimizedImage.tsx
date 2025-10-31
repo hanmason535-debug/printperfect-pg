@@ -14,14 +14,14 @@ interface OptimizedImageProps {
 
 /**
  * OptimizedImage Component
- * 
+ *
  * Provides optimized image loading with:
  * - Lazy loading for non-priority images
  * - WebP format support via Sanity urlFor
  * - Blur placeholder effect while loading
  * - Smooth fade-in transition
  * - Error handling with fallback
- * 
+ *
  * @param src - Image URL (from Sanity urlFor)
  * @param alt - Alt text for accessibility
  * @param priority - If true, loads immediately (for above-fold images)

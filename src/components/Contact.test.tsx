@@ -20,7 +20,7 @@ describe('Contact Component', () => {
 
   it('renders contact form with all required fields', () => {
     render(<Contact />);
-    
+
     expect(screen.getByLabelText(/name/i)).toBeInTheDocument();
     expect(screen.getByLabelText(/email/i)).toBeInTheDocument();
     expect(screen.getByLabelText(/phone/i)).toBeInTheDocument();
@@ -77,7 +77,7 @@ describe('Contact Component', () => {
 
     // Find honeypot field (usually hidden)
     const honeypotField = document.querySelector('input[name="honeypot"]') as HTMLInputElement;
-    
+
     if (honeypotField) {
       const nameInput = screen.getByLabelText(/name/i);
       const emailInput = screen.getByLabelText(/email/i);
@@ -88,7 +88,7 @@ describe('Contact Component', () => {
       await user.type(nameInput, 'John Doe');
       await user.type(emailInput, 'john@example.com');
       await user.type(messageInput, 'Test message');
-      
+
       // Fill honeypot (which bots would do)
       await user.type(honeypotField, 'spam');
       await user.click(submitButton);

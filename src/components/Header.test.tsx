@@ -33,7 +33,7 @@ describe('Header Component', () => {
     render(<Header />);
 
     const menuButton = screen.getByRole('button', { name: /menu|hamburger/i });
-    
+
     // Menu should be closed initially
     expect(menuButton).toBeInTheDocument();
 
@@ -51,7 +51,7 @@ describe('Header Component', () => {
     // Check for nav element or header element
     const nav = container.querySelector('nav');
     const header = container.querySelector('header');
-    
+
     expect(nav || header).toBeInTheDocument();
   });
 
@@ -63,10 +63,7 @@ describe('Header Component', () => {
     await user.click(whatsappButton);
 
     // window.open should have been called with WhatsApp URL
-    expect(global.open).toHaveBeenCalledWith(
-      expect.stringContaining('wa.me'),
-      '_blank'
-    );
+    expect(global.open).toHaveBeenCalledWith(expect.stringContaining('wa.me'), '_blank');
   });
 
   it('has responsive design indicators', () => {
@@ -79,7 +76,7 @@ describe('Header Component', () => {
 
   it('maintains scroll state for styling', () => {
     render(<Header />);
-    
+
     // Component should render without errors
     const homeLinks = screen.getAllByText(/home/i);
     expect(homeLinks.length).toBeGreaterThan(0);

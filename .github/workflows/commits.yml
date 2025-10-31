@@ -1,3 +1,52 @@
+# ═══════════════════════════════════════════════════════════════════════════
+# Conventional Commit Workflow - PR Title Validation
+# ═══════════════════════════════════════════════════════════════════════════
+#
+# Purpose: Enforce Conventional Commits standard for PR titles
+#
+# Triggers:
+#   - Every pull request (all types)
+#
+# Conventional Commit Format:
+#   <type>(<scope>): <description>
+#
+# Required Types:
+#   - feat: New feature
+#   - fix: Bug fix
+#   - chore: Maintenance task
+#   - docs: Documentation change
+#   - refactor: Code restructuring (no behavior change)
+#   - test: Test addition or modification
+#   - perf: Performance improvement
+#
+# Optional Scope:
+#   - (portfolio): Portfolio-related changes
+#   - (services): Service grid changes
+#   - (ui): UI component changes
+#   - (deps): Dependency updates
+#   - etc.
+#
+# Examples:
+#   ✅ "feat: add portfolio lightbox"
+#   ✅ "fix(services): restore WhatsApp integration"
+#   ✅ "docs: update README with setup instructions"
+#   ✅ "refactor(ui): simplify button component"
+#   ❌ "Add portfolio feature" (missing type)
+#   ❌ "FEAT: new feature" (uppercase not allowed)
+#
+# Validation:
+#   - Case-insensitive type matching
+#   - Colon and space required after type/scope
+#   - Description is freeform
+#
+# Benefits:
+#   - Automated changelog generation
+#   - Clear change categorization
+#   - Consistent commit history
+#   - Semantic versioning support
+#
+# ═══════════════════════════════════════════════════════════════════════════
+
 name: Conventional Commit (PR title)
 on: pull_request
 jobs:
@@ -10,4 +59,3 @@ jobs:
           echo "PR title: $title"
           echo "$title" | grep -Eiq '^(feat|fix|chore|docs|refactor|test|perf)(\(.+\))?: ' \
             || { echo '::error ::PR title must be Conventional Commit style, e.g., "fix: restore portfolio filter"'; exit 1; }
-

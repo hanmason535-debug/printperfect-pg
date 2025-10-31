@@ -1,146 +1,359 @@
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
+/**
+ * ═══════════════════════════════════════════════════════════════════════════
+ * Global Styles & Design System - PrintPerfect-PG
+ * ═══════════════════════════════════════════════════════════════════════════
+ * 
+ * @fileoverview Main stylesheet defining the complete design system including
+ * color palette, spacing, shadows, gradients, and theme variables.
+ * 
+ * @description
+ * This file establishes the visual foundation of the entire application using:
+ * 
+ * **Tailwind CSS Layers**:
+ * - @tailwind base: Normalize styles + custom base elements
+ * - @tailwind components: Reusable component classes
+ * - @tailwind utilities: Utility classes for rapid development
+ * 
+ * **Design System Features**:
+ * - Professional navy/charcoal color scheme for printing business
+ * - CMYK accent colors (cyan, magenta, yellow) for brand identity
+ * - HSL color format for better manipulation and theming
+ * - Dark mode support with complete theme variables
+ * - Premium shadows and gradients for depth
+ * - Smooth animations and transitions
+ * 
+ * **CSS Custom Properties (CSS Variables)**:
+ * All colors use HSL format stored as CSS custom properties:
+ * - Allows dynamic theming and color manipulation
+ * - Enables dark mode without duplicating styles
+ * - Supports runtime theme switching
+ * - Format: --variable-name: H S% L% (e.g., --primary: 215 40% 25%)
+ * - Usage: hsl(var(--primary)) or hsl(var(--primary) / 0.5) for opacity
+ * 
+ * **Accessibility**:
+ * - WCAG AA compliant color contrast ratios
+ * - Smooth scroll behavior for keyboard navigation
+ * - Focus ring colors for interactive elements
+ * 
+ * @see {@link https://tailwindcss.com/docs/adding-custom-styles} Tailwind Custom Styles
+ * @see {@link https://developer.mozilla.org/en-US/docs/Web/CSS/--*} CSS Custom Properties
+ */
 
-/* Paras Graphics Design System - Premium Printing Business
-All colors MUST be HSL. CMYK accent colors with professional navy/charcoal base.
-*/
+/* ─── Tailwind CSS Base Imports ────────────────────────────────────────────── */
 
+/**
+ * Import Tailwind CSS layers in order
+ * These directives are replaced by Tailwind's PostCSS plugin
+ */
+@tailwind base; /* Normalize + base element styles */
+@tailwind components; /* Reusable component classes */
+@tailwind utilities; /* Utility classes (flex, grid, spacing, etc.) */
+
+/* ─── Design System Variables ──────────────────────────────────────────────── */
+
+/**
+ * Paras Graphics Design System - Premium Printing Business
+ * 
+ * COLOR REQUIREMENTS:
+ * - All colors MUST be in HSL format for theme compatibility
+ * - CMYK accent colors (cyan, magenta, yellow) for print industry branding
+ * - Professional navy/charcoal base for trust and sophistication
+ * - High contrast ratios for accessibility (WCAG AA minimum)
+ * 
+ * HSL COLOR FORMAT:
+ * Format: --variable: hue saturation% lightness%
+ * Example: --primary: 215 40% 25%
+ * Usage: hsl(var(--primary)) → hsl(215 40% 25%)
+ * With opacity: hsl(var(--primary) / 0.5) → hsla(215 40% 25% / 0.5)
+ */
 @layer base {
+  /* ─── Light Theme (Default) ────────────────────────────────────────────── */
+
   :root {
-    /* Base colors - Professional navy and charcoal theme */
-    --background: 0 0% 100%;
-    --foreground: 215 25% 15%;
-    
-    /* Navy primary for professional look */
-    --primary: 215 40% 25%;
-    --primary-foreground: 0 0% 100%;
-    --primary-glow: 215 45% 35%;
-    
-    /* CMYK Accent Colors - Cyan */
-    --cyan-accent: 191 85% 50%;
-    --cyan-accent-foreground: 0 0% 100%;
-    --cyan-glow: 191 75% 60%;
-    
-    /* CMYK Accent Colors - Magenta */
-    --magenta-accent: 320 85% 50%;
-    --magenta-accent-foreground: 0 0% 100%;
-    --magenta-glow: 320 75% 60%;
-    
-    /* CMYK Accent Colors - Yellow */
-    --yellow-accent: 51 100% 50%;
-    --yellow-accent-foreground: 215 25% 15%;
-    --yellow-glow: 51 90% 60%;
-    
-    /* Charcoal and neutral tones */
-    --secondary: 216 12% 92%;
-    --secondary-foreground: 215 25% 15%;
-    --charcoal: 215 20% 20%;
-    --charcoal-light: 215 15% 30%;
-    
-    /* Card and surface colors */
-    --card: 0 0% 100%;
-    --card-foreground: 215 25% 15%;
-    
-    --popover: 0 0% 100%;
-    --popover-foreground: 215 25% 15%;
-    
-    --muted: 216 12% 96%;
-    --muted-foreground: 215.4 16.3% 46.9%;
-    
-    --accent: 216 12% 94%;
-    --accent-foreground: 215 25% 15%;
-    
-    --destructive: 0 84.2% 60.2%;
-    --destructive-foreground: 210 40% 98%;
-    
-    --border: 214.3 31.8% 91.4%;
-    --input: 214.3 31.8% 91.4%;
-    --ring: 191 85% 50%;
-    
-    /* Premium gradients */
+    /* ─── Base Colors ─────────────────────────────────────────────────────── */
+
+    /**
+     * Background and foreground colors
+     * - background: Pure white (#FFFFFF) for clean, professional look
+     * - foreground: Dark navy (almost black) for maximum readability
+     */
+    --background: 0 0% 100%; /* Pure white */
+    --foreground: 215 25% 15%; /* Dark navy text */
+
+    /* ─── Primary Navy Colors ──────────────────────────────────────────────── */
+
+    /**
+     * Primary color scheme - Professional navy blue
+     * Used for: headers, CTAs, important UI elements
+     * Navy conveys: trust, professionalism, stability
+     */
+    --primary: 215 40% 25%; /* Navy blue */
+    --primary-foreground: 0 0% 100%; /* White text on navy */
+    --primary-glow: 215 45% 35%; /* Lighter navy for hover/glow */
+
+    /* ─── CMYK Accent Colors ────────────────────────────────────────────────── */
+
+    /**
+     * Cyan accent - Print industry primary color
+     * Used for: highlights, interactive elements, brand accents
+     */
+    --cyan-accent: 191 85% 50%; /* Vibrant cyan (#0BC5EA) */
+    --cyan-accent-foreground: 0 0% 100%; /* White text on cyan */
+    --cyan-glow: 191 75% 60%; /* Lighter cyan for glow effects */
+
+    /**
+     * Magenta accent - Print industry secondary color
+     * Used for: secondary highlights, visual interest
+     */
+    --magenta-accent: 320 85% 50%; /* Vibrant magenta */
+    --magenta-accent-foreground: 0 0% 100%; /* White text on magenta */
+    --magenta-glow: 320 75% 60%; /* Lighter magenta for glow */
+
+    /**
+     * Yellow accent - Print industry tertiary color
+     * Used for: warnings, highlights, visual accents
+     */
+    --yellow-accent: 51 100% 50%; /* Vibrant yellow (#FFD700) */
+    --yellow-accent-foreground: 215 25% 15%; /* Dark text on yellow (contrast) */
+    --yellow-glow: 51 90% 60%; /* Lighter yellow for glow */
+
+    /* ─── Neutral Colors ────────────────────────────────────────────────────── */
+
+    /**
+     * Secondary colors - Light gray backgrounds
+     * Used for: secondary buttons, subtle backgrounds
+     */
+    --secondary: 216 12% 92%; /* Light gray */
+    --secondary-foreground: 215 25% 15%; /* Dark navy text */
+
+    /**
+     * Charcoal colors - Dark neutral tones
+     * Used for: footers, dark sections, contrast areas
+     */
+    --charcoal: 215 20% 20%; /* Dark charcoal */
+    --charcoal-light: 215 15% 30%; /* Lighter charcoal */
+
+    /* ─── Surface Colors ────────────────────────────────────────────────────── */
+
+    /**
+     * Card colors - Elevated surface elements
+     * Used for: cards, modals, elevated components
+     */
+    --card: 0 0% 100%; /* White card background */
+    --card-foreground: 215 25% 15%; /* Dark navy text on cards */
+
+    /**
+     * Popover colors - Floating UI elements
+     * Used for: dropdowns, tooltips, popovers
+     */
+    --popover: 0 0% 100%; /* White popover background */
+    --popover-foreground: 215 25% 15%; /* Dark navy text in popovers */
+
+    /**
+     * Muted colors - Subtle, de-emphasized content
+     * Used for: disabled states, secondary text, placeholders
+     */
+    --muted: 216 12% 96%; /* Very light gray */
+    --muted-foreground: 215.4 16.3% 46.9%; /* Medium gray text */
+
+    /**
+     * Accent colors - Highlighted elements
+     * Used for: hover states, focused elements, highlights
+     */
+    --accent: 216 12% 94%; /* Light gray accent */
+    --accent-foreground: 215 25% 15%; /* Dark navy text on accent */
+
+    /* ─── Semantic Colors ───────────────────────────────────────────────────── */
+
+    /**
+     * Destructive colors - Error and danger states
+     * Used for: error messages, delete buttons, warnings
+     */
+    --destructive: 0 84.2% 60.2%; /* Red (#E53E3E) */
+    --destructive-foreground: 210 40% 98%; /* Almost white text on red */
+
+    /* ─── Form & Interaction Colors ─────────────────────────────────────────── */
+
+    /**
+     * Border, input, and focus ring colors
+     * - border: Default border color for all components
+     * - input: Input field borders
+     * - ring: Focus ring color (cyan for brand consistency)
+     */
+    --border: 214.3 31.8% 91.4%; /* Light gray border */
+    --input: 214.3 31.8% 91.4%; /* Light gray input border */
+    --ring: 191 85% 50%; /* Cyan focus ring (brand color) */
+
+    /* ─── Premium Gradients ──────────────────────────────────────────────────── */
+
+    /**
+     * Linear gradients for visual depth and premium feel
+     * 
+     * gradient-hero: Navy gradient for hero sections
+     * gradient-cyan: Cyan gradient for highlights
+     * gradient-subtle: Subtle background gradient
+     * gradient-cmyk: Multi-color gradient using all CMYK accents
+     */
     --gradient-hero: linear-gradient(135deg, hsl(var(--primary)) 0%, hsl(var(--primary-glow)) 100%);
-    --gradient-cyan: linear-gradient(135deg, hsl(var(--cyan-accent)) 0%, hsl(var(--cyan-glow)) 100%);
+    --gradient-cyan: linear-gradient(
+      135deg,
+      hsl(var(--cyan-accent)) 0%,
+      hsl(var(--cyan-glow)) 100%
+    );
     --gradient-subtle: linear-gradient(180deg, hsl(var(--background)) 0%, hsl(var(--muted)) 100%);
-    --gradient-cmyk: linear-gradient(45deg, hsl(var(--cyan-accent)) 0%, hsl(var(--magenta-accent)) 50%, hsl(var(--yellow-accent)) 100%);
-    
-    /* Premium shadows */
+    --gradient-cmyk: linear-gradient(
+      45deg,
+      hsl(var(--cyan-accent)) 0%,
+      hsl(var(--magenta-accent)) 50%,
+      hsl(var(--yellow-accent)) 100%
+    );
+
+    /* ─── Premium Shadows ─────────────────────────────────────────────────────── */
+
+    /**
+     * Box shadows for elevation and depth
+     * 
+     * shadow-premium: Large soft shadow for elevated elements
+     * shadow-cyan-glow: Glowing cyan shadow for highlights
+     * shadow-elevation: Medium shadow for cards and modals
+     */
     --shadow-premium: 0 25px 50px -12px hsl(var(--primary) / 0.25);
     --shadow-cyan-glow: 0 0 40px hsl(var(--cyan-accent) / 0.3);
     --shadow-elevation: 0 10px 30px -10px hsl(var(--primary) / 0.15);
-    
-    /* Animation timing */
-    --transition-smooth: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-    --transition-bounce: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-    
-    --radius: 0.75rem;
 
-    --sidebar-background: 0 0% 98%;
+    /* ─── Animation & Transitions ─────────────────────────────────────────────── */
 
-    --sidebar-foreground: 240 5.3% 26.1%;
+    /**
+     * CSS transition timing functions
+     * 
+     * transition-smooth: Standard easing for most animations (cubic-bezier)
+     * transition-bounce: Playful bounce effect for interactive elements
+     */
+    --transition-smooth: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); /* 300ms smooth */
+    --transition-bounce: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275); /* 400ms bounce */
 
-    --sidebar-primary: 240 5.9% 10%;
+    /* ─── Border Radius ───────────────────────────────────────────────────────── */
 
-    --sidebar-primary-foreground: 0 0% 98%;
+    /**
+     * Global border radius
+     * Used by shadcn/ui components for consistent rounded corners
+     */
+    --radius: 0.75rem; /* 12px rounded corners */
 
-    --sidebar-accent: 240 4.8% 95.9%;
+    /* ─── Sidebar Colors (Optional Layout) ────────────────────────────────────── */
 
-    --sidebar-accent-foreground: 240 5.9% 10%;
-
-    --sidebar-border: 220 13% 91%;
-
-    --sidebar-ring: 217.2 91.2% 59.8%;
+    /**
+     * Sidebar component colors (if sidebar layout is used)
+     * Currently not actively used, reserved for future features
+     */
+    --sidebar-background: 0 0% 98%; /* Almost white */
+    --sidebar-foreground: 240 5.3% 26.1%; /* Dark gray text */
+    --sidebar-primary: 240 5.9% 10%; /* Very dark */
+    --sidebar-primary-foreground: 0 0% 98%; /* Almost white */
+    --sidebar-accent: 240 4.8% 95.9%; /* Very light gray */
+    --sidebar-accent-foreground: 240 5.9% 10%; /* Very dark */
+    --sidebar-border: 220 13% 91%; /* Light gray border */
+    --sidebar-ring: 217.2 91.2% 59.8%; /* Blue focus ring */
   }
 
+  /* ─── Dark Theme ────────────────────────────────────────────────────────────── */
+
+  /**
+   * Dark mode color overrides
+   * Applied when .dark class is present on <html> or <body>
+   * 
+   * Strategy:
+   * - Invert backgrounds (dark instead of light)
+   * - Maintain color relationships and contrast ratios
+   * - Keep CMYK accent colors consistent for brand identity
+   */
   .dark {
-    --background: 222.2 84% 4.9%;
-    --foreground: 210 40% 98%;
+    --background: 222.2 84% 4.9%; /* Very dark blue-gray */
+    --foreground: 210 40% 98%; /* Almost white text */
 
-    --card: 222.2 84% 4.9%;
-    --card-foreground: 210 40% 98%;
+    --card: 222.2 84% 4.9%; /* Very dark blue-gray */
+    --card-foreground: 210 40% 98%; /* Almost white text */
 
-    --popover: 222.2 84% 4.9%;
-    --popover-foreground: 210 40% 98%;
+    --popover: 222.2 84% 4.9%; /* Very dark blue-gray */
+    --popover-foreground: 210 40% 98%; /* Almost white text */
 
-    --primary: 210 40% 98%;
-    --primary-foreground: 222.2 47.4% 11.2%;
+    --primary: 210 40% 98%; /* Almost white (inverted from light mode) */
+    --primary-foreground: 222.2 47.4% 11.2%; /* Very dark text on light */
 
-    --secondary: 217.2 32.6% 17.5%;
-    --secondary-foreground: 210 40% 98%;
+    --secondary: 217.2 32.6% 17.5%; /* Dark gray */
+    --secondary-foreground: 210 40% 98%; /* Almost white text */
 
-    --muted: 217.2 32.6% 17.5%;
-    --muted-foreground: 215 20.2% 65.1%;
+    --muted: 217.2 32.6% 17.5%; /* Dark gray */
+    --muted-foreground: 215 20.2% 65.1%; /* Medium gray text */
 
-    --accent: 217.2 32.6% 17.5%;
-    --accent-foreground: 210 40% 98%;
+    --accent: 217.2 32.6% 17.5%; /* Dark gray */
+    --accent-foreground: 210 40% 98%; /* Almost white text */
 
-    --destructive: 0 62.8% 30.6%;
-    --destructive-foreground: 210 40% 98%;
+    --destructive: 0 62.8% 30.6%; /* Darker red for dark mode */
+    --destructive-foreground: 210 40% 98%; /* Almost white text */
 
-    --border: 217.2 32.6% 17.5%;
-    --input: 217.2 32.6% 17.5%;
-    --ring: 212.7 26.8% 83.9%;
-    --sidebar-background: 240 5.9% 10%;
-    --sidebar-foreground: 240 4.8% 95.9%;
-    --sidebar-primary: 224.3 76.3% 48%;
-    --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 240 3.7% 15.9%;
-    --sidebar-accent-foreground: 240 4.8% 95.9%;
-    --sidebar-border: 240 3.7% 15.9%;
-    --sidebar-ring: 217.2 91.2% 59.8%;
+    --border: 217.2 32.6% 17.5%; /* Dark gray border */
+    --input: 217.2 32.6% 17.5%; /* Dark gray input border */
+    --ring: 212.7 26.8% 83.9%; /* Light blue focus ring */
+
+    /* Sidebar colors for dark mode */
+    --sidebar-background: 240 5.9% 10%; /* Very dark */
+    --sidebar-foreground: 240 4.8% 95.9%; /* Almost white */
+    --sidebar-primary: 224.3 76.3% 48%; /* Blue */
+    --sidebar-primary-foreground: 0 0% 100%; /* Pure white */
+    --sidebar-accent: 240 3.7% 15.9%; /* Dark gray */
+    --sidebar-accent-foreground: 240 4.8% 95.9%; /* Almost white */
+    --sidebar-border: 240 3.7% 15.9%; /* Dark gray */
+    --sidebar-ring: 217.2 91.2% 59.8%; /* Blue focus ring */
   }
 }
 
+/* ─── Base Element Styles ───────────────────────────────────────────────────── */
+
+/**
+ * Global styles applied to all elements and base HTML elements
+ */
 @layer base {
+  /**
+   * Universal border color
+   * All elements use the same border color for consistency
+   */
   * {
     @apply border-border;
   }
 
-  body {
-    @apply bg-background text-foreground;
-  }
-
+  /**
+   * Root HTML element
+   * Ensures proper height and smooth scrolling
+   */
   html {
     scroll-behavior: smooth;
+    height: 100%;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    -webkit-text-size-adjust: 100%; /* Prevent font scaling on mobile orientation change */
+  }
+
+  /**
+   * Body element styling
+   * Sets default background and text colors using theme variables
+   * Ensures full height and proper mobile rendering
+   */
+  body {
+    @apply bg-background text-foreground;
+    min-height: 100%;
+    position: relative;
+    overflow-x: hidden; /* Prevent horizontal scroll on mobile */
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+  }
+
+  /**
+   * Root React container
+   * Ensures proper height for full-page layouts
+   */
+  #root {
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
   }
 }

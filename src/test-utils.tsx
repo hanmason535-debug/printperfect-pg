@@ -25,11 +25,7 @@ export function renderWithProviders(
   }: CustomRenderOptions = {}
 ) {
   function Wrapper({ children }: { children: React.ReactNode }) {
-    return (
-      <QueryClientProvider client={queryClient}>
-        {children}
-      </QueryClientProvider>
-    );
+    return <QueryClientProvider client={queryClient}>{children}</QueryClientProvider>;
   }
 
   return { ...render(ui, { wrapper: Wrapper, ...renderOptions }), queryClient };

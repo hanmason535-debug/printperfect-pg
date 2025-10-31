@@ -2,7 +2,7 @@
  * Index.tsx
  * The main entry point for the application's public-facing pages.
  * This component orchestrates the layout and rendering of various sections of the website.
- * 
+ *
  * Performance Optimizations:
  * - Implements lazy loading for several components (FileUploadModal, Portfolio, Contact, FloatingWhatsApp)
  *   to reduce the initial bundle size and improve page load performance.
@@ -33,47 +33,50 @@ const Index = () => {
       >
         Skip to main content
       </a>
-      
+
       {/* Header component, always loaded */}
       <Header />
-      
+
       {/* Main content starts here */}
       <main id="main-content">
         {/* Hero Section component, always loaded */}
         <section id="home" aria-label="Welcome and hero section">
           <HeroSection onUploadClick={() => setIsUploadModalOpen(true)} />
         </section>
-        
+
         {/* Services Grid component, always loaded */}
         <ServicesGrid />
-      
-      {/* Why Choose Us component, always loaded */}
+
+        {/* Why Choose Us component, always loaded */}
         <WhyChooseUs />
 
         {/* Suspense boundary for lazy-loaded components below the fold */}
         {/* A simple loading message is displayed while these components are being fetched. */}
-        <Suspense fallback={<div className="text-center p-10" role="status" aria-live="polite">Loading...</div>}>
+        <Suspense
+          fallback={
+            <div className="text-center p-10" role="status" aria-live="polite">
+              Loading...
+            </div>
+          }
+        >
           {/* Portfolio section, lazy-loaded */}
           <Portfolio />
-          
+
           {/* Contact and Footer section, lazy-loaded */}
           <Contact />
         </Suspense>
       </main>
-      
+
       {/* Suspense for floating components */}
       <Suspense fallback={null}>
         {/* Floating WhatsApp button, lazy-loaded */}
         <FloatingWhatsApp />
       </Suspense>
-      
+
       {/* File Upload Modal, lazy-loaded and only rendered when opened */}
       {/* Fallback is null as the modal is not visible until triggered. */}
       <Suspense fallback={null}>
-        <FileUploadModal 
-          isOpen={isUploadModalOpen} 
-          onClose={() => setIsUploadModalOpen(false)} 
-        />
+        <FileUploadModal isOpen={isUploadModalOpen} onClose={() => setIsUploadModalOpen(false)} />
       </Suspense>
     </div>
   );

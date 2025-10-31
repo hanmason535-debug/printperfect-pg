@@ -25,7 +25,7 @@ export class ErrorBoundary extends Component<Props, State> {
   componentDidCatch(error: Error, errorInfo: ErrorInfo) {
     console.error('ErrorBoundary caught:', error, errorInfo);
     this.setState({ errorInfo });
-    
+
     // TODO: Send to error tracking service (Sentry, LogRocket, etc.)
     // Example: Sentry.captureException(error, { contexts: { react: errorInfo } });
   }
@@ -48,20 +48,17 @@ export class ErrorBoundary extends Component<Props, State> {
                 <AlertTriangle className="w-12 h-12 text-red-500" />
               </div>
             </div>
-            
-            <h1 className="text-2xl font-bold text-white mb-2">
-              Something went wrong
-            </h1>
-            
+
+            <h1 className="text-2xl font-bold text-white mb-2">Something went wrong</h1>
+
             <p className="text-slate-400 mb-6">
-              We're sorry for the inconvenience. Please try refreshing the page or contact support if the problem persists.
+              We're sorry for the inconvenience. Please try refreshing the page or contact support
+              if the problem persists.
             </p>
 
             {import.meta.env.DEV && this.state.error && (
               <div className="mb-6 p-4 bg-slate-800 rounded text-left">
-                <p className="text-xs font-mono text-red-400 mb-2">
-                  {this.state.error.message}
-                </p>
+                <p className="text-xs font-mono text-red-400 mb-2">{this.state.error.message}</p>
                 {this.state.error.stack && (
                   <pre className="text-xs text-slate-500 overflow-auto max-h-32">
                     {this.state.error.stack}
@@ -78,9 +75,9 @@ export class ErrorBoundary extends Component<Props, State> {
                 <RefreshCw className="w-4 h-4" />
                 Try Again
               </button>
-              
+
               <button
-                onClick={() => window.location.href = '/'}
+                onClick={() => (window.location.href = '/')}
                 className="px-4 py-2 bg-slate-700 hover:bg-slate-600 text-white rounded-md transition-colors"
               >
                 Go Home

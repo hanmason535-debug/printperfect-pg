@@ -1,11 +1,54 @@
-import { createRoot } from "react-dom/client";
-import App from "./App.tsx";
-import "./index.css";
-import { reportWebVitals } from "@/lib/performance";
+/**
+ * ═══════════════════════════════════════════════════════════════════════════
+ * Application Entry Point - PrintPerfect-PG
+ * ═══════════════════════════════════════════════════════════════════════════
+ *
+ * @fileoverview Main entry point for the React application. Initializes the
+ * React root, renders the App component, and sets up performance monitoring.
+ *
+ * @description
+ * This file is the first JavaScript executed when the application loads.
+ * It performs the following initialization tasks:
+ *
+ * 1. Creates the React root using the new React 18 createRoot API
+ * 2. Renders the root App component into the DOM
+ * 3. Imports global styles (Tailwind CSS)
+ * 4. Initializes web vitals reporting in development mode
+ *
+ * The React 18 createRoot API enables:
+ * - Concurrent rendering features
+ * - Automatic batching of state updates
+ * - Better error boundaries
+ * - Suspense for data fetching
+ *
+ * @see {@link https://react.dev/reference/react-dom/client/createRoot} React 18 createRoot
+ * @see {@link https://web.dev/vitals/} Web Vitals Documentation
+ */
 
-createRoot(document.getElementById("root")!).render(<App />);
+import { createRoot } from 'react-dom/client';
+import App from './App.tsx';
+import './index.css';
+import { reportWebVitals } from '@/lib/performance';
 
-// Report web vitals in development
+// ─── React Root Initialization ───────────────────────────────────────────────
+
+// Get the root DOM element where React will mount
+// The non-null assertion (!) is safe because this element is guaranteed to exist in index.html
+const rootElement = document.getElementById('root')!;
+
+// Create React 18 root and render the App component
+// This uses React 18's concurrent rendering features for better performance
+createRoot(rootElement).render(<App />);
+
+// ─── Performance Monitoring ──────────────────────────────────────────────────
+
+// Report Core Web Vitals in development mode only
+// Tracks important performance metrics like:
+// - LCP (Largest Contentful Paint): Loading performance
+// - FID (First Input Delay): Interactivity
+// - CLS (Cumulative Layout Shift): Visual stability
+// - FCP (First Contentful Paint): Perceived load speed
+// - TTFB (Time to First Byte): Server response time
 if (import.meta.env.DEV) {
   reportWebVitals();
 }

@@ -39,10 +39,10 @@ export const COMPANY = {
 export const PERFORMANCE = {
   // Lazy loading thresholds
   lazyLoadThreshold: '50px', // Distance before lazy loading triggers
-  
+
   // Animation settings
   reducedMotion: window.matchMedia('(prefers-reduced-motion: reduce)').matches,
-  
+
   // Debounce/Throttle timings
   scrollDebounce: 100, // ms
   resizeDebounce: 200, // ms
@@ -57,11 +57,11 @@ export const UI = {
   initialServicesDisplay: 9, // 3x3 grid
   initialPortfolioDisplay: 12, // 4x3 grid
   maxPortfolioItems: 50,
-  
+
   // Animation durations
   transitionDuration: 300, // ms
   toastDuration: 4000, // ms
-  
+
   // Breakpoints (matching Tailwind)
   breakpoints: {
     sm: 640,
@@ -80,9 +80,8 @@ export const API = {
   sanityProjectId: import.meta.env.VITE_SANITY_PROJECT_ID || '',
   sanityDataset: import.meta.env.VITE_SANITY_DATASET || 'production',
   sanityApiVersion: '2024-01-01',
-  
+
   // Cache settings
   cacheTime: 1000 * 60 * 10, // 10 minutes
   staleTime: 1000 * 60 * 5, // 5 minutes
 } as const;
-

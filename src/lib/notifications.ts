@@ -3,7 +3,7 @@
  * Centralized toast notification helpers for consistent UX
  */
 
-import { toast } from 'sonner'
+import { toast } from 'sonner';
 
 /**
  * Show a success toast notification
@@ -14,8 +14,8 @@ export const showSuccess = (message: string, description?: string) => {
   toast.success(message, {
     description,
     duration: 4000,
-  })
-}
+  });
+};
 
 /**
  * Show an error toast notification
@@ -26,8 +26,8 @@ export const showError = (message: string, description?: string) => {
   toast.error(message, {
     description,
     duration: 5000,
-  })
-}
+  });
+};
 
 /**
  * Show an info toast notification
@@ -38,8 +38,8 @@ export const showInfo = (message: string, description?: string) => {
   toast.info(message, {
     description,
     duration: 3000,
-  })
-}
+  });
+};
 
 /**
  * Show a warning toast notification
@@ -50,8 +50,8 @@ export const showWarning = (message: string, description?: string) => {
   toast.warning(message, {
     description,
     duration: 4000,
-  })
-}
+  });
+};
 
 /**
  * Show a loading toast notification
@@ -59,29 +59,29 @@ export const showWarning = (message: string, description?: string) => {
  * @returns Toast ID for later dismissal
  */
 export const showLoading = (message: string) => {
-  return toast.loading(message)
-}
+  return toast.loading(message);
+};
 
 /**
  * Dismiss a toast by ID
  * @param toastId - ID returned from showLoading or other toast methods
  */
 export const dismissToast = (toastId: string | number) => {
-  toast.dismiss(toastId)
-}
+  toast.dismiss(toastId);
+};
 
 /**
  * Show a promise-based toast with loading, success, and error states
  * @param promise - Promise to track
  * @param messages - Messages for each state
  */
-export const showPromise = <T,>(
+export const showPromise = <T>(
   promise: Promise<T>,
   messages: {
-    loading: string
-    success: string | ((data: T) => string)
-    error: string | ((error: Error) => string)
+    loading: string;
+    success: string | ((data: T) => string);
+    error: string | ((error: Error) => string);
   }
 ) => {
-  return toast.promise(promise, messages)
-}
+  return toast.promise(promise, messages);
+};

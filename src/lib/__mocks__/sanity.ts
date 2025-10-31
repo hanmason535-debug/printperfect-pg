@@ -1,4 +1,3 @@
-
 import { vi } from 'vitest';
 
 // Create a chainable builder that properly implements the builder pattern

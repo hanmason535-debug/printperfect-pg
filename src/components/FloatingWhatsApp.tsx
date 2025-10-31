@@ -1,3 +1,61 @@
+/**
+ * ═══════════════════════════════════════════════════════════════════════════
+ * FloatingWhatsApp Component - Fixed WhatsApp Contact Button
+ * ═══════════════════════════════════════════════════════════════════════════
+ *
+ * @fileoverview Floating action button that opens WhatsApp chat with
+ * pre-filled message, tooltips, and attention-grabbing animations.
+ *
+ * @description
+ * The FloatingWhatsApp component provides quick access to WhatsApp chat:
+ *
+ * **Positioning & Visibility**:
+ * - Fixed in bottom-right corner (z-index: 50)
+ * - Appears after 2-second delay (doesn't distract initial page load)
+ * - Always visible on scroll (sticky positioning)
+ * - Responsive sizing (64x64px)
+ *
+ * **Animations**:
+ * - Spring animation on appearance (bouncy entrance)
+ * - Pulsing shadow effect (draws attention)
+ * - Hover scale effect (1.05x larger)
+ * - Tap scale effect (0.95x smaller for tactile feedback)
+ * - Smooth transitions using Framer Motion
+ *
+ * **Tooltip**:
+ * - Appears 500ms after button appears
+ * - Displays "Chat with us on WhatsApp" message
+ * - Auto-dismisses after 3 seconds
+ * - Positioned above button with arrow pointer
+ * - Animated fade-in/scale entrance
+ *
+ * **WhatsApp Integration**:
+ * - Opens WhatsApp web/app in new tab
+ * - Pre-filled message: "Hi! I'm interested in your printing services..."
+ * - Phone number: 919377476343
+ * - URL-encoded message for safe transmission
+ *
+ * **User Experience**:
+ * - Clear labeling ("WhatsApp" text below icon)
+ * - Green color matches WhatsApp brand
+ * - Icon from lucide-react (MessageCircle)
+ * - Accessible click target size (64x64px)
+ *
+ * **Cleanup**:
+ * - Clears all timers on unmount (prevents memory leaks)
+ * - Uses useRef for timer references (stable across renders)
+ *
+ * @component
+ * @returns {JSX.Element} Floating WhatsApp button with tooltip
+ *
+ * @example
+ * // Add to layout/page:
+ * <FloatingWhatsApp />
+ *
+ * @see {@link https://wa.me/} WhatsApp Click-to-Chat API
+ * @see {@link https://www.framer.com/motion/} Framer Motion
+ */
+
 import { useState, useEffect, useRef } from 'react';
 import { MessageCircle } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -29,7 +87,9 @@ const FloatingWhatsApp = () => {
   }, []);
 
   const handleClick = () => {
-    const message = encodeURIComponent("Hi! I'm interested in your printing services. Can you help me?");
+    const message = encodeURIComponent(
+      "Hi! I'm interested in your printing services. Can you help me?"
+    );
     window.open(`https://wa.me/919377476343?text=${message}`, '_blank');
   };
 
@@ -47,10 +107,10 @@ const FloatingWhatsApp = () => {
             initial={{ scale: 0, opacity: 0 }}
             animate={{ scale: 1, opacity: 1 }}
             exit={{ scale: 0, opacity: 0 }}
-            transition={{ 
-              type: "spring", 
-              stiffness: 260, 
-              damping: 20 
+            transition={{
+              type: 'spring',
+              stiffness: 260,
+              damping: 20,
             }}
           >
             {/* Tooltip */}
@@ -75,17 +135,17 @@ const FloatingWhatsApp = () => {
               className="relative w-16 h-16 bg-green-500 hover:bg-green-600 hover:shadow-lg text-white rounded-full shadow-md flex flex-col items-center justify-center transition-all duration-300 group"
               whileHover={{ scale: 1.05 }}
               whileTap={{ scale: 0.95 }}
-              animate={{ 
+              animate={{
                 boxShadow: [
-                  "0 4px 8px rgba(34, 197, 94, 0.3)",
-                  "0 6px 16px rgba(34, 197, 94, 0.4)",
-                  "0 4px 8px rgba(34, 197, 94, 0.3)"
-                ]
+                  '0 4px 8px rgba(34, 197, 94, 0.3)',
+                  '0 6px 16px rgba(34, 197, 94, 0.4)',
+                  '0 4px 8px rgba(34, 197, 94, 0.3)',
+                ],
               }}
-              transition={{ 
+              transition={{
                 duration: 2,
                 repeat: Infinity,
-                ease: "easeInOut"
+                ease: 'easeInOut',
               }}
             >
               <MessageCircle className="w-5 h-5 mb-0.5" />

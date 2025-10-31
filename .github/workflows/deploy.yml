@@ -1,3 +1,43 @@
+# ═══════════════════════════════════════════════════════════════════════════
+# Deploy Workflow - GitHub Pages Deployment Pipeline
+# ═══════════════════════════════════════════════════════════════════════════
+#
+# Purpose: Build and deploy production site to GitHub Pages
+#
+# Triggers:
+#   - Every push to main branch (automatic)
+#   - Manual trigger via GitHub UI (workflow_dispatch)
+#
+# Jobs:
+#   1. Build - Compile optimized production bundle
+#   2. Deploy - Publish to GitHub Pages
+#
+# Environment Variables:
+#   - VITE_SANITY_PROJECT_ID: Sanity CMS project ID
+#   - VITE_SANITY_DATASET: Sanity dataset ('production')
+#   - VITE_PUBLIC_BASE: Base URL path (/{repo-name}/)
+#
+# Deployment:
+#   - Target: GitHub Pages (https://{user}.github.io/{repo}/)
+#   - Environment: github-pages
+#   - Base path: Auto-configured from repo name
+#
+# Concurrency:
+#   - Only one deployment at a time
+#   - Newer deployments cancel in-progress ones
+#
+# Permissions:
+#   - contents: read (checkout code)
+#   - pages: write (deploy to Pages)
+#   - id-token: write (OIDC authentication)
+#
+# Success Criteria:
+#   - Production build completes
+#   - dist/ directory is not empty
+#   - GitHub Pages deployment succeeds
+#
+# ═══════════════════════════════════════════════════════════════════════════
+
 name: Deploy (Vite + GitHub Pages)
 
 on:

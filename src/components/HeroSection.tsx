@@ -23,8 +23,8 @@ interface HeroSectionProps {
 
 const HeroSection = ({ onUploadClick }: HeroSectionProps) => {
   return (
-    <section 
-      id="home" 
+    <section
+      id="home"
       className="relative min-h-screen flex items-center justify-center overflow-hidden"
     >
       {/* Background Image - Using an img tag for LCP optimization */}
@@ -42,42 +42,42 @@ const HeroSection = ({ onUploadClick }: HeroSectionProps) => {
 
       {/* Animated background overlay for visual effect */}
       <div className="absolute inset-0 bg-gradient-hero opacity-80"></div>
-      
+
       {/* Floating CMYK elements */}
       <motion.div
         className="absolute top-20 left-10 w-20 h-20 bg-cyan rounded-full opacity-20"
-        animate={{ 
+        animate={{
           y: [0, -20, 0],
-          rotate: [0, 360]
+          rotate: [0, 360],
         }}
-        transition={{ 
+        transition={{
           duration: 6,
           repeat: Infinity,
-          ease: "easeInOut"
+          ease: 'easeInOut',
         }}
       />
       <motion.div
         className="absolute top-40 right-20 w-16 h-16 bg-magenta rounded-lg opacity-20"
-        animate={{ 
+        animate={{
           y: [0, 20, 0],
-          rotate: [0, -360]
+          rotate: [0, -360],
         }}
-        transition={{ 
+        transition={{
           duration: 8,
           repeat: Infinity,
-          ease: "easeInOut"
+          ease: 'easeInOut',
         }}
       />
       <motion.div
         className="absolute bottom-40 left-20 w-12 h-12 bg-yellow rounded-full opacity-30"
-        animate={{ 
+        animate={{
           y: [0, -15, 0],
-          scale: [1, 1.2, 1]
+          scale: [1, 1.2, 1],
         }}
-        transition={{ 
+        transition={{
           duration: 4,
           repeat: Infinity,
-          ease: "easeInOut"
+          ease: 'easeInOut',
         }}
       />
 
@@ -89,7 +89,7 @@ const HeroSection = ({ onUploadClick }: HeroSectionProps) => {
           className="max-w-4xl mx-auto"
         >
           {/* Main Headline */}
-          <motion.h1 
+          <motion.h1
             className="text-4xl md:text-6xl lg:text-7xl font-heading font-bold text-white mb-6 leading-tight"
             initial={{ opacity: 0, y: 30 }}
             animate={{ opacity: 1, y: 0 }}
@@ -97,43 +97,41 @@ const HeroSection = ({ onUploadClick }: HeroSectionProps) => {
           >
             Premium Printing
             <br />
-            <span className="bg-gradient-cmyk bg-clip-text text-transparent">
-              Solutions
-            </span>
+            <span className="bg-gradient-cmyk bg-clip-text text-transparent">Solutions</span>
           </motion.h1>
 
           {/* Subheadline */}
-          <motion.p 
+          <motion.p
             className="text-lg md:text-xl lg:text-2xl text-white/90 mb-8 max-w-2xl mx-auto leading-relaxed"
             initial={{ opacity: 0, y: 30 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.8, delay: 0.6 }}
           >
-            Your trusted print partner in Ahmedabad for premium quality and fast turnarounds. 
-            From banners to business cards, we deliver excellence.
+            Your trusted print partner in Ahmedabad for premium quality and fast turnarounds. From
+            banners to business cards, we deliver excellence.
           </motion.p>
 
           {/* CTA Buttons */}
-          <motion.div 
+          <motion.div
             className="flex flex-col sm:flex-row gap-4 justify-center items-center"
             initial={{ opacity: 0, y: 30 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.8, delay: 0.8 }}
           >
-            <Button
-              variant="cyan"
-              size="hero"
-              onClick={onUploadClick}
-              className="w-full sm:w-auto"
-            >
+            <Button variant="cyan" size="hero" onClick={onUploadClick} className="w-full sm:w-auto">
               <Upload className="w-6 h-6" />
               Upload File
             </Button>
-            
+
             <Button
               variant="whatsapp"
               size="hero"
-              onClick={() => window.open(`https://wa.me/${CONTACT.phoneRaw}?text=Hi! I need help with printing services.`, '_blank')}
+              onClick={() =>
+                window.open(
+                  `https://wa.me/${CONTACT.phoneRaw}?text=Hi! I need help with printing services.`,
+                  '_blank'
+                )
+              }
               className="w-full sm:w-auto"
             >
               <MessageCircle className="w-6 h-6" />
@@ -142,7 +140,7 @@ const HeroSection = ({ onUploadClick }: HeroSectionProps) => {
           </motion.div>
 
           {/* Trust Indicators */}
-          <motion.div 
+          <motion.div
             className="mt-12 flex flex-wrap justify-center items-center gap-8 text-white/70"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
@@ -165,7 +163,7 @@ const HeroSection = ({ onUploadClick }: HeroSectionProps) => {
       </div>
 
       {/* Scroll indicator */}
-      <motion.div 
+      <motion.div
         className="absolute bottom-8 left-1/2 transform -translate-x-1/2"
         animate={{ y: [0, 10, 0] }}
         transition={{ duration: 2, repeat: Infinity }}

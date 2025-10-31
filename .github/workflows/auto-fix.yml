@@ -1,3 +1,46 @@
+# ═══════════════════════════════════════════════════════════════════════════
+# Auto-Fix Workflow - Automated Code Quality Advisory
+# ═══════════════════════════════════════════════════════════════════════════
+#
+# Purpose: Provide automated advisory comments on pull requests
+#
+# Triggers:
+#   - Pull request opened, updated, or reopened
+#   - Manual trigger via GitHub UI (workflow_dispatch)
+#
+# Non-Blocking:
+#   - Always continues on error (advisory only)
+#   - Will not fail your PR
+#   - Provides guidance, not enforcement
+#
+# Path Filtering:
+#   - Only runs if code-related files change
+#   - Monitored paths: src/, sanity/, seed/, public/, config files
+#
+# Fork Safety:
+#   - Fork PRs: Advisory only (no code execution)
+#   - Same-repo PRs: Runs auto-fix script
+#   - Security-conscious handling of untrusted code
+#
+# Advisory Checks:
+#   - Agent field in PR body (Lovable/Codex/Gemini/Human)
+#   - CHANGELOG.md update reminder
+#   - GROQ import style (plain string vs import)
+#   - Code quality suggestions
+#
+# Comment Behavior:
+#   - Posts "sticky" comment (updates existing, doesn't spam)
+#   - Uses hidden marker for comment identification
+#   - Automatically updates on PR changes
+#
+# Permissions:
+#   - contents: read (checkout code)
+#   - pull-requests: write (post comments)
+#
+# Timeout: 5 minutes (prevents stuck jobs)
+#
+# ═══════════════════════════════════════════════════════════════════════════
+
 name: Auto-Fix (non-blocking)
 
 on:
@@ -95,4 +138,3 @@ jobs:
           else
             echo "No advisory messages (nothing relevant changed)." >> $GITHUB_STEP_SUMMARY
           fi
-

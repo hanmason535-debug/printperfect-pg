@@ -1,92 +1,92 @@
 [
   {
-    "title": "Matte Finish Business Cards",
-    "description": "Premium 300 GSM stock with matte finish",
+    "title": "Matte Finish Business Cards - TechStart Inc.",
+    "description": "Premium 300 GSM stock with matte finish. Custom-designed business cards for a tech startup with embossed logo. Delivered 5,000 units.",
     "image": "business-cards.jpg",
     "link": null,
     "category": "Business Cards",
     "priority": 1,
     "categorySlugs": ["business-cards"],
-    "hoverId": null
+    "hoverId": "portfolio-1"
   },
   {
-    "title": "Flex Banner - XYZ Company",
-    "description": "Large format outdoor advertising banner",
+    "title": "Large Format Flex Banner - XYZ Company",
+    "description": "Eye-catching outdoor advertising banner. 18ft x 6ft vinyl flex banner with vibrant colors and weather-resistant finish. Perfect for storefront visibility.",
     "image": "flex-banners.jpg",
     "link": null,
     "category": "Banners",
     "priority": 2,
     "categorySlugs": ["banners"],
-    "hoverId": null
+    "hoverId": "portfolio-2"
   },
   {
-    "title": "Custom Printed T-Shirt",
-    "description": "High-quality DTG printing on premium cotton",
+    "title": "Custom Printed T-Shirts - Marathon Event",
+    "description": "High-quality DTG printing on premium 100% cotton t-shirts. Event-branded shirts with custom graphics. 500 pieces produced.",
     "image": "apparel.jpg",
     "link": null,
     "category": "Apparel",
     "priority": 3,
     "categorySlugs": ["apparel"],
-    "hoverId": null
+    "hoverId": "portfolio-3"
   },
   {
-    "title": "Vinyl Stickers & Labels",
-    "description": "Waterproof vinyl with UV-resistant printing",
+    "title": "Vinyl Stickers & Labels - Eco Brand",
+    "description": "Waterproof vinyl stickers with UV-resistant printing. Custom brand labels for product packaging with holographic finish. 10,000 units.",
     "image": "stickers-labels.jpg",
     "link": null,
     "category": "Stickers",
     "priority": 4,
     "categorySlugs": ["stickers"],
-    "hoverId": null
+    "hoverId": "portfolio-4"
   },
   {
-    "title": "Event Foam Board Display",
-    "description": "Lightweight foam core with full-color graphics",
+    "title": "Event Foam Board Display - Annual Conference",
+    "description": "Lightweight foam core boards with full-color graphics. Professional exhibition display for corporate conference. 6 large format boards.",
     "image": "foam-boards.jpg",
     "link": null,
     "category": "Banners",
     "priority": 5,
     "categorySlugs": ["banners"],
-    "hoverId": null
+    "hoverId": "portfolio-5"
   },
   {
-    "title": "Corporate Stationery Set",
-    "description": "Letterheads, envelopes, and business cards",
+    "title": "Corporate Stationery Set - Law Firm",
+    "description": "Complete stationery package including letterheads, envelopes, and business cards. Premium finish with gold foil accents. Professional branding suite.",
     "image": "business-cards.jpg",
     "link": null,
     "category": "Business Cards",
     "priority": 6,
     "categorySlugs": ["business-cards"],
-    "hoverId": null
+    "hoverId": "portfolio-6"
   },
   {
-    "title": "Custom Hoodie Print",
-    "description": "Screen printing on premium fleece",
+    "title": "Custom Hoodie Print - Sports Team",
+    "description": "Screen printing on premium fleece hoodies. Team logos and player names. 200 pieces for annual sports day.",
     "image": "apparel.jpg",
     "link": null,
     "category": "Apparel",
     "priority": 7,
     "categorySlugs": ["apparel"],
-    "hoverId": null
+    "hoverId": "portfolio-7"
   },
   {
-    "title": "Product Label Design",
-    "description": "High-gloss labels with brand colors",
+    "title": "Product Label Design - Food Packaging",
+    "description": "High-gloss labels with vibrant brand colors. Custom shapes and sizes. Perfect for food and beverage products. 50,000 roll labels.",
     "image": "stickers-labels.jpg",
     "link": null,
     "category": "Stickers",
     "priority": 8,
     "categorySlugs": ["stickers"],
-    "hoverId": null
+    "hoverId": "portfolio-8"
   },
   {
-    "title": "Trade Show Banner",
-    "description": "Retractable banner stand with graphics",
+    "title": "Trade Show Retractable Banner",
+    "description": "Professional retractable banner stand with custom graphics. 33x80 inch display with aluminum frame. Perfect for exhibitions.",
     "image": "flex-banners.jpg",
     "link": null,
     "category": "Banners",
     "priority": 9,
     "categorySlugs": ["banners"],
-    "hoverId": null
+    "hoverId": "portfolio-9"
   }
 ]

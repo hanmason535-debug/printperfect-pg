@@ -1,106 +1,106 @@
 [
   {
     "title": "Flex Banners",
-    "description": "High-quality flex banners for advertising and promotions",
+    "description": "High-quality vinyl flex banners perfect for outdoor advertising, events, and promotions. Weather-resistant with vibrant color printing. Available in various sizes up to 20x60 feet.",
     "image": "flex-banners.jpg",
     "priority": 1,
-    "filters": [],
-    "hoverId": null
+    "filters": ["outdoor", "large-format", "advertising"],
+    "hoverId": "flex-banners-hover"
   },
   {
     "title": "Signs & Banners",
-    "description": "Professional signage solutions for businesses",
+    "description": "Professional signage solutions for businesses including PVC signs, foam boards, and directional signage. Perfect for storefronts, offices, and warehouses.",
     "image": "flex-banners.jpg",
     "priority": 2,
-    "filters": [],
-    "hoverId": null
+    "filters": ["signage", "indoor", "branding"],
+    "hoverId": "signs-banners-hover"
   },
   {
     "title": "Foam Boards",
-    "description": "Lightweight foam board displays and presentations",
+    "description": "Lightweight foam core boards ideal for presentations, exhibitions, and displays. High-quality printing with UV-resistant finishes. Perfect for trade shows and events.",
     "image": "foam-boards.jpg",
     "priority": 3,
-    "filters": [],
-    "hoverId": null
+    "filters": ["display", "events", "lightweight"],
+    "hoverId": "foam-boards-hover"
   },
   {
     "title": "Apparel",
-    "description": "Custom apparel printing with premium quality",
+    "description": "Custom apparel printing including t-shirts, hoodies, caps, and bags. Advanced DTG and screen printing technology for vibrant, long-lasting designs.",
     "image": "apparel.jpg",
     "priority": 4,
-    "filters": [],
-    "hoverId": null
+    "filters": ["wearables", "corporate", "bulk-orders"],
+    "hoverId": "apparel-hover"
   },
   {
     "title": "Stickers & Labels",
-    "description": "Custom stickers and labels in various finishes",
+    "description": "Custom stickers and labels in various finishes including matte, gloss, and holographic. Water-resistant vinyl perfect for products and branding.",
     "image": "stickers-labels.jpg",
     "priority": 5,
-    "filters": [],
-    "hoverId": null
+    "filters": ["labels", "branding", "small-format"],
+    "hoverId": "stickers-labels-hover"
   },
   {
     "title": "Business Cards",
-    "description": "Premium business cards with professional finishes",
+    "description": "Premium business cards with multiple finish options including matte, gloss, and foil stamping. 300 GSM stock with various paper textures available.",
     "image": "business-cards.jpg",
     "priority": 6,
-    "filters": [],
-    "hoverId": null
+    "filters": ["corporate", "stationery", "premium"],
+    "hoverId": "business-cards-hover"
   },
   {
     "title": "Roll Labels",
-    "description": "Industrial roll labels for products and packaging",
+    "description": "Industrial-grade roll labels for product packaging and inventory. Custom sizes, materials, and adhesives for various applications.",
     "image": "roll-labels.jpg",
     "priority": 7,
-    "filters": [],
-    "hoverId": null
+    "filters": ["packaging", "industrial", "bulk"],
+    "hoverId": "roll-labels-hover"
   },
   {
     "title": "Frame Signs",
-    "description": "Elegant framed signage for offices and retail",
+    "description": "Elegant framed signage solutions for offices, retail stores, and corporate environments. Professional finish with LED lighting options available.",
     "image": "foam-boards.jpg",
     "priority": 8,
-    "filters": [],
-    "hoverId": null
+    "filters": ["premium", "indoor", "commercial"],
+    "hoverId": "frame-signs-hover"
   },
   {
     "title": "Retractable Banners",
-    "description": "Portable retractable banner stands",
+    "description": "Portable retractable banner stands perfect for trade shows, events, and presentations. Durable aluminum frames with high-quality printed graphics.",
     "image": "flex-banners.jpg",
     "priority": 9,
-    "filters": [],
-    "hoverId": null
+    "filters": ["portable", "events", "trade-shows"],
+    "hoverId": "retractable-banners-hover"
   },
   {
     "title": "Aluminum Boards",
-    "description": "Durable aluminum board displays",
+    "description": "Durable aluminum composite boards for outdoor and indoor signage. Lightweight yet sturdy with superior weather resistance.",
     "image": "foam-boards.jpg",
     "priority": 10,
-    "filters": [],
-    "hoverId": null
+    "filters": ["durable", "outdoor", "premium"],
+    "hoverId": "aluminum-boards-hover"
   },
   {
     "title": "Magnetic Boards",
-    "description": "Magnetic display boards for easy mounting",
+    "description": "Innovative magnetic display boards for easy mounting and repositioning. Perfect for offices, schools, and retail environments.",
     "image": "foam-boards.jpg",
     "priority": 11,
-    "filters": [],
-    "hoverId": null
+    "filters": ["interactive", "office", "reusable"],
+    "hoverId": "magnetic-boards-hover"
   },
   {
     "title": "PVC Boards",
-    "description": "Waterproof PVC board solutions",
+    "description": "Waterproof PVC board solutions ideal for outdoor signage and wet environments. Extremely durable and long-lasting with vibrant printing.",
     "image": "foam-boards.jpg",
     "priority": 12,
-    "filters": [],
-    "hoverId": null
+    "filters": ["waterproof", "outdoor", "industrial"],
+    "hoverId": "pvc-boards-hover"
   },
   {
-    "title": "Gift & DAccor",
-    "description": "Custom gifts and decorative printing items",
+    "title": "Gift & Décor",
+    "description": "Custom gifts and decorative printing items including mugs, photo frames, calendars, and home décor items. Perfect for personal and corporate gifting.",
     "image": "apparel.jpg",
     "priority": 13,
-    "filters": [],
-    "hoverId": null
+    "filters": ["gifts", "personalized", "décor"],
+    "hoverId": "gift-decor-hover"
   }
 ]

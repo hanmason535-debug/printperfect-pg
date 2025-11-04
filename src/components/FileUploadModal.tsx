@@ -205,7 +205,11 @@ const FileUploadModal = ({ isOpen, onClose }: FileUploadModalProps) => {
 
               <div className="space-y-2">
                 <Label htmlFor="phone" className="font-semibold">Phone Number (Optional)</Label>
-                <Input id="phone" type="tel" placeholder="For faster communication" value={phoneNumber} onChange={(e) => setPhoneNumber(e.target.value.replace(/\D/g, '').slice(0, 15))} />
+                <Input id="phone" type="tel" placeholder="For faster communication" value={phoneNumber} onChange={(e) => setPhoneNumber(e.target.value.replace(/\D/g, '').slice(0, 15))} onPaste={(e) => {
+                  const pastedText = e.clipboardData.getData('text');
+                  setPhoneNumber(pastedText.replace(/\D/g, '').slice(0, 15));
+                  e.preventDefault();
+                }} />
               </div>
             </motion.div>
           ) : (

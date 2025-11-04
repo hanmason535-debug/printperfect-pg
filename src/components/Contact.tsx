@@ -147,6 +147,16 @@ const Contact = () => {
       return;
     }
 
+    // Validation: Phone number format (optional)
+    if (formData.phone && !/^[0-9+\s()-]+$/.test(formData.phone)) {
+      toast({
+        title: 'Error',
+        description: 'Please enter a valid phone number.',
+        variant: 'destructive',
+      });
+      return;
+    }
+
     // Validation: Email format
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!emailRegex.test(formData.email)) {

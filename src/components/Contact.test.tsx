@@ -115,6 +115,34 @@ describe('Contact Component', () => {
     expect(submitButton).not.toBeDisabled();
   });
 
+  it('shows validation error for invalid phone number', async () => {
+    const user = userEvent.setup();
+    render(<Contact />);
+
+    const nameInput = screen.getByLabelText(/name/i);
+    const emailInput = screen.getByLabelText(/email/i);
+    const phoneInput = screen.getByLabelText(/phone/i);
+    const messageInput = screen.getByLabelText(/message/i);
+    const submitButton = screen.getByRole('button', { name: /send/i });
+
+    await user.type(nameInput, 'John Doe');
+    await user.type(emailInput, 'john@example.com');
+    await user.type(phoneInput, 'invalid-phone-number');
+    await user.type(messageInput, 'Test message');
+    await user.click(submitButton);
+
+    await waitFor(() => {
+      expect(mockToast).toHaveBeenCalled();
+      expect(mockToast).toHaveBeenCalledWith(
+        expect.objectContaining({
+          variant: 'destructive',
+          title: 'Error',
+          description: expect.stringContaining('valid phone number'),
+        })
+      );
+    });
+  });
+
   it('displays contact information correctly', () => {
     render(<Contact />);
 

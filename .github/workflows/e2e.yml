@@ -1,0 +1,54 @@
+name: E2E
+
+on:
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  e2e:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Check for E2E specs
+        id: has_e2e
+        run: |
+          if compgen -G "tests/e2e/**/*.spec.ts" > /dev/null; then
+            echo "run=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "run=false" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Setup Node
+        if: steps.has_e2e.outputs.run == 'true'
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      - name: Install dependencies
+        if: steps.has_e2e.outputs.run == 'true'
+        run: npm ci
+
+      - name: Install Playwright Browsers
+        if: steps.has_e2e.outputs.run == 'true'
+        run: npx playwright install --with-deps
+
+      - name: Run E2E tests
+        if: steps.has_e2e.outputs.run == 'true'
+        run: npm run e2e
+
+      - name: Upload Playwright report
+        if: always() && steps.has_e2e.outputs.run == 'true'
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-report
+          path: playwright-report
+          if-no-files-found: ignore
+
+      - name: Skip notice
+        if: steps.has_e2e.outputs.run != 'true'
+        run: echo "Skipping E2E tests (no tests found)"

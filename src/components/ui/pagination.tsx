@@ -28,23 +28,65 @@ PaginationItem.displayName = 'PaginationItem';
 
 type PaginationLinkProps = {
   isActive?: boolean;
-} & Pick<ButtonProps, 'size'> &
-  React.ComponentProps<'a'>;
+  /** Disable interaction for this link/button (visual + a11y). */
+  disabled?: boolean;
+  /** Optional href — when provided renders an anchor; otherwise renders a button for correct semantics */
+  href?: string;
+} & Pick<ButtonProps, "size"> &
+  // Allow either anchor or button attributes; keep typing permissive to allow passing common props
+  Omit<React.ComponentProps<"a">, "disabled"> & Omit<React.ComponentProps<"button">, "disabled">;
 
-const PaginationLink = ({ className, isActive, size = 'icon', ...props }: PaginationLinkProps) => (
-  <a
-    aria-current={isActive ? 'page' : undefined}
-    className={cn(
-      buttonVariants({
-        variant: isActive ? 'outline' : 'ghost',
-        size,
-      }),
-      className
-    )}
-    {...props}
-  />
-);
-PaginationLink.displayName = 'PaginationLink';
+const PaginationLink = ({ className, isActive, size = "icon", disabled = false, onClick, href, ...props }: PaginationLinkProps) => {
+  const classes = cn(
+    buttonVariants({
+      variant: isActive ? "outline" : "ghost",
+      size,
+    }),
+    disabled ? 'opacity-50 cursor-not-allowed pointer-events-none' : '',
+    className,
+  )
+
+  // Render anchor when href is provided to preserve link semantics
+  if (href) {
+    return (
+      <a
+        href={href}
+        aria-current={isActive ? "page" : undefined}
+        aria-disabled={disabled ? true : undefined}
+        tabIndex={disabled ? -1 : (props as any).tabIndex}
+        className={classes}
+        onClick={(e) => {
+          if (disabled) {
+            e.preventDefault()
+            return
+          }
+          onClick?.(e as any)
+        }}
+        {...(props as React.ComponentProps<"a">)}
+      />
+    )
+  }
+
+  // Otherwise render a semantic button
+  return (
+    <button
+      type="button"
+      aria-current={isActive ? "page" : undefined}
+      aria-disabled={disabled ? true : undefined}
+      tabIndex={disabled ? -1 : (props as any).tabIndex}
+      className={classes}
+      onClick={(e) => {
+        if (disabled) {
+          e.preventDefault()
+          return
+        }
+        onClick?.(e as any)
+      }}
+      {...(props as React.ComponentProps<"button">)}
+    />
+  )
+}
+PaginationLink.displayName = "PaginationLink";
 
 const PaginationPrevious = ({
   className,

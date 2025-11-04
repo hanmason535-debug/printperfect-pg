@@ -120,8 +120,6 @@ jobs:
       # Always post (if we have some advisory), using a sticky comment + hidden marker
       - name: Post advisory comment
         if: always() && (steps.run.outputs.advisory || steps.compose.outputs.advisory)
-        permissions:
-          pull-requests: write
         uses: marocchino/sticky-pull-request-comment@v2
         with:
           header: auto-fix-advisory

@@ -1,21 +1,20 @@
-## What changed?
-- [ ] Code
-- [ ] Content/Seed
-- [ ] CI/Docs
+## Summary
 
-## Why?
-
-## Screenshots / Demos (if UI)
+Describe the change and why it’s needed.
 
 ## Checklist
-- [ ] Updated `CHANGELOG.md`
-- [ ] Tests updated/added (if logic changed)
-- [ ] No DOM/Tailwind/motion changes in protected components (unless approved)
-- [ ] Sanity queries are plain strings; no `groq` import
+
+- [ ] Tests added/updated (unit/integration and/or E2E as applicable)
+- [ ] `npm run ci:validate` passes locally (lint, typecheck, tests, build)
+- [ ] Changelog updated if user-visible changes
+- [ ] No large binaries or build artifacts committed
+
+## UI changes
+
+- [ ] This PR changes prominent UI (ServicesGrid, Portfolio, Contact, Lightbox)
+- [ ] UI change approved: YES/NO
 
 ## Agent
-Agent: <!-- Lovable | Codex | Gemini | Human -->
 
-## UI change approval
-<!-- Required ONLY if protected UI files changed -->
-UI change approved: YES / NO (explain why)
+Agent: (e.g. ChatGPT-4.1, human, etc.)
+

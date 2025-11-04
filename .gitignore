@@ -30,3 +30,4 @@ docs
 *.sw
 docs
 *.tsbuildinfo
+coverage/

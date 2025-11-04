@@ -1,66 +1,34 @@
 /**
  * Application Constants
- * Centralized configuration for contact information and external links
+ *
+ * Centralized configuration for app-wide values used across components and hooks.
  */
 
-export const CONTACT = {
-  phone: '+919377476343',
-  phoneDisplay: '+91 9377 476 343',
-  phoneRaw: '919377476343',
-  email: 'parasgph@gmail.com',
-  address: {
-    line1: '2, Chandrika Chamber, Mirzapur Rd,',
-    line2: 'Opposite Jansatta Karyalay, Mirzapur,',
-    line3: 'Ahmedabad, Gujarat 380001',
-  },
-  mapsUrl: 'https://maps.app.goo.gl/yt63M1mqnfSYL9he8',
-  businessHours: {
-    weekdays: 'Mon – Sat: 9 AM – 7 PM',
-    sunday: 'Sunday: Closed',
-  },
-} as const;
-
-export const SOCIAL_MEDIA = {
-  facebook: '#',
-  instagram: '#',
-  linkedin: '#',
-} as const;
-
-export const COMPANY = {
-  name: 'Paras Graphics',
-  tagline: 'Premium Printing',
-  foundedYear: 1997,
-  description: 'Your trusted print partner in Ahmedabad for premium quality and fast turnarounds.',
-} as const;
-
-/**
- * Performance Configuration
- */
 export const PERFORMANCE = {
   // Lazy loading thresholds
-  lazyLoadThreshold: '50px', // Distance before lazy loading triggers
+  lazyLoadThreshold: '50px',
 
-  // Animation settings
-  reducedMotion: window.matchMedia('(prefers-reduced-motion: reduce)').matches,
+  // Respect reduced motion when available (safe check for SSR)
+  reducedMotion:
+    typeof window !== 'undefined' && typeof window.matchMedia === 'function'
+      ? window.matchMedia('(prefers-reduced-motion: reduce)').matches
+      : false,
 
-  // Debounce/Throttle timings
-  scrollDebounce: 100, // ms
-  resizeDebounce: 200, // ms
-  searchDebounce: 300, // ms
+  // Debounce/Throttle timings (ms)
+  scrollDebounce: 100,
+  resizeDebounce: 200,
+  searchDebounce: 300,
 } as const;
 
-/**
- * UI Configuration
- */
 export const UI = {
   // Display limits
-  initialServicesDisplay: 9, // 3x3 grid
-  initialPortfolioDisplay: 12, // 4x3 grid
+  initialServicesDisplay: 9,
+  initialPortfolioDisplay: 12,
   maxPortfolioItems: 50,
 
   // Animation durations
-  transitionDuration: 300, // ms
-  toastDuration: 4000, // ms
+  transitionDuration: 300,
+  toastDuration: 4000,
 
   // Breakpoints (matching Tailwind)
   breakpoints: {
@@ -72,11 +40,7 @@ export const UI = {
   },
 } as const;
 
-/**
- * API Configuration
- */
 export const API = {
-  // Sanity CMS
   sanityProjectId: import.meta.env.VITE_SANITY_PROJECT_ID || '',
   sanityDataset: import.meta.env.VITE_SANITY_DATASET || 'production',
   sanityApiVersion: '2024-01-01',
@@ -84,4 +48,38 @@ export const API = {
   // Cache settings
   cacheTime: 1000 * 60 * 10, // 10 minutes
   staleTime: 1000 * 60 * 5, // 5 minutes
+} as const;
+
+export const CONTACT = {
+  phoneRaw: import.meta.env.VITE_CONTACT_PHONE_RAW || '+919999999999',
+  phone: import.meta.env.VITE_CONTACT_PHONE || '+91-99999-99999',
+  phoneDisplay: import.meta.env.VITE_CONTACT_PHONE_DISPLAY || '+91 99999 99999',
+  email: import.meta.env.VITE_CONTACT_EMAIL || 'info@parasgraphics.example',
+  mapsUrl:
+    import.meta.env.VITE_CONTACT_MAPS_URL ||
+    'https://www.google.com/maps/place/Paras+Graphics/',
+  address: {
+    line1: '2, Chandrika Chamber, Mirzapur Rd',
+    line2: 'Mirzapur, Ahmedabad',
+    line3: 'Gujarat 380001',
+  },
+  businessHours: {
+    weekdays: 'Mon - Sat: 9:00 AM - 7:00 PM',
+    sunday: 'Sun: Closed',
+  },
+} as const;
+
+export const SOCIAL_MEDIA = {
+  facebook: import.meta.env.VITE_SOCIAL_FB || 'https://facebook.com/parasgraphics',
+  instagram: import.meta.env.VITE_SOCIAL_IG || 'https://instagram.com/parasgraphics',
+  linkedin: import.meta.env.VITE_SOCIAL_LI || 'https://linkedin.com/company/parasgraphics',
+} as const;
+
+export const COMPANY = {
+  name: import.meta.env.VITE_COMPANY_NAME || 'Paras Graphics',
+  tagline: import.meta.env.VITE_COMPANY_TAGLINE || 'Print Perfect',
+  description:
+    import.meta.env.VITE_COMPANY_DESC ||
+    'Paras Graphics provides high-quality printing services for businesses and individuals.',
+  foundedYear: import.meta.env.VITE_COMPANY_FOUNDED || 2015,
 } as const;

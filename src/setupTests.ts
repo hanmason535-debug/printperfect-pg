@@ -41,25 +41,6 @@
  * @see {@link https://testing-library.com/docs/react-testing-library/setup} Testing Library Setup
  */
 
-/**
- * Import jest-dom custom matchers
- *
- * @description
- * Extends Vitest expect() with DOM-specific matchers:
- * - toBeInTheDocument()
- * - toHaveClass()
- * - toHaveAttribute()
- * - toBeVisible()
- * - toBeDisabled()
- * - And 50+ more...
- *
- * @example
- * // Before: Generic expect
- * expect(element.classList.contains('active')).toBe(true)
- *
- * // After: Semantic matcher
- * expect(element).toHaveClass('active')
- */
 import '@testing-library/jest-dom';
 import { vi } from 'vitest';
 import { toHaveNoViolations } from 'jest-axe';
@@ -67,96 +48,17 @@ import { toHaveNoViolations } from 'jest-axe';
 // Extend Vitest matchers with jest-axe
 expect.extend(toHaveNoViolations);
 
-/**
- * ─────────────────────────────────────────────────────────────────────────
- * Mock IntersectionObserver API
- * ─────────────────────────────────────────────────────────────────────────
- *
- * @description
- * IntersectionObserver is a browser API for detecting element visibility.
- * Used by lazy loading components but not available in jsdom test environment.
- *
- * **Where It's Used**:
- * - Portfolio component (lazy load images)
- * - ServicesGrid component (lazy load service cards)
- * - Any component with intersection-based animations
- *
- * **Mock Behavior**:
- * - observe(): Does nothing (no-op)
- * - unobserve(): Does nothing (no-op)
- * - disconnect(): Does nothing (no-op)
- *
- * **Why This Works**:
- * - Components call observer.observe(element)
- * - Mock accepts the call without errors
- * - Tests can focus on rendering logic
- *
- * @example
- * // In component code:
- * const observer = new IntersectionObserver((entries) => {
- *   entries.forEach(entry => {
- *     if (entry.isIntersecting) loadImage()
- *   })
- * })
- * observer.observe(imageRef.current)
- *
- * // In tests:
- * // Mock prevents "IntersectionObserver is not defined" error
- * render(<LazyLoadedImage />)
- */
+// IntersectionObserver mock (used by some components)
 const mockIntersectionObserver = vi.fn();
 mockIntersectionObserver.mockReturnValue({
   observe: () => null,
   unobserve: () => null,
   disconnect: () => null,
 });
+// @ts-ignore jsdom globals
 window.IntersectionObserver = mockIntersectionObserver;
 
-/**
- * ─────────────────────────────────────────────────────────────────────────
- * Mock window.matchMedia API
- * ─────────────────────────────────────────────────────────────────────────
- *
- * @description
- * matchMedia is a browser API for testing CSS media queries.
- * Used for responsive design and prefers-reduced-motion detection.
- * Not available in jsdom test environment.
- *
- * **Where It's Used**:
- * - use-mobile.tsx hook (768px breakpoint detection)
- * - Lightbox component (prefers-reduced-motion)
- * - Any component with responsive behavior
- *
- * **Mock Configuration**:
- * - matches: false (desktop mode by default)
- * - media: Returns the query string passed
- * - Event listeners: No-op functions
- *
- * **Testing Responsive Behavior**:
- * To test mobile view, override in specific tests:
- * ```typescript
- * window.matchMedia = vi.fn().mockImplementation(query => ({
- *   matches: query === '(max-width: 768px)', // Mobile
- *   media: query,
- *   ...
- * }))
- * ```
- *
- * @example
- * // In component code:
- * const isMobile = window.matchMedia('(max-width: 768px)').matches
- *
- * // In tests:
- * // Mock returns { matches: false } by default
- * render(<ResponsiveComponent />)
- * // Component renders in desktop mode
- *
- * @example
- * // Testing reduced motion:
- * const prefersReducedMotion = window.matchMedia(
- *   '(prefers-reduced-motion: reduce)'
- * ).matches
- */
+// Mock window.matchMedia for responsive/animation tests
 Object.defineProperty(window, 'matchMedia', {
   writable: true,
   value: vi.fn().mockImplementation((query) => ({
@@ -169,4 +71,15 @@ Object.defineProperty(window, 'matchMedia', {
     removeEventListener: vi.fn(),
     dispatchEvent: vi.fn(),
   })),
+});
+
+// Keep framer-motion deterministic in tests (no animations)
+vi.mock('framer-motion', async (orig) => {
+  const fm = await (orig() as any);
+  return {
+    ...fm,
+    // Preserve DOM structure for queries
+    AnimatePresence: ({ children }: any) => children,
+    useReducedMotion: () => true,
+  };
 });

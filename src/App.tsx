@@ -39,6 +39,7 @@ import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import { ErrorBoundary } from '@/components/ErrorBoundary';
 import { lazy, Suspense } from 'react';
 
+
 // ─── Lazy-Loaded Route Components ────────────────────────────────────────────
 
 // Lazy load page components for better code splitting

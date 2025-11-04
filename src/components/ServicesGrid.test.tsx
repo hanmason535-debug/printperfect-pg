@@ -3,7 +3,16 @@ import { vi, describe, it, expect, beforeEach } from 'vitest'
 import ServicesGrid from './ServicesGrid'
 
 vi.mock('@/lib/image', () => ({
-  urlFor: vi.fn(() => ({ width: () => ({ height: () => ({ url: () => 'https://example.com/image.jpg' }) }) }))
+  urlFor: vi.fn(() => {
+    const chain: any = {
+      width: (..._args: any[]) => chain,
+      height: (..._args: any[]) => chain,
+      format: (..._args: any[]) => chain,
+      quality: (..._args: any[]) => chain,
+      url: () => 'https://example.com/image.jpg',
+    }
+    return chain
+  })
 }))
 
 const makeServices = (count: number) =>
@@ -21,7 +30,7 @@ describe('ServicesGrid', () => {
   beforeEach(() => vi.clearAllMocks())
 
   it('renders skeleton loaders while loading', () => {
-    useServicesMock.mockReturnValue({ data: [], loading: true, error: null })
+    useServicesMock.mockReturnValue({ data: [], isLoading: true, error: null })
     const { container } = render(<ServicesGrid />)
     expect(container).toBeDefined()
   })

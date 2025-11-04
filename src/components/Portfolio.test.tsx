@@ -5,7 +5,17 @@ import { vi, describe, it, expect, beforeEach } from 'vitest'
 import Portfolio from './Portfolio'
 
 vi.mock('@/lib/image', () => ({
-  urlFor: vi.fn(() => ({ width: () => ({ url: () => 'https://example.com/image.jpg' }) }))
+  urlFor: vi.fn(() => {
+    const chain: any = {
+      width: (..._args: any[]) => chain,
+      height: (..._args: any[]) => chain,
+      fit: (..._args: any[]) => chain,
+      format: (..._args: any[]) => chain,
+      quality: (..._args: any[]) => chain,
+      url: () => 'https://example.com/image.jpg',
+    }
+    return chain
+  })
 }))
 
 const makePortfolioItems = (count: number) =>
@@ -23,7 +33,7 @@ describe('Portfolio', () => {
   beforeEach(() => vi.clearAllMocks())
 
   it('renders skeletons while loading', () => {
-    usePortfolioMock.mockReturnValue({ data: [], loading: true, error: null })
+    usePortfolioMock.mockReturnValue({ data: [], isLoading: true, error: null })
     const { container } = render(<Portfolio />)
     expect(container.querySelectorAll('.h-64.w-full').length).toBeGreaterThanOrEqual(1)
   })

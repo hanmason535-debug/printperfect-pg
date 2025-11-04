@@ -14,15 +14,23 @@ export default defineConfig({
     coverage: {
       provider: 'v8',
       include: ['src/components/**/*.tsx'],
-      exclude: ['tests/e2e/**', '**/node_modules/**', '**/dist/**', 'src/components/ui/**'],
-      reporter: ['text', 'html'],
+      reporter: ['text', 'json', 'html', 'lcov'],
+      exclude: [
+        'tests/e2e/**',
+        'node_modules/',
+        'src/setupTests.ts',
+        '**/*.d.ts',
+        '**/*.config.ts',
+        'src/components/ui/**',
+        '**/dist/**'
+      ],
       thresholds: {
         lines: 80,
         functions: 80,
         branches: 80,
-        statements: 80
-      }
-    }
+        statements: 80,
+      },
+    },
   },
   resolve: {
     alias: {

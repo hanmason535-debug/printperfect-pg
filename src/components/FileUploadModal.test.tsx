@@ -71,4 +71,11 @@ describe('FileUploadModal', () => {
       ).toBeInTheDocument();
     });
   });
+
+  it('strips non-numeric characters on paste into phone number', async () => {
+    render(<FileUploadModal isOpen={true} onClose={mockOnClose} />);
+    const phoneInput = screen.getByLabelText(/phone number/i) as HTMLInputElement;
+    fireEvent.paste(phoneInput, { clipboardData: { getData: () => 'a1b2c3d4e5' } });
+    expect(phoneInput.value).toBe('12345');
+  });
 });

@@ -23,12 +23,12 @@ export function usePortfolio() {
     queryKey: ['portfolio'],
     queryFn: async () => {
       try {
-        const items = await sanity.fetch<PortfolioItem[]>(Q_PORTFOLIO);
-        return items;
+        const items = await sanity.fetch<PortfolioItem[]>(Q_PORTFOLIO)
+        return items
       } catch (error) {
-        console.error('[usePortfolio] Failed to fetch portfolio:', error);
-        throw error instanceof Error ? error : new Error('Failed to fetch portfolio');
+        console.error('[usePortfolio] Failed to fetch portfolio:', error)
+        throw error instanceof Error ? error : new Error('Failed to fetch portfolio')
       }
     },
-  });
+  })
 }

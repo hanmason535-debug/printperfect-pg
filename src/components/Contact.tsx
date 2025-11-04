@@ -59,15 +59,32 @@ import { CONTACT, SOCIAL_MEDIA, COMPANY } from '@/config/constants';
 import { BorderBeam } from '@/components/magicui/border-beam';
 
 /**
- * Contact form data structure
+ * Contact
  *
- * @interface ContactFormData
- * @property {string} name - User's full name (max 100 characters)
- * @property {string} email - User's email address (max 255 characters)
- * @property {string} phone - User's phone number (max 15 characters, optional)
- * @property {string} message - User's message (max 1000 characters)
- * @property {string} honeypot - Hidden spam prevention field (should always be empty)
+ * Complete contact section component with a contact form, contact info display, Google Maps embed, and footer.
+ *
+ * Features:
+ * - Contact form with validation (name, email, phone, message)
+ * - Honeypot field for bot detection
+ * - Form submission via WhatsApp integration
+ * - Contact information display (address, phone, email, hours)
+ * - Google Maps embed showing business location
+ * - Social media links (Facebook, Instagram, LinkedIn)
+ * - Footer with company info, quick links, and copyright
+ * - Toast notifications for form feedback
+ * - Responsive grid layout (2-column on desktop, 1 on mobile)
+ * - Smooth animations via Framer Motion
+ * - Input field constraints (max lengths) for security
+ *
+ * Form State:
+ * - `name`, `email`, `phone`, `message`: form input fields
+ * - `honeypot`: hidden security field (bot detector)
+ * - `isSubmitting`: tracks form submission state
+ *
+ * No props required.
  */
+
+// Strongly-typed form data for better developer ergonomics
 interface ContactFormData {
   name: string;
   email: string;
@@ -75,17 +92,6 @@ interface ContactFormData {
   message: string;
   honeypot: string;
 }
-
-/**
- * Main Contact section component
- *
- * @component
- * @returns {JSX.Element} Complete contact section with form, info, and footer
- *
- * @example
- * // Usage in a page:
- * <Contact />
- */
 const Contact = () => {
   // ─── State Management ─────────────────────────────────────────────────────
 
@@ -112,29 +118,15 @@ const Contact = () => {
   // ─── Form Handlers ────────────────────────────────────────────────────────
 
   /**
-   * Handle contact form submission
+   * handleSubmit
    *
-   * @async
-   * @param {FormEvent} e - Form submission event
+   * Validates form data, checks honeypot, and sends message via WhatsApp.
+   * - Validates required fields (name, email, message)
+   * - Checks email format
+   * - Shows toast notifications for feedback
+   * - Resets form after successful submission
    *
-   * @description
-   * Validates form data and opens WhatsApp with pre-filled message.
-   *
-   * **Validation Steps**:
-   * 1. Check honeypot field (bot detection)
-   * 2. Verify required fields are filled
-   * 3. Validate email format using regex
-   *
-   * **Success Flow**:
-   * 1. Display loading state (1.5s delay)
-   * 2. Format message for WhatsApp
-   * 3. Open WhatsApp in new tab
-   * 4. Show success toast
-   * 5. Reset form
-   *
-   * **Error Flow**:
-   * - Display validation errors via toast
-   * - Keep form data intact for correction
+   * @param e - FormEvent
    */
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();

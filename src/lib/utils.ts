@@ -85,68 +85,30 @@ import * as React from 'react';
  *     />
  *   )
  * }
+=======
+/**
+ * cn
+ *
+ * Merges Tailwind CSS classes intelligently by combining clsx and twMerge.
+ * Useful for composing conditional Tailwind classes while handling conflicts.
+ *
+ * Examples:
+ * - `cn("px-2", condition && "px-4")` → resolves to `px-4` (later value wins)
+ * - `cn("text-lg", isActive && "text-xl", isDisabled && "text-gray-500")`
+ *
+ * @param inputs - ClassValue items (strings, arrays, objects, etc.)
+ * @returns Merged class string with conflicts resolved by twMerge
+>>>>>>> ci/fix-autofix-sticky-comment
+>>>>>>> ci/fix-autofix-sticky-comment
  */
 export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
 }
 
 /**
- * Create a type-safe forwardRef component with automatic displayName
+ * createForwardRef
  *
- * @function createForwardRef
- * @template T - The ref type (e.g., HTMLDivElement, HTMLButtonElement)
- * @template P - The props type (default: empty object)
- *
- * @param {string} displayName - Component name for React DevTools
- * @param {Function} render - Render function (props, ref) => ReactElement
- * @returns {React.ForwardRefExoticComponent<P>} ForwardRef component
- *
- * @description
- * Generic helper to reduce boilerplate when creating forwardRef components.
- *
- * **Benefits**:
- * - Type safety for both props and ref
- * - Automatic displayName setting (helps with debugging)
- * - Reduces repetitive typing
- * - Used extensively in shadcn/ui components
- *
- * **Type Parameters**:
- * - `T`: Type of the DOM element (HTMLButtonElement, HTMLDivElement, etc.)
- * - `P`: Type of component props (your custom prop interface)
- *
- * @example
- * // Without helper (verbose)
- * const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
- *   (props, ref) => <button ref={ref} {...props} />
- * )
- * Button.displayName = 'Button'
- *
- * @example
- * // With helper (concise)
- * const Button = createForwardRef<HTMLButtonElement, ButtonProps>(
- *   'Button',
- *   (props, ref) => <button ref={ref} {...props} />
- * )
- *
- * @example
- * // Full example with custom props
- * interface CardProps {
- *   title: string
- *   variant?: 'default' | 'outline'
- * }
- *
- * const Card = createForwardRef<HTMLDivElement, CardProps>(
- *   'Card',
- *   ({ title, variant = 'default', ...props }, ref) => (
- *     <div
- *       ref={ref}
- *       className={cn('card', `card-${variant}`)}
- *       {...props}
- *     >
- *       <h3>{title}</h3>
- *     </div>
- *   )
- * )
+ * Generic helper to create React.forwardRef components with full type safety.
  */
 export function createForwardRef<T, P = object>(
   displayName: string,
@@ -157,3 +119,4 @@ export function createForwardRef<T, P = object>(
   Component.displayName = displayName;
   return Component;
 }
+

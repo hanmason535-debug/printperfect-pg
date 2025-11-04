@@ -23,12 +23,12 @@ export function useServices() {
     queryKey: ['services'],
     queryFn: async () => {
       try {
-        const services = await sanity.fetch<Service[]>(Q_SERVICES);
-        return services;
+        const services = await sanity.fetch<Service[]>(Q_SERVICES)
+        return services
       } catch (error) {
-        console.error('[useServices] Failed to fetch services:', error);
-        throw error instanceof Error ? error : new Error('Failed to fetch services');
+        console.error('[useServices] Failed to fetch services:', error)
+        throw error instanceof Error ? error : new Error('Failed to fetch services')
       }
     },
-  });
+  })
 }

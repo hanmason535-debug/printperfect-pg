@@ -34,13 +34,11 @@ jobs:
       - name: Run tests (with coverage)
         run: npm run test:coverage
 
-      - name: Inject Sanity env vars
-        run: |
-          echo "VITE_SANITY_PROJECT_ID=${{ secrets.VITE_SANITY_PROJECT_ID }}" >> $GITHUB_ENV
-          echo "VITE_SANITY_DATASET=${{ secrets.VITE_SANITY_DATASET }}" >> $GITHUB_ENV
-          echo "VITE_PUBLIC_BASE=/${{ github.event.repository.name }}/" >> $GITHUB_ENV
-
       - name: Build
+        env:
+          VITE_SANITY_PROJECT_ID: ${{ secrets.VITE_SANITY_PROJECT_ID }}
+          VITE_SANITY_DATASET: ${{ secrets.VITE_SANITY_DATASET }}
+          VITE_PUBLIC_BASE: /${{ github.event.repository.name }}/
         run: npm run build
 
       - name: Upload artifact (dist)

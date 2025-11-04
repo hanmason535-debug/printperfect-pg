@@ -77,16 +77,7 @@
 import imageUrlBuilder from '@sanity/image-url';
 import { sanity } from './sanity';
 
-/**
- * Image URL builder instance configured with Sanity client
- *
- * @constant {ImageUrlBuilder} builder
- * @private
- * @description
- * Creates an image URL builder instance connected to the Sanity client.
- * Used internally by the `urlFor` function.
- */
-const builder = imageUrlBuilder(sanity);
+// Image URL builder instance will be created below before export
 
 /**
  * Generate optimized Sanity image URL with transformation options
@@ -150,4 +141,6 @@ const builder = imageUrlBuilder(sanity);
  *   .url()}
  * />
  */
+const builder = imageUrlBuilder(sanity);
+
 export const urlFor = (src: any) => builder.image(src);

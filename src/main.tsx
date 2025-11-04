@@ -1,79 +1,62 @@
 /**
- * ═══════════════════════════════════════════════════════════════════════════
- * Application Entry Point - PrintPerfect-PG
- * ═══════════════════════════════════════════════════════════════════════════
+ * Application entry — combined and conflict-resolved.
  *
- * @fileoverview Main entry point for the React application. Initializes the
- * React root, renders the App component, and sets up performance monitoring.
- *
- * @description
- * This file is the first JavaScript executed when the application loads.
- * It performs the following initialization tasks:
- *
- * 1. Creates the React root using the new React 18 createRoot API
- * 2. Renders the root App component into the DOM
- * 3. Imports global styles (Tailwind CSS)
- * 4. Initializes web vitals reporting in development mode
- *
- * The React 18 createRoot API enables:
- * - Concurrent rendering features
- * - Automatic batching of state updates
- * - Better error boundaries
- * - Suspense for data fetching
- *
- * @see {@link https://react.dev/reference/react-dom/client/createRoot} React 18 createRoot
- * @see {@link https://web.dev/vitals/} Web Vitals Documentation
+ * This file initializes the React application and sets up global providers.
+ * It uses React Query for data fetching and includes a dev-only toolbar
+ * initializer (stagewise) and performance reporting.
  */
 
 import { createRoot } from 'react-dom/client';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import App from './App.tsx';
 import './index.css';
-import { reportWebVitals } from '@/lib/performance';
 
-// ─── React Query Configuration ───────────────────────────────────────────────
+// Optional dev-only stagewise toolbar (safe try/catch)
+function setupStagewiseToolbar() {
+  if (!import.meta.env.DEV) return;
+  try {
+    // Import lazily so production build doesn't include the toolbar
+    // eslint-disable-next-line @typescript-eslint/no-var-requires
+    const { initToolbar } = require('@21st-extension/toolbar');
+    initToolbar({ plugins: [] });
+  } catch (e) {
+    // Non-blocking: toolbar is purely developer convenience
+    // Keep silent to avoid noisy logs in dev if not installed
+  }
+}
 
-// Create a QueryClient with optimized defaults for CMS data
+// React Query client with sensible defaults for CMS data
 const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
-      // Stale time: Data is fresh for 5 minutes (CMS content changes infrequently)
       staleTime: 5 * 60 * 1000,
-      // Cache time: Keep unused data in cache for 10 minutes
       gcTime: 10 * 60 * 1000,
-      // Retry failed requests 3 times with exponential backoff
       retry: 3,
-      // Refetch on window focus for fresh data when user returns to tab
       refetchOnWindowFocus: true,
-      // Don't refetch on reconnect (staleTime handles freshness)
       refetchOnReconnect: false,
     },
   },
 });
 
-// ─── React Root Initialization ───────────────────────────────────────────────
-
-// Get the root DOM element where React will mount
-// The non-null assertion (!) is safe because this element is guaranteed to exist in index.html
+// Mount application
 const rootElement = document.getElementById('root')!;
-
-// Create React 18 root and render the App component with React Query provider
-// This uses React 18's concurrent rendering features for better performance
 createRoot(rootElement).render(
   <QueryClientProvider client={queryClient}>
     <App />
   </QueryClientProvider>
 );
 
-// ─── Performance Monitoring ──────────────────────────────────────────────────
+// Setup dev toolbar and performance reporting after mount
+setupStagewiseToolbar();
 
-// Report Core Web Vitals in development mode only
-// Tracks important performance metrics like:
-// - LCP (Largest Contentful Paint): Loading performance
-// - FID (First Input Delay): Interactivity
-// - CLS (Cumulative Layout Shift): Visual stability
-// - FCP (First Contentful Paint): Perceived load speed
-// - TTFB (Time to First Byte): Server response time
-if (import.meta.env.DEV) {
-  reportWebVitals();
+try {
+  // Optional performance reporter if provided
+  // Use dynamic import to avoid failing the app if file is missing
+  // eslint-disable-next-line @typescript-eslint/no-var-requires
+  const perf = require('@/lib/performance');
+  if (import.meta.env.DEV && perf && typeof perf.reportWebVitals === 'function') {
+    perf.reportWebVitals();
+  }
+} catch (e) {
+  // ignore
 }

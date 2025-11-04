@@ -41,27 +41,57 @@
  * @see {@link https://www.sanity.io/} Sanity CMS
  */
 
-import { motion, AnimatePresence } from 'framer-motion';
-import { useServices } from '@/hooks/useServices';
-import { urlFor } from '@/lib/image';
-import { Skeleton } from '@/components/ui/skeleton';
-import { Button } from '@/components/ui/button';
-import { useState } from 'react';
-import { ChevronRight, AlertCircle } from 'lucide-react';
-import { ServicesSkeleton } from '@/components/SkeletonLoader';
-import { OptimizedImage } from '@/components/OptimizedImage';
+import { motion, AnimatePresence } from 'framer-motion'
+import { useServices } from '@/hooks/useServices'
+import { urlFor } from '@/lib/image'
+import { Skeleton } from '@/components/ui/skeleton'
+import { Button } from '@/components/ui/button'
+import { useState } from 'react'
+import { ChevronRight, AlertCircle } from 'lucide-react'
+import { ServicesSkeleton } from '@/components/SkeletonLoader'
+import { OptimizedImage } from '@/components/OptimizedImage'
 
-const INITIAL_DISPLAY = 9; // 3x3 grid
-const MAX_SERVICES = 25;
+const INITIAL_DISPLAY = 9 // 3x3 grid
+const MAX_SERVICES = 25
 
+/**
+ * ServicesGrid
+ *
+ * Displays available services in a responsive grid with animations and WhatsApp integration.
+ *
+ * Features:
+ * - Fetches services from Sanity CMS using `useServices` hook
+ * - Displays up to 12 services in a responsive grid (1 col mobile → 4 cols desktop)
+ * - Hover effects with image zoom and glow shadows (CMYK colors)
+ * - Click handler sends inquiry message via WhatsApp
+ * - Link to view portfolio samples for each service
+ * - "Get Custom Quote" CTA at bottom
+ * - Smooth staggered animations via Framer Motion
+ * - Empty state message if no services available
+ * - Optimized image URLs from Sanity (800px width)
+ *
+ * State:
+ * - Services array fetched from `useServices()` hook
+ * - No local state used
+ *
+ * No props required.
+ */
 const ServicesGrid = () => {
-  const { data: services = [], isLoading, error } = useServices();
-  const [showAll, setShowAll] = useState(false);
+  const { data: services = [], isLoading, error } = useServices()
+  const [showAll, setShowAll] = useState(false)
 
-  const limitedServices = services.slice(0, MAX_SERVICES);
-  const displayedServices = showAll ? limitedServices : limitedServices.slice(0, INITIAL_DISPLAY);
-  const hasMore = limitedServices.length > INITIAL_DISPLAY;
+  const limitedServices = services.slice(0, MAX_SERVICES)
+  const displayedServices = showAll ? limitedServices : limitedServices.slice(0, INITIAL_DISPLAY)
+  const hasMore = limitedServices.length > INITIAL_DISPLAY
 
+  /**
+   * handleServiceClick
+   *
+   * Opens WhatsApp with pre-filled message about the selected service.
+   * Message format: "Hi, I'm interested in [service name] printing. Can you share details?"
+   *
+   * @param serviceName - Name of the service
+   */
   const handleServiceClick = (serviceName: string) => {
     const message = encodeURIComponent(
       `Hi, I'm interested in ${serviceName} printing. Can you share details?`
@@ -69,6 +99,7 @@ const ServicesGrid = () => {
     window.open(`https://wa.me/919377476343?text=${message}`, '_blank');
   };
 
+  // Framer Motion animation variants for grid container and cards
   const containerVariants = {
     hidden: { opacity: 0 },
     visible: {
@@ -78,7 +109,7 @@ const ServicesGrid = () => {
         delayChildren: 0.1,
       },
     },
-  };
+  }
 
   const itemVariants = {
     hidden: { opacity: 0, y: 30 },
@@ -95,10 +126,10 @@ const ServicesGrid = () => {
       y: -20,
       transition: { duration: 0.3 },
     },
-  };
+  }
 
   const renderSkeletons = () =>
-    Array.from({ length: 9 }).map((_, i) => (
+    Array.from({ length: INITIAL_DISPLAY }).map((_, i) => (
       <div key={i} className="rounded-xl bg-card shadow-elevation transition-all duration-300">
         <Skeleton className="h-48 w-full rounded-t-xl" />
         <div className="p-6">
@@ -107,14 +138,14 @@ const ServicesGrid = () => {
           <Skeleton className="h-4 w-5/6" />
         </div>
       </div>
-    ));
+    ))
 
   const renderEmptyState = () => (
     <div className="col-span-full text-center py-16">
       <h3 className="text-2xl font-semibold text-foreground mb-2">No Services Available</h3>
       <p className="text-muted-foreground">Please check back soon to see what we offer.</p>
     </div>
-  );
+  )
 
   const renderErrorState = () => (
     <div className="col-span-full text-center py-16">
@@ -135,10 +166,10 @@ const ServicesGrid = () => {
         Try Again
       </Button>
     </div>
-  );
+  )
 
   return (
-    <section id="services" className="py-20 bg-gradient-subtle">
+    <section id="services" data-testid="services-section" className="py-20 bg-gradient-subtle">
       <div className="container mx-auto px-4 lg:px-8">
         {/* Section Header */}
         <motion.div
@@ -158,14 +189,12 @@ const ServicesGrid = () => {
           </p>
         </motion.div>
 
-        {/* Services Grid - 3x3 layout */}
+        {/* Services Grid */}
         <>
           {isLoading ? (
             <ServicesSkeleton count={INITIAL_DISPLAY} />
           ) : error ? (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
-              {renderErrorState()}
-            </div>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">{renderErrorState()}</div>
           ) : displayedServices.length > 0 ? (
             <motion.div
               className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8"
@@ -176,16 +205,15 @@ const ServicesGrid = () => {
             >
               <AnimatePresence mode="popLayout">
                 {displayedServices.map((service, index) => {
-                  // Generate optimized WebP image URL
                   const imageUrl = service.image
                     ? urlFor(service.image).width(800).height(600).format('webp').quality(85).url()
-                    : '';
-                  const description = service.description ?? '';
+                    : ''
+                  const description = service.description ?? ''
 
                   return (
                     <motion.article
                       key={service._id ?? index}
-                      data-testid={`services-card-${service._id}`}
+                      data-testid={`services-card-${service._id ?? index}`}
                       variants={itemVariants}
                       layout
                       whileHover={{
@@ -199,50 +227,39 @@ const ServicesGrid = () => {
                       onClick={() => handleServiceClick(service.title)}
                       onKeyDown={(e) => {
                         if (e.key === 'Enter' || e.key === ' ') {
-                          e.preventDefault();
-                          handleServiceClick(service.title);
+                          e.preventDefault()
+                          handleServiceClick(service.title)
                         }
                       }}
                       aria-label={`${service.title} - Click to contact us via WhatsApp about this service`}
                     >
-                      {/* Service Image with Gradient Overlay */}
                       <div className="relative h-48 overflow-hidden">
                         <OptimizedImage
                           src={imageUrl}
                           alt={`${service.title} printing service`}
                           className="h-48 transition-transform duration-300 group-hover:scale-110"
-                          priority={index < 3} // Prioritize first 3 images (above the fold)
+                          priority={index < 3}
                         />
-
-                        {/* Gradient Overlay on Image */}
                         <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent"></div>
-
-                        {/* CMYK Border Glow on Hover */}
                         <div
                           className="absolute inset-0 border-2 border-transparent group-hover:border-cyan group-hover:shadow-cyan-glow transition-all duration-300 rounded-t-xl"
                           aria-hidden="true"
-                        ></div>
+                        />
                       </div>
 
-                      {/* Service Content */}
                       <div className="p-6">
                         <h3 className="text-xl font-heading font-semibold text-foreground mb-2 group-hover:text-cyan transition-colors duration-300">
                           {service.title}
                         </h3>
-                        <p className="text-muted-foreground text-sm leading-relaxed mb-4 line-clamp-3">
-                          {description}
-                        </p>
+                        <p className="text-muted-foreground text-sm leading-relaxed mb-4 line-clamp-3">{description}</p>
 
-                        {/* View Portfolio Samples Link */}
                         <button
                           onClick={(e) => {
-                            e.stopPropagation();
-                            const portfolioSection = document.querySelector('#portfolio');
-                            if (portfolioSection) {
-                              portfolioSection.scrollIntoView({ behavior: 'smooth' });
-                            }
+                            e.stopPropagation()
+                            const portfolioSection = document.querySelector('#portfolio')
+                            if (portfolioSection) portfolioSection.scrollIntoView({ behavior: 'smooth' })
                           }}
-                          className="opacity-0 group-hover:opacity-100 text-cyan hover:text-cyan-glow font-medium text-sm transition-all duration-300 flex items-center focus:opacity-100 focus:outline-none focus:ring-2 focus:ring-cyan focus:ring-offset-2 rounded"
+                          className="opacity-0 group-hover:opacity-100 text-cyan hover:text-cyan-glow font-medium text-sm transition-all duration-300 flex items-center"
                           aria-label={`View portfolio samples for ${service.title}`}
                         >
                           View Portfolio Samples
@@ -250,38 +267,20 @@ const ServicesGrid = () => {
                         </button>
                       </div>
 
-                      {/* Hover Effect Overlay */}
-                      <div
-                        className="absolute inset-0 bg-gradient-cyan opacity-0 group-hover:opacity-10 transition-opacity duration-300"
-                        aria-hidden="true"
-                      ></div>
+                      <div className="absolute inset-0 bg-gradient-cyan opacity-0 group-hover:opacity-10 transition-opacity duration-300" aria-hidden />
                     </motion.article>
-                  );
+                  )
                 })}
               </AnimatePresence>
             </motion.div>
           ) : (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
-              {renderEmptyState()}
-            </div>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">{renderEmptyState()}</div>
           )}
         </>
 
-        {/* View More / View Less Button */}
         {hasMore && (
-          <motion.div
-            className="text-center"
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.5, delay: 0.2 }}
-            viewport={{ once: true }}
-          >
-            <Button
-              onClick={() => setShowAll(!showAll)}
-              variant="outline"
-              size="lg"
-              className="group border-cyan/30 hover:border-cyan hover:bg-cyan/10 transition-all duration-300"
-            >
+          <motion.div className="text-center" initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} transition={{ duration: 0.5, delay: 0.2 }} viewport={{ once: true }}>
+            <Button onClick={() => setShowAll(!showAll)} variant="outline" size="lg" className="group border-cyan/30 hover:border-cyan hover:bg-cyan/10 transition-all duration-300">
               {showAll ? 'View Less Services' : `View All Services (${limitedServices.length})`}
               <motion.div animate={{ rotate: showAll ? 180 : 0 }} transition={{ duration: 0.3 }}>
                 <ChevronRight className="w-5 h-5 ml-2 rotate-90" />

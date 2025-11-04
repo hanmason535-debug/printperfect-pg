@@ -61,7 +61,7 @@ jobs:
       - name: Notice (advisory only; won't fail)
         run: echo "::notice title=Auto-Fix::This job is advisory and will not fail your PR."
 
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
         with:
           fetch-depth: 0
 

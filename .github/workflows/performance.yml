@@ -82,8 +82,8 @@ jobs:
 
       - name: Build for performance test
         env:
-          VITE_SANITY_PROJECT_ID: ${{ secrets.VITE_SANITY_PROJECT_ID || '' }}
-          VITE_SANITY_DATASET: ${{ secrets.VITE_SANITY_DATASET || 'production' }}
+          VITE_SANITY_PROJECT_ID: ${{ secrets.VITE_SANITY_PROJECT_ID }}
+          VITE_SANITY_DATASET: ${{ secrets.VITE_SANITY_DATASET }}
         run: npm run build
 
       - name: Serve built files
@@ -116,8 +116,8 @@ jobs:
 
       - name: Analyze bundle
         env:
-          VITE_SANITY_PROJECT_ID: ${{ secrets.VITE_SANITY_PROJECT_ID || '' }}
-          VITE_SANITY_DATASET: ${{ secrets.VITE_SANITY_DATASET || 'production' }}
+          VITE_SANITY_PROJECT_ID: ${{ secrets.VITE_SANITY_PROJECT_ID }}
+          VITE_SANITY_DATASET: ${{ secrets.VITE_SANITY_DATASET }}
         run: |
           npm run build
           
